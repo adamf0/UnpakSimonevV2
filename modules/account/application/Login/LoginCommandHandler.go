@@ -30,7 +30,7 @@ func (h *LoginCommandHandler) Handle(
 		return nil, err
 	}
 
-	accessToken, refreshToken, err := helper.GenerateToken(user.ID, *user.Resource)
+	accessToken, refreshToken, err := helper.GenerateToken(user.ID, *user.Resource, user.CodeCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +39,7 @@ func (h *LoginCommandHandler) Handle(
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		UserID:       user.ID,
-		Resource:     *user.Resource,
+		Resource:     helper.StringValue(user.Resource),
+		CodeCtx:      helper.StringValue(user.CodeCtx),
 	}, nil
 }

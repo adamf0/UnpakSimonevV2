@@ -6,11 +6,13 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"errors"
+	"strings"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 
+	"UnpakSiamida/common/helper"
 	domain "UnpakSiamida/modules/account/domain"
 )
 
@@ -94,20 +96,20 @@ func (r *AccountRepository) Auth(ctx context.Context, username string, password 
 
 func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier) (*domain.Account, error) {
 
-	if id.NIDN != nil && *id.NIDN != "" {
-		return r.getSimakDosen(ctx, *id.NIDN)
+	if strings.TrimSpace(helper.StringValue(id.NIDN)) != "" {
+		return r.getSimakDosen(ctx, helper.StringValue(id.NIDN))
 	}
 
-	if id.NIM != nil && *id.NIM != "" {
-		return r.getSimakMahasiswa(ctx, *id.NIM)
+	if strings.TrimSpace(helper.StringValue(id.NIM)) != "" {
+		return r.getSimakMahasiswa(ctx, helper.StringValue(id.NIM))
 	}
 
-	if id.NIP != nil && *id.NIP != "" {
-		return r.getSimpeg(ctx, *id.NIP)
+	if strings.TrimSpace(helper.StringValue(id.NIP)) != "" {
+		return r.getSimpeg(ctx, id.NIP, id.NIDN)
 	}
 
-	if id.UserID != nil && *id.UserID != "" {
-		return r.getDB(ctx, *id.UserID)
+	if strings.TrimSpace(helper.StringValue(id.UserID)) != "" {
+		return r.getDB(ctx, helper.StringValue(id.UserID))
 	}
 
 	return nil, errors.New("identifier not provided")
@@ -119,7 +121,7 @@ func (r *AccountRepository) authDB(ctx context.Context, username string, passwor
 
 	err := r.db.Debug().WithContext(ctx).
 		Table("users").
-		Select(`"local" as Resource, users.*`).
+		Select(`"local" as Resource, null as CodeCtx, users.*`).
 		Where("username = ? AND password_plain = ?", username, password).
 		First(&user).Error
 
@@ -162,8 +164,8 @@ mahasiswa_cte AS (
     LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
 )
 SELECT
-	u.userid as ID,
-	"simak" as Resource,
+	u.userid AS ID,
+	"simak" AS Resource,
     u.username AS Username,
     u.password AS Password,
     LOWER(u.level) AS Level,
@@ -173,18 +175,27 @@ SELECT
     COALESCE(d.Fakultas, m.Fakultas) AS Fakultas,
     COALESCE(d.RefProdi, m.RefProdi) AS RefProdi,
     COALESCE(d.Prodi, m.Prodi) AS Prodi,
-    NULL AS Unit
+    NULL AS Unit,
+	CASE 
+		WHEN LENGTH(TRIM(d.Name)) > 0 THEN ?
+		WHEN LENGTH(TRIM(m.Name)) > 0 THEN ?
+		ELSE ''
+	END AS CodeCtx
 FROM user u
 LEFT JOIN dosen_cte d ON d.nidn = u.userid
 LEFT JOIN mahasiswa_cte m ON m.nim = u.userid
-WHERE u.username = ? and u.password = ? and u.level in ("MAHASISWA","DOSEN") and u.aktif="Y"
-LIMIT 1
+WHERE 
+	u.username = ?
+	AND u.password = ?
+	AND u.level IN ("MAHASISWA","DOSEN")
+	AND u.aktif = "Y"
+LIMIT 1;
 `
 	hash := sha1.Sum([]byte(md5String(password)))
 	hashString := hex.EncodeToString(hash[:])
 
 	err := r.dbSimak.Debug().WithContext(ctx).
-		Raw(query, username, hashString).
+		Raw(query, domain.CtxDosen, domain.CtxMahasiswa, username, hashString).
 		Scan(&user).Error
 
 	if err != nil {
@@ -211,7 +222,8 @@ SELECT
 	t.fakultas AS Fakultas,
 	NULL AS RefProdi,
 	NULL AS Prodi,
-	t.unit AS Unit
+	t.unit AS Unit,
+	null as CodeCtx
 FROM pengguna u
 LEFT JOIN v_tendik t ON t.nip = u.username
 WHERE u.username = ? and u.password = ? and u.level in ("PEGAWAI","DOSEN") and u.status="AKTIF"
@@ -252,19 +264,35 @@ func (r *AccountRepository) getSimakDosen(ctx context.Context, nidn string) (*do
 	var user domain.Account
 
 	query := `
+WITH dosen_cte AS (
+    SELECT 
+        d.nidn,
+        CAST(d.nama_dosen AS CHAR(255)) AS Name,
+        CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
+        f.kode_fakultas AS RefFakultas,
+        f.nama_fakultas AS Fakultas,
+        p.kode_prodi AS RefProdi,
+        p.nama_prodi AS Prodi
+    FROM m_dosen d
+    LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
+    LEFT JOIN r_prodi p ON p.kode_prodi = d.kode_prodi
+) 
 SELECT
-	d.nidn AS Username,
-	d.nama_dosen AS Name,
-	d.email AS Email,
-	f.kode_fakultas AS RefFakultas,
-	f.nama_fakultas AS Fakultas,
-	p.kode_prodi AS RefProdi,
-	p.nama_prodi AS Prodi,
-	NULL AS Unit
-FROM m_dosen d
-LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
-LEFT JOIN r_prodi p ON p.kode_prodi = d.kode_prodi
-WHERE d.nidn = ?
+	u.userid as ID,
+	"simak" as Resource,
+    u.username AS Username,
+    u.password AS Password,
+    LOWER(u.level) AS Level,
+    d.Name AS Name,
+    d.Email AS Email,
+    d.RefFakultas AS RefFakultas,
+    d.Fakultas AS Fakultas,
+    d.RefProdi AS RefProdi,
+    d.Prodi AS Prodi,
+    NULL AS Unit
+FROM user u
+LEFT JOIN dosen_cte d ON d.nidn = u.userid
+WHERE d.nidn = ? and u.level = "DOSEN"
 LIMIT 1
 `
 
@@ -286,19 +314,35 @@ func (r *AccountRepository) getSimakMahasiswa(ctx context.Context, nim string) (
 	var user domain.Account
 
 	query := `
+WITH mahasiswa_cte AS (
+    SELECT
+        m.nim,
+        CAST(m.nama_mahasiswa AS CHAR(255)) AS Name,
+        CAST(NULLIF(TRIM(m.email), '') AS CHAR(255)) AS Email,
+        f.kode_fakultas AS RefFakultas,
+        f.nama_fakultas AS Fakultas,
+        p.kode_prodi AS RefProdi,
+        p.nama_prodi AS Prodi
+    FROM m_mahasiswa m
+    LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
+    LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
+)
 SELECT
-	m.nim AS Username,
-	m.nama_mahasiswa AS Name,
-	m.email AS Email,
-	f.kode_fakultas AS RefFakultas,
-	f.nama_fakultas AS Fakultas,
-	p.kode_prodi AS RefProdi,
-	p.nama_prodi AS Prodi,
-	NULL AS Unit
-FROM m_mahasiswa m
-LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
-LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
-WHERE m.nim = ?
+	u.userid as ID,
+	"simak" as Resource,
+    u.username AS Username,
+    u.password AS Password,
+    LOWER(u.level) AS Level,
+    m.Name AS Name,
+    m.Email AS Email,
+    m.RefFakultas AS RefFakultas,
+    m.Fakultas AS Fakultas,
+    m.RefProdi AS RefProdi,
+    m.Prodi AS Prodi,
+    NULL AS Unit
+FROM user u
+LEFT JOIN mahasiswa_cte m ON m.nim = u.userid
+WHERE m.nim = ? and u.level = "MAHASISWA"
 LIMIT 1
 `
 
@@ -315,13 +359,17 @@ LIMIT 1
 	return &user, nil
 }
 
-func (r *AccountRepository) getSimpeg(ctx context.Context, nip string) (*domain.Account, error) {
+func (r *AccountRepository) getSimpeg(ctx context.Context, nip *string, nidn *string) (*domain.Account, error) {
 
 	var user domain.Account
 
 	query := `
 SELECT
-	t.nip AS Username,
+	u.id as ID,
+	"simpeg" as Resource,
+	u.username AS Username,
+	u.password AS Password,
+	LOWER(u.level) AS Level,
 	t.nama AS Name,
 	NULL AS Email,
 	NULL AS RefFakultas,
@@ -329,13 +377,14 @@ SELECT
 	NULL AS RefProdi,
 	NULL AS Prodi,
 	t.unit AS Unit
-FROM v_tendik t
-WHERE t.nip = ?
+FROM pengguna u
+LEFT JOIN v_tendik t ON t.nip = u.username
+WHERE t.nip = ? or t.nidn = ?
 LIMIT 1
 `
 
 	err := r.dbSimpeg.WithContext(ctx).
-		Raw(query, nip).
+		Raw(query, helper.StringValue(nip), helper.StringValue(nidn)).
 		Scan(&user).Error
 
 	if err != nil {

@@ -53,7 +53,7 @@ func (h *UpdateBankSoalCommandHandler) Handle(
 		helper.StrPtr(cmd.Semester),
 		helper.StrPtr(cmd.TanggalMulai),
 		helper.StrPtr(cmd.TanggalAkhir),
-		cmd.Resource, //local, mahasiswa, dosen, pegawai
+		cmd.Resource, //local, simak, simpeg
 		cmd.SID,
 	)
 

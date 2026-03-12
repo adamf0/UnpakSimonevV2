@@ -56,7 +56,7 @@ func (h *CreateTemplatePertanyaanCommandHandler) Handle(
 		parseBobot,
 		&existingKategori.ID,
 		cmd.Required,
-		cmd.Resource, //local, mahasiswa, dosen, pegawai
+		cmd.Resource, //local, simak, simpeg
 		cmd.SID,
 	)
 

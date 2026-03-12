@@ -9,4 +9,5 @@ type CreateBankSoalCommand struct {
 	TanggalAkhir string
 	SID          string
 	Resource     string
+	CodeCtx      string
 }

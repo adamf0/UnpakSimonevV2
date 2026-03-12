@@ -13,7 +13,8 @@ type Account struct {
 	RefProdi    *string `json:"RefProdi"`
 	Prodi       *string `json:"Prodi"`
 	Unit        *string `json:"Unit"`
-	Resource    *string `json:"Unit"`
+	Resource    *string `json:"Resource"`
+	CodeCtx     *string `json:"CodeCtx"` //untuk membedakan dosen & mahasiswa
 }
 
 // func (Account) TableName() string {

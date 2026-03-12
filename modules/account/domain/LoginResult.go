@@ -5,4 +5,5 @@ type LoginResult struct {
 	RefreshToken string
 	UserID       string
 	Resource     string
+	CodeCtx      string
 }

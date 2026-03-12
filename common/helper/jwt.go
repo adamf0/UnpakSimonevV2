@@ -12,11 +12,12 @@ type JWTService struct {
 	Secret []byte
 }
 
-func GenerateToken(sid string, resource string) (string, string, error) {
+func GenerateToken(sid string, resource string, codectx *string) (string, string, error) {
 	// Access token (15 menit)
 	accessClaims := jwt.MapClaims{
 		"sid":      sid,
 		"resource": resource,
+		"codectx":  StringValue(codectx),
 		"exp":      time.Now().Add(1 * 24 * time.Hour).Unix(),
 	}
 	accessJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
@@ -29,6 +30,7 @@ func GenerateToken(sid string, resource string) (string, string, error) {
 	refreshClaims := jwt.MapClaims{
 		"sid":      sid,
 		"resource": resource,
+		"codectx":  StringValue(codectx),
 		"exp":      time.Now().Add(14 * 24 * time.Hour).Unix(),
 	}
 	refreshJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)

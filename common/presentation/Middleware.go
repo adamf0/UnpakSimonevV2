@@ -389,6 +389,9 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
 	if resource, ok := claims["resource"].(string); ok {
 		c.Request().PostArgs().Set("resource", resource)
 	}
+	if codectx, ok := claims["codectx"].(string); ok {
+		c.Request().PostArgs().Set("codectx", codectx)
+	}
 
 	c.Request().PostArgs().Set("token", tokenStr)
 }

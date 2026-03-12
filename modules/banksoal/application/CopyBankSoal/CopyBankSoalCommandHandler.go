@@ -48,7 +48,7 @@ func (h *CopyBankSoalCommandHandler) Handle(
 	result := domainbanksoal.CopyBankSoal(
 		existingBankSoal,
 		copyCount,
-		cmd.Resource, //local, mahasiswa, dosen, pegawai
+		cmd.Resource, //local, simak, simpeg
 		cmd.SID,
 	)
 

@@ -48,7 +48,7 @@ func (h *CopyKategoriCommandHandler) Handle(
 	result := domainkategori.CopyKategori(
 		existingKategori,
 		copyCount,
-		cmd.Resource, //local, mahasiswa, dosen, pegawai
+		cmd.Resource, //local, simak, simpeg
 		cmd.SID,
 	)
 

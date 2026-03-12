@@ -48,7 +48,7 @@ func (h *CreateTemplateJawabanCommandHandler) Handle(
 		cmd.Jawaban,
 		parseNilai,
 		parseFreeText,
-		cmd.Resource, //local, mahasiswa, dosen, pegawai
+		cmd.Resource, //local, simak, simpeg
 		cmd.SID,
 	)
 
