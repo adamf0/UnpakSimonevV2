@@ -202,7 +202,7 @@ func RestoreKategoriHandlerfunc(c *fiber.Ctx) error {
 // POST /kategori/{uuid}/copy
 // =======================================================
 
-// COpyKategoriHandler godoc
+// CopyKategoriHandler godoc
 // @Summary Copy a Kategori
 // @Tags Kategori
 // @Param uuid path string true "Kategori UUID" format(uuid)

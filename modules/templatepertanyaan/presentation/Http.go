@@ -236,7 +236,7 @@ func RestoreTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 // POST /templatepertanyaan/{uuid}/copy
 // =======================================================
 
-// COpyTemplatePertanyaanHandler godoc
+// CopyTemplatePertanyaanHandler godoc
 // @Summary Copy a TemplatePertanyaan
 // @Tags TemplatePertanyaan
 // @Param uuid path string true "TemplatePertanyaan UUID" format(uuid)

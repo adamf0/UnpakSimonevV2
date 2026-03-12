@@ -29,6 +29,10 @@ import (
 
 	templatepertanyaanPresentation "UnpakSiamida/modules/templatepertanyaan/presentation"
 
+	templatejawabanInfrastructure "UnpakSiamida/modules/templatejawaban/infrastructure"
+
+	templatejawabanPresentation "UnpakSiamida/modules/templatejawaban/presentation"
+
 	// userInfrastructure "UnpakSiamida/modules/user/infrastructure"
 
 	// userPresentation "UnpakSiamida/modules/user/presentation"
@@ -228,8 +232,12 @@ func main() {
 		return kategoriInfrastructure.RegisterModuleKategori(db)
 	})
 
-	mustStart("TaemplatePertanyaan Module", func() error {
+	mustStart("TemplatePertanyaan Module", func() error {
 		return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db)
+	})
+
+	mustStart("TemplateJawaban Module", func() error {
+		return templatejawabanInfrastructure.RegisterModuleTemplateJawaban(db)
 	})
 
 	if len(startupErrors) > 0 {
@@ -251,6 +259,7 @@ func main() {
 	banksoalPresentation.ModuleBankSoal(app)
 	kategoriPresentation.ModuleKategori(app)
 	templatepertanyaanPresentation.ModuleTemplatePertanyaan(app)
+	templatejawabanPresentation.ModuleTemplateJawaban(app)
 
 	// ctx, stop := signal.NotifyContext(
 	// 	context.Background(),

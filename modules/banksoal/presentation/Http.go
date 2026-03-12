@@ -225,7 +225,7 @@ func RestoreBankSoalHandlerfunc(c *fiber.Ctx) error {
 // POST /banksoal/{uuid}/copy
 // =======================================================
 
-// COpyBankSoalHandler godoc
+// CopyBankSoalHandler godoc
 // @Summary Copy a BankSoal
 // @Tags BankSoal
 // @Param uuid path string true "BankSoal UUID" format(uuid)

@@ -21,7 +21,6 @@ func UpdateTemplatePertanyaanCommandValidation(cmd UpdateTemplatePertanyaanComma
 		),
 		validation.Field(&cmd.Pertanyaan,
 			validation.Required.Error("Pertanyaan cannot be blank"),
-			validation.Length(1, 5000),
 			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 
