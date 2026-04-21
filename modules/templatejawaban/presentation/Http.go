@@ -8,6 +8,7 @@ import (
 	"github.com/mehdihadeli/go-mediatr"
 
 	commondomain "UnpakSiamida/common/domain"
+	"UnpakSiamida/common/helper"
 	commoninfra "UnpakSiamida/common/infrastructure"
 	commonpresentation "UnpakSiamida/common/presentation"
 	TemplateJawabandomain "UnpakSiamida/modules/templatejawaban/domain"
@@ -44,7 +45,7 @@ func CreateTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 
 	TemplatePertanyaan := c.FormValue("template_pertanyaan")
 	Jawaban := c.FormValue("jawaban")
-	Nilai := c.FormValue("nilai")
+	Nilai := helper.StrPtr(c.FormValue("nilai"))
 	IsFreeText := c.FormValue("isFreeText")
 	SID := c.FormValue("sid")
 	Resource := c.FormValue("resource")
@@ -90,7 +91,7 @@ func UpdateTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 	TemplatePertanyaan := c.FormValue("template_pertanyaan")
 	Jawaban := c.FormValue("jawaban")
-	Nilai := c.FormValue("nilai")
+	Nilai := helper.StrPtr(c.FormValue("nilai"))
 	IsFreeText := c.FormValue("isFreeText")
 	SID := c.FormValue("sid")
 	Resource := c.FormValue("resource")
@@ -342,7 +343,7 @@ func SetupUuidTemplateJawabansHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleTemplateJawaban(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://localhost:3000/whoami"
+	// whoamiURL := "http://127.0.0.1:3000/whoami"
 
 	app.Get("/templatejawaban/setupuuid", SetupUuidTemplateJawabansHandlerfunc)
 

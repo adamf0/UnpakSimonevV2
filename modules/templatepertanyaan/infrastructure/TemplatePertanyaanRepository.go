@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	commondomaintemplatepertanyaan "UnpakSiamida/common/domain"
+	commondomain "UnpakSiamida/common/domain"
 	"UnpakSiamida/common/helper"
 	domaintemplatepertanyaan "UnpakSiamida/modules/templatepertanyaan/domain"
 	"context"
@@ -70,9 +70,12 @@ func (r *TemplatePertanyaanRepository) GetDefaultByUuid(
 		a.id_kategori as IdKategori,
 		k.uuid as UuidKategori,
 		k.nama_kategori as Kategori,
+		k.full_text as FullPath,
+		a.status as Status,
 		a.required as Required,
 		a.created_at as CreatedAt,
-		a.updated_at as UpdatedAt
+		a.updated_at as UpdatedAt,
+		a.deleted_at as DeletedAt
 	`).
 		Where("a.uuid = ?", id).
 		Take(&rowData).Error
@@ -87,10 +90,96 @@ func (r *TemplatePertanyaanRepository) GetDefaultByUuid(
 	return &rowData, nil
 }
 
+func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
+	ctx context.Context,
+	id uuid.UUID,
+) (*domaintemplatepertanyaan.TemplatePertanyaanWithAnswareDefault, error) {
+
+	var rowData domaintemplatepertanyaan.TemplatePertanyaanWithAnswareDefault
+
+	// =========================
+	// QUERY HEADER PERTANYAAN
+	// =========================
+	err := r.db.Debug().
+		WithContext(ctx).
+		Table("template_pertanyaanv2 a").
+		Joins("LEFT JOIN kategori k ON k.id = a.id_kategori").
+		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+		Select(`
+			a.id as ID,
+			a.uuid as UUID,
+			a.id_bank_soal as IdBankSoal,
+			b.uuid as UUIDBankSoal,
+			b.judul as NamaBankSoal,
+			a.pertanyaan as Pertanyaan,
+			a.jenis_pilihan as JenisPilihan,
+			a.bobot as Bobot,
+			a.id_kategori as IdKategori,
+			k.uuid as UUIDKategori,
+			k.nama_kategori as Kategori,
+			k.full_text as FullPath,
+			a.required as Required,
+			a.status as Status,
+			a.createdBy as CreatedBy,
+			a.createdByRef as CreatedByRef,
+			a.fakultas as Fakultas,
+			a.prodi as Prodi,
+			a.unit as Unit,
+			a.jenjang as Jenjang,
+			a.deleted_at as DeletedAt,
+			a.created_at as CreatedAt,
+			a.updated_at as UpdatedAt
+		`).
+		Where("a.uuid = ?", id).
+		Take(&rowData).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	// =========================
+	// QUERY LIST JAWABAN
+	// =========================
+	listJawaban := make([]domaintemplatepertanyaan.TemplateJawabanDefault, 0)
+
+	err = r.db.Debug().
+		WithContext(ctx).
+		Table("template_pilihanv2 p").
+		Select(`
+			p.id as ID,
+			p.uuid as UUID,
+			p.id_template_pertanyaan as IdTemplatePertanyaan,
+			? as UUIDTemplatePertanyaan,
+			? as NamaTemplatePertanyaan,
+			p.jawaban as Jawaban,
+			p.nilai as Nilai,
+			p.isFreeText as IsFreeText,
+			p.deleted_at as DeletedAt,
+			p.created_at as CreatedAt,
+			p.updated_at as UpdatedAt
+		`, rowData.UUID, rowData.Pertanyaan).
+		Where("p.id_template_pertanyaan = ?", rowData.ID).
+		Where("p.deleted_at IS NULL").
+		Order("p.id ASC").
+		Find(&listJawaban).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	rowData.ListJawaban = listJawaban
+
+	return &rowData, nil
+}
+
 var allowedSearchColumns = map[string]string{
 	// key:param -> db column
-	"pertanyaan": "a.pertanyaan",
-	"kategori":   "k.nama_kategori",
+	"uuidbanksoal": "b.uuid",
+	"pertanyaan":   "a.pertanyaan",
+	"kategori":     "k.nama_kategori",
 }
 
 // ------------------------
@@ -99,7 +188,7 @@ var allowedSearchColumns = map[string]string{
 func (r *TemplatePertanyaanRepository) GetAll(
 	ctx context.Context,
 	search string,
-	searchFilters []commondomaintemplatepertanyaan.SearchFilter,
+	searchFilters []commondomain.SearchFilter,
 	page, limit *int,
 	deleted bool,
 ) ([]domaintemplatepertanyaan.TemplatePertanyaanDefault, int64, error) {
@@ -121,11 +210,14 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		a.jenis_pilihan as JenisPilihan,
 		a.bobot as Bobot,
 		a.id_kategori as IdKategori,
-		b.uuid as UuidKategori,
+		k.uuid as UuidKategori,
 		k.nama_kategori as Kategori,
+		k.full_text as FullPath,
+		a.status as Status,
 		a.required as Required,
 		a.created_at as CreatedAt,
-		a.updated_at as UpdatedAt
+		a.updated_at as UpdatedAt,
+		a.deleted_at as DeletedAt
 	`)
 
 	if deleted {

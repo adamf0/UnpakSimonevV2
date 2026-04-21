@@ -1,3 +1,8 @@
 domain belum strict
-change status
-checkbox & radio check required <-> change status
++ change status
++ checkbox & radio check required <-> change status
+penambahan full path kategori
+"IdKategori": 8,
+"UuidKategori": "69b1ccf0-ee66-47c6-93be-b6bdc72a3f00",
+"Kategori": "sub kategori A",
+"PathKategori": "kategori > sub kategori A"

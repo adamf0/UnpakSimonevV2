@@ -180,7 +180,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3000",
+	Host:             "127.0.0.1:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
 	Title:            "UnpakSiamidaV2 API",

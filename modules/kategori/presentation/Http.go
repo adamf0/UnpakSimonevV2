@@ -367,7 +367,7 @@ func SetupUuidKategorisHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleKategori(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://localhost:3000/whoami"
+	// whoamiURL := "http://127.0.0.1:3000/whoami"
 
 	app.Get("/kategori/setupuuid", SetupUuidKategorisHandlerfunc)
 

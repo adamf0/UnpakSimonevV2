@@ -2,6 +2,7 @@ package application
 
 import (
 	commondomain "UnpakSiamida/common/domain"
+	"UnpakSiamida/common/helper"
 	domainBankSoal "UnpakSiamida/modules/banksoal/domain"
 	"context"
 	"time"
@@ -18,13 +19,22 @@ func (h *GetAllBankSoalsQueryHandler) Handle(
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	if q.NIDN != nil || q.NIP != nil || q.NPM != nil {
+		return commondomain.Paged[domainBankSoal.BankSoalDefault]{}, domainBankSoal.OnlyAdminFacultyStudyProgram()
+	}
+
 	BankSoals, total, err := h.Repo.GetAll(
 		ctx,
 		q.Search,
-		q.SearchFilters,
+		q.SearchFilter,
+		helper.NullableString(q.TargetFakultas),
+		helper.NullableString(q.TargetProdi),
+		"",
+		"",
 		q.Page,
 		q.Limit,
 		q.Deleted,
+		false,
 	)
 	if err != nil {
 		return commondomain.Paged[domainBankSoal.BankSoalDefault]{}, err

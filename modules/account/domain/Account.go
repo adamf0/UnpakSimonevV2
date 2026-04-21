@@ -1,7 +1,7 @@
 package domain
 
 type Account struct {
-	ID          string  `json:"-"`
+	ID          string  `json:"ID"`
 	UUID        *string `json:"UUID"`
 	Username    *string `json:"Username"`
 	Password    *string `json:"-"`

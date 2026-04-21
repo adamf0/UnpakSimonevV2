@@ -42,9 +42,13 @@ func (h *UpdateTemplateJawabanCommandHandler) Handle(
 		return "", err
 	}
 
-	parseNilai, err := helper.ParseUint(cmd.Nilai)
-	if err != nil {
-		return "", err
+	var parseNilai *uint
+
+	val, err := helper.ParseUint(helper.NullableString(cmd.Nilai))
+	if err == nil {
+		parseNilai = &val
+	} else {
+		parseNilai = nil
 	}
 
 	// -------------------------
@@ -65,6 +69,7 @@ func (h *UpdateTemplateJawabanCommandHandler) Handle(
 	// -------------------------
 	// AGGREGATE ROOT LOGIC
 	// -------------------------
+	//[pr] check has unique isFreeText x id_template_pertanyaan
 	result := domaintemplatejawaban.UpdateTemplateJawaban(
 		existingTemplateJawaban,
 		uuidTemplateJawaban,

@@ -11,7 +11,6 @@ func WhoamiCommandValidation(cmd WhoamiCommand) error {
 		validation.Field(&cmd.SID,
 			validation.Required.Error("SID cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 	)
 }

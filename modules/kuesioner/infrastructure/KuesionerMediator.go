@@ -3,15 +3,22 @@ package infrastructure
 import (
 	commondomain "UnpakSiamida/common/domain"
 	commoninfra "UnpakSiamida/common/infrastructure"
+	domainBankSoal "UnpakSiamida/modules/banksoal/domain"
+	getActive "UnpakSiamida/modules/kuesioner/application/ActiveKuesioner"
+	getActiveSingle "UnpakSiamida/modules/kuesioner/application/ActiveKuesionerSingle"
 	create "UnpakSiamida/modules/kuesioner/application/CreateKuesioner"
 	delete "UnpakSiamida/modules/kuesioner/application/DeleteKuesioner"
 	getAll "UnpakSiamida/modules/kuesioner/application/GetAllKuesioners"
 	get "UnpakSiamida/modules/kuesioner/application/GetKuesioner"
+	getAnsware "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
+	save "UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban"
 	setupUuid "UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner"
 	domainKuesioner "UnpakSiamida/modules/kuesioner/domain"
 
 	infraAccount "UnpakSiamida/modules/account/infrastructure"
 	infraBankSoal "UnpakSiamida/modules/banksoal/infrastructure"
+	infraJawaban "UnpakSiamida/modules/templatejawaban/infrastructure"
+	infraPertanyaan "UnpakSiamida/modules/templatepertanyaan/infrastructure"
 
 	"github.com/mehdihadeli/go-mediatr"
 
@@ -30,8 +37,11 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 	// }
 
 	repoKuesioner := NewKuesionerRepository(db)
+	repoKuesionerJawaban := NewKuesionerJawabanRepository(db)
 	repoBankSoal := infraBankSoal.NewBankSoalRepository(db)
 	repoAccount := infraAccount.NewAccountRepository(db, dbSimak, dbSimpeg)
+	repoPertanyaan := infraPertanyaan.NewTemplatePertanyaanRepository(db)
+	repoJawaban := infraJawaban.NewTemplateJawabanRepository(db)
 	// if err := db.AutoMigrate(&domainKuesioner.Kuesioner{}); err != nil {
 	// 	panic(err)
 	// }
@@ -47,6 +57,23 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 		Repo:         repoKuesioner,
 		RepoBankSoal: repoBankSoal,
 		RepoAccount:  repoAccount,
+	})
+
+	mediatr.RegisterRequestHandler[
+		save.SaveKuesionerJawabanCommand,
+		string,
+	](&save.SaveKuesionerJawabanCommandHandler{
+		Repo:                 repoKuesioner,
+		RepoPertanyaan:       repoPertanyaan,
+		RepoJawaban:          repoJawaban,
+		RepoJawabanKuesioner: repoKuesionerJawaban,
+	})
+
+	mediatr.RegisterRequestHandler[
+		getAnsware.GetKuesionerJawabanByUuidQuery,
+		[]domainKuesioner.KuesionerJawabanDefault,
+	](&getAnsware.GetKuesionerJawabanByUuidQueryQueryHandler{
+		Repo: repoKuesionerJawaban,
 	})
 
 	mediatr.RegisterRequestHandler[
@@ -71,6 +98,24 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 	})
 
 	mediatr.RegisterRequestHandler[
+		getActive.ActiveKuesionerQuery,
+		[]domainBankSoal.BankSoalDefault,
+	](&getActive.ActiveKuesionerQueryHandler{
+		Repo:         repoKuesioner,
+		RepoJawaban:  repoKuesionerJawaban,
+		RepoBankSoal: repoBankSoal,
+	})
+
+	mediatr.RegisterRequestHandler[
+		getActiveSingle.ActiveKuesionerSingleQuery,
+		*domainBankSoal.BankSoalDefault,
+	](&getActiveSingle.ActiveKuesionerSingleQueryHandler{
+		Repo:         repoKuesioner,
+		RepoJawaban:  repoKuesionerJawaban,
+		RepoBankSoal: repoBankSoal,
+	})
+
+	mediatr.RegisterRequestHandler[
 		setupUuid.SetupUuidKuesionerCommand,
 		string,
 	](&setupUuid.SetupUuidKuesionerCommandHandler{
@@ -78,6 +123,7 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 	})
 
 	commoninfra.RegisterValidation(create.CreateKuesionerCommandValidation, "KuesionerCreate.Validation")
+	commoninfra.RegisterValidation(save.SaveKuesionerJawabanCommandValidation, "KuesionerJawabanSave.Validation")
 	commoninfra.RegisterValidation(delete.DeleteKuesionerCommandValidation, "KuesionerDelete.Validation")
 
 	return nil

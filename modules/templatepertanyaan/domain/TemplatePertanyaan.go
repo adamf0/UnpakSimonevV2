@@ -21,6 +21,7 @@ type TemplatePertanyaan struct {
 	Bobot        uint       `gorm:"column:bobot"`
 	IdKategori   *uint      `gorm:"column:id_kategori"`
 	Required     int        `gorm:"column:required"`
+	Status       string     `gorm:"column:status"`
 	CreatedBy    *string    `gorm:"column:createdBy"`
 	CreatedByRef *string    `gorm:"column:createdByRef"`
 	DeletedAt    *time.Time `gorm:"column:deleted_at"`
@@ -60,6 +61,7 @@ func NewTemplatePertanyaan(
 		Bobot:        bobot,
 		IdKategori:   idKategori,
 		Required:     required,
+		Status:       "draf",
 		CreatedBy:    helper.StrPtr(createdby),
 		CreatedByRef: helper.StrPtr(createdbyref),
 	}
@@ -161,6 +163,29 @@ func CopyTemplatePertanyaan(
 	}
 
 	return common.SuccessValue(aktivitasproker)
+}
+
+func ChangeStatus(
+	prev *TemplatePertanyaan,
+	status string,
+) common.ResultValue[*TemplatePertanyaan] {
+
+	if prev == nil {
+		return common.FailureValue[*TemplatePertanyaan](EmptyData())
+	}
+
+	validStatuses := map[string]bool{
+		"draf":   true,
+		"active": true,
+	}
+
+	if !validStatuses[status] {
+		return common.FailureValue[*TemplatePertanyaan](InvalidStatus())
+	}
+
+	prev.Status = status
+
+	return common.SuccessValue(prev)
 }
 
 func isOverlap(start1, end1 time.Time) bool {

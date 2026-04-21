@@ -11,15 +11,12 @@ func CopyKategoriCommandValidation(cmd CopyKategoriCommand) error {
 		validation.Field(&cmd.Uuid,
 			validation.Required.Error("UUID cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 		validation.Field(&cmd.SID,
 			validation.Required.Error("SID cannot be blank"),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 		validation.Field(&cmd.Resource,
 			validation.Required.Error("Resource cannot be blank"),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 	)
 }

@@ -18,8 +18,10 @@ import (
 	DeleteTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/DeleteTemplatePertanyaan"
 	GetAllTemplatePertanyaans "UnpakSiamida/modules/templatepertanyaan/application/GetAllTemplatePertanyaans"
 	GetTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaan"
+	GetTemplate "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaanWithAnswareDefault"
 	RestoreTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/RestoreTemplatePertanyaan"
 	SetupUuidTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/SetupUuidTemplatePertanyaan"
+	StatusTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/StatusTemplatePertanyaan"
 	UpdateTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/UpdateTemplatePertanyaan"
 )
 
@@ -130,6 +132,40 @@ func UpdateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	updatedID, err := mediatr.Send[UpdateTemplatePertanyaan.UpdateTemplatePertanyaanCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(fiber.Map{"uuid": updatedID})
+}
+
+// =======================================================
+// PUT /templatepertanyaan/{uuid}/status
+// =======================================================
+
+// StatusTemplatePertanyaanHandler godoc
+// @Summary Change status existing TemplatePertanyaan
+// @Tags TemplatePertanyaan
+// @Param uuid path string true "TemplatePertanyaan UUID" format(uuid)
+// @param status formData string true "Status"
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of updated TemplatePertanyaan"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /templatepertanyaan/{uuid} [put]
+func StatusTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
+
+	uuid := c.Params("uuid")
+	status := c.FormValue("status")
+
+	cmd := StatusTemplatePertanyaan.StatusTemplatePertanyaanCommand{
+		Uuid:   uuid,
+		Status: status,
+	}
+
+	updatedID, err := mediatr.Send[StatusTemplatePertanyaan.StatusTemplatePertanyaanCommand, string](context.Background(), cmd)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -268,7 +304,7 @@ func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /TemplatePertanyaan/{uuid}
+// GET /templatepertanyaan/{uuid}
 // =======================================================
 
 // GetTemplatePertanyaanHandler godoc
@@ -281,7 +317,7 @@ func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /TemplatePertanyaan/{uuid} [get]
+// @Router /templatepertanyaan/{uuid} [get]
 func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
@@ -304,7 +340,43 @@ func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /TemplatePertanyaans
+// GET /templatepertanyaan/{uuid}/template
+// =======================================================
+
+// GetTemplateHandler godoc
+// @Summary Get TemplatePertanyaan by UUID
+// @Tags TemplatePertanyaan
+// @Param uuid path string true "TemplatePertanyaan UUID" format(uuid)
+// @Produce json
+// @Success 200 {object} TemplatePertanyaandomain.TemplatePertanyaan
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /templatepertanyaan/{uuid} [get]
+func GetTemplateHandlerfunc(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+
+	query := GetTemplate.GetTemplatePertanyaanWithAnswareDefaultByUuidQuery{Uuid: uuid}
+
+	TemplatePertanyaan, err := mediatr.Send[
+		GetTemplate.GetTemplatePertanyaanWithAnswareDefaultByUuidQuery,
+		*TemplatePertanyaandomain.TemplatePertanyaanWithAnswareDefault,
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	if TemplatePertanyaan == nil {
+		return c.Status(404).JSON(fiber.Map{"error": "TemplatePertanyaan not found"})
+	}
+
+	return c.JSON(TemplatePertanyaan)
+}
+
+// =======================================================
+// GET /templatepertanyaans
 // =======================================================
 
 // GetAllTemplatePertanyaansHandler godoc
@@ -316,7 +388,7 @@ func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[TemplatePertanyaandomain.TemplatePertanyaanDefault]
-// @Router /TemplatePertanyaans [get]
+// @Router /templatepertanyaans [get]
 func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error {
 	flag := c.Query("flag", "none") //with deleted
 	mode := c.Query("mode", "paging")
@@ -401,7 +473,7 @@ func SetupUuidTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleTemplatePertanyaan(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://localhost:3000/whoami"
+	// whoamiURL := "http://127.0.0.1:3000/whoami"
 
 	app.Get("/templatepertanyaan/setupuuid", SetupUuidTemplatePertanyaansHandlerfunc)
 
@@ -412,7 +484,9 @@ func ModuleTemplatePertanyaan(app *fiber.App) {
 	app.Delete("/templatepertanyaan/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteTemplatePertanyaanHandlerfunc) //hanya lpm saja yg hard delete
 	app.Put("/templatepertanyaan/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreTemplatePertanyaanHandlerfunc)
 	app.Post("/templatepertanyaan/:uuid/copy", commonpresentation.JWTMiddleware(), CopyTemplatePertanyaanHandlerfunc)
+	app.Put("/templatepertanyaan/:uuid/status", commonpresentation.JWTMiddleware(), StatusTemplatePertanyaanHandlerfunc)
 
 	app.Get("/templatepertanyaan/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplatePertanyaanHandlerfunc)
+	app.Get("/templatepertanyaan/:uuid/template", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplateHandlerfunc)
 	app.Get("/templatepertanyaans", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllTemplatePertanyaansHandlerfunc)
 }

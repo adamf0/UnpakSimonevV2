@@ -1,6 +1,12 @@
+{
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "pipeline error: Error 1213 (40001): Deadlock found when trying to get lock; try restarting transaction",
+    "trace": "/Users/adamf/Documents/golang_project/UnpakSimonev/common/infrastructure/ResponseError.go:114 UnpakSiamida/common/infrastructure.HandleError\n/Users/adamf/Documents/golang_project/UnpakSimonev/modules/kuesioner/presentation/Http.go:106 UnpakSiamida/modules/kuesioner/presentation.SaveKuesionerJawabanHandlerfunc\n/Users/adamf/go/pkg/mod/github.com/gofiber/fiber/v2@v2.52.10/ctx.go:1039 github.com/gofiber/fiber/v2.(*Ctx).Next\n/Users/adamf/Documents/golang_project/UnpakSimonev/common/presentation/Middleware.go:335 UnpakSiamida/modules/kuesioner/presentation.ModuleKuesioner.JWTMiddleware.func3\n/Users/adamf/go/pkg/mod/github.com/gofiber/fiber/v2@v2.52.10/router.go:143 github.com/gofiber/fiber/v2.(*App).next\n/Users/adamf/go/pkg/mod/github.com/gofiber/fiber/v2@v2.52.10/ctx.go:1042 github.com/gofiber/fiber/v2.(*Ctx).Next\n/Users/adamf/Documents/golang_project/UnpakSimonev/main.go:179 main.main.func1\n/Users/adamf/go/pkg/mod/github.com/gofiber/fiber/v2@v2.52.10/ctx.go:1039 github.com/gofiber/fiber/v2.(*Ctx).Next\n/Users/adamf/Documents/golang_project/UnpakSimonev/common/presentation/Middleware.go:169 UnpakSiamida/common/presentation.HeaderSecurityMiddleware.func1\n/Users/adamf/go/pkg/mod/github.com/gofiber/fiber/v2@v2.52.10/ctx.go:1039 github.com/gofiber/fiber/v2.(*Ctx).Next"
+}
+
 CompileDaemon --build="go build -o app" --command="./app"
 
-http://localhost:3000/users?page=1&limit=2&search=Verifikator&filters=email:eq:dummy@gmail.com;fakultas_unit:neq:;
+http://127.0.0.1:3000/users?page=1&limit=2&search=Verifikator&filters=email:eq:dummy@gmail.com;fakultas_unit:neq:;
 
 go test -v \
   -coverpkg=UnpakSiamida/modules/fakultasunit/domain \

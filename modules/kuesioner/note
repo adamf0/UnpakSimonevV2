@@ -1,1 +1,11 @@
-check unique kuesioner entry by nidn nip npm 
+- filter data berdasarkan banyaknya kecocokan tanggal aktif bank soal (admin, fakultas, prodi)
+[{
+tanggalMulai:,
+tanggalAkhir:,
+by:
+status: "aktif" -> kalau aktifnya >1 munculkan
+}]
+- tanggal mulai dan tanggal akhir di hapus
+- perhitungan totalpertanyaan dan totalinput berdasarkan tanggal aktif (buatan admin / fakultas / prodi)
+
+ada masalah pada komunikasi antara kuesioner dengan bank soal, untuk saat ini masih tight copling seharusnya menggunakan modul api yg bisa akses query/command modul bank soal. jadi punya kontrak masing tanpa akses domain

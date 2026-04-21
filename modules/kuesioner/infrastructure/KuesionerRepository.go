@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	commondomainkuesioner "UnpakSiamida/common/domain"
+	commondomain "UnpakSiamida/common/domain"
 	"UnpakSiamida/common/helper"
 	domainkuesioner "UnpakSiamida/modules/kuesioner/domain"
 	"context"
@@ -51,25 +51,30 @@ func (r *KuesionerRepository) GetDefaultByUuid(
 	id uuid.UUID,
 ) (*domainkuesioner.KuesionerDefault, error) {
 
-	// Ambil hanya kolom yang benar-benar ada di struct KuesionerDefault
 	var rowData domainkuesioner.KuesionerDefault
 
 	err := r.db.WithContext(ctx).
-		Table("bank_soalv2 a").
+		Table("kuesionerv2 a").
 		Select(`
-			id as ID,
-			uuid as UUID,
-			judul as Judul,
-			content as Content,
-			deskripsi as Deskripsi,
-			semester as Semester,
-			tanggal_mulai as TanggalMulai,
-			tanggal_akhir as TanggalAkhir,
-			created_by as CreatedBy,
-			created_by_ref as CreatedByRef,
-			deleted_at as DeletedAt,
-			status as Status
+			a.id AS Id,
+			a.uuid AS UUID,
+			a.nidn AS NIDN,
+			a.nama_dosen AS NamaDosen,
+			a.nip AS NIP,
+			a.nama_tendik AS NamaTendik,
+			a.npm AS NPM,
+			a.nama_mahasiswa AS NamaMahasiswa,
+			a.kode_fakultas AS KodeFakultas,
+			a.fakultas AS Fakultas,
+			a.kode_prodi AS KodeProdi,
+			a.prodi AS Prodi,
+			a.unit AS Unit,
+			a.id_bank_soal AS IdBankSoal,
+			b.judul AS Judul,
+			b.semester AS Semester,
+			a.tanggal AS Tanggal
 	`).
+		Joins("JOIN bank_soalv2 b ON a.id_bank_soal = b.id").
 		Where("a.uuid = ?", id).
 		Take(&rowData).Error
 
@@ -85,9 +90,17 @@ func (r *KuesionerRepository) GetDefaultByUuid(
 
 var allowedSearchColumns = map[string]string{
 	// key:param -> db column
-	"judul":    "a.judul",
-	"semester": "a.semeter",
-	"status":   "a.status",
+	"judul":          "b.judul",
+	"semester":       "b.semester",
+	"nidn":           "a.nidn",
+	"nama_dosen":     "a.nama_dosen",
+	"nip":            "a.nip",
+	"nama_tendik":    "a.nama_tendik",
+	"npm":            "a.npm",
+	"nama_mahasiswa": "a.nama_mahasiswa",
+	"fakultas":       "a.fakultas",
+	"prodi":          "a.prodi",
+	"unit":           "a.unit",
 }
 
 // ------------------------
@@ -96,7 +109,7 @@ var allowedSearchColumns = map[string]string{
 func (r *KuesionerRepository) GetAll(
 	ctx context.Context,
 	search string,
-	searchFilters []commondomainkuesioner.SearchFilter,
+	searchFilters []commondomain.SearchFilter,
 	page, limit *int,
 	deleted bool,
 ) ([]domainkuesioner.KuesionerDefault, int64, error) {
@@ -105,29 +118,35 @@ func (r *KuesionerRepository) GetAll(
 	var total int64
 
 	db := r.db.Debug().WithContext(ctx).
-		Table("bank_soalv2 a").
+		Table("kuesionerv2 a").
 		Select(`
-			id as ID,
-			uuid as UUID,
-			judul as Judul,
-			content as Content,
-			deskripsi as Deskripsi,
-			semester as Semester,
-			tanggal_mulai as TanggalMulai,
-			tanggal_akhir as TanggalAkhir,
-			createdBy as CreatedBy,
-			createdByRef as CreatedByRef,
-			deleted_at as DeletedAt,
-			status as Status
-	`)
+			a.id AS Id,
+			a.uuid AS UUID,
+			a.nidn AS NIDN,
+			a.nama_dosen AS NamaDosen,
+			a.nip AS NIP,
+			a.nama_tendik AS NamaTendik,
+			a.npm AS NPM,
+			a.nama_mahasiswa AS NamaMahasiswa,
+			a.kode_fakultas AS KodeFakultas,
+			a.fakultas AS Fakultas,
+			a.kode_prodi AS KodeProdi,
+			a.prodi AS Prodi,
+			a.unit AS Unit,
+			a.id_bank_soal AS IdBankSoal,
+			b.judul AS Judul,
+			b.semester AS Semester,
+			a.tanggal AS Tanggal
+	`).
+		Joins("JOIN bank_soalv2 b ON a.id_bank_soal = b.id")
 
 	if deleted {
 		db = db.Where(clause.Expr{
-			SQL: "deleted_at IS NOT NULL",
+			SQL: "b.deleted_at IS NOT NULL",
 		})
 	} else {
 		db = db.Where(clause.Expr{
-			SQL: "deleted_at IS NULL",
+			SQL: "b.deleted_at IS NULL",
 		})
 	}
 
@@ -230,12 +249,63 @@ func (r *KuesionerRepository) GetAll(
 	return rows, total, nil
 }
 
-// [pr] masih gagal dapat current uuid setelah upsert
+func (r *KuesionerRepository) GetAllFormFromActiveBankSoal(
+	ctx context.Context,
+	nidn string,
+	nip string,
+	npm string,
+	banksoal []uint,
+) ([]domainkuesioner.KuesionerDefault, error) {
+
+	var rows = make([]domainkuesioner.KuesionerDefault, 0)
+
+	db := r.db.Debug().WithContext(ctx).
+		Table("kuesionerv2 a").
+		Select(`
+			a.id AS Id,
+			a.uuid AS UUID,
+			a.nidn AS NIDN,
+			a.nama_dosen AS NamaDosen,
+			a.nip AS NIP,
+			a.nama_tendik AS NamaTendik,
+			a.npm AS NPM,
+			a.nama_mahasiswa AS NamaMahasiswa,
+			a.kode_fakultas AS KodeFakultas,
+			a.fakultas AS Fakultas,
+			a.kode_prodi AS KodeProdi,
+			a.prodi AS Prodi,
+			a.unit AS Unit,
+			a.id_bank_soal AS IdBankSoal,
+			b.judul AS Judul,
+			b.semester AS Semester,
+			a.tanggal AS Tanggal
+	`).
+		Joins("JOIN bank_soalv2 b ON a.id_bank_soal = b.id").
+		Where("a.nidn = ?", nidn).
+		Where("a.nip = ?", nip).
+		Where("a.npm = ?", npm).
+		Where("a.id_bank_soal in (?)", banksoal)
+
+	// -----------------------------------
+	// ORDER
+	// -----------------------------------
+	db = db.Order("a.id DESC")
+
+	// -----------------------------------
+	// EXECUTE
+	// -----------------------------------
+	if err := db.Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	return rows, nil
+}
+
 // ------------------------
 // CREATE
 // ------------------------
 func (r *KuesionerRepository) Create(ctx context.Context, kuesioner *domainkuesioner.Kuesioner) error {
-	return r.db.WithContext(ctx).
+	tx := r.db.WithContext(ctx).
 		Clauses(clause.OnConflict{
 			Columns: []clause.Column{
 				{Name: "id_bank_soal"},
@@ -244,6 +314,7 @@ func (r *KuesionerRepository) Create(ctx context.Context, kuesioner *domainkuesi
 				{Name: "npm"},
 			},
 			DoUpdates: clause.Assignments(map[string]interface{}{
+				"id":             gorm.Expr("LAST_INSERT_ID(id)"),
 				"nama_dosen":     kuesioner.NamaDosen,
 				"nama_tendik":    kuesioner.NamaTendik,
 				"nama_mahasiswa": kuesioner.NamaMahasiswa,
@@ -258,7 +329,29 @@ func (r *KuesionerRepository) Create(ctx context.Context, kuesioner *domainkuesi
 				"updated_at":     gorm.Expr("NOW()"),
 			}),
 		}).
-		Create(kuesioner).Error
+		Create(kuesioner)
+
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	var result struct {
+		ID   uint
+		UUID uuid.UUID
+	}
+
+	if err := r.db.Raw(`
+		SELECT id, uuid 
+		FROM kuesionerv2 
+		WHERE id = LAST_INSERT_ID()
+	`).Scan(&result).Error; err != nil {
+		return err
+	}
+
+	kuesioner.ID = result.ID
+	kuesioner.UUID = result.UUID
+
+	return nil
 }
 
 // ------------------------
@@ -306,7 +399,7 @@ func (r *KuesionerRepository) SetupUuid(ctx context.Context) error {
 		args = append(args, chunk)
 
 		query := fmt.Sprintf(
-			"UPDATE bank_soalv2 SET uuid = %s WHERE id IN (?)",
+			"UPDATE kuesionerv2 SET uuid = %s WHERE id IN (?)",
 			caseSQL,
 		)
 

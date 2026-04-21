@@ -38,11 +38,16 @@ func (h *CreateTemplateJawabanCommandHandler) Handle(
 		return "", err
 	}
 
-	parseNilai, err := helper.ParseUint(cmd.Nilai)
-	if err != nil {
-		return "", err
+	var parseNilai *uint
+
+	val, err := helper.ParseUint(helper.NullableString(cmd.Nilai))
+	if err == nil {
+		parseNilai = &val
+	} else {
+		parseNilai = nil
 	}
 
+	//[pr][check] check has unique isFreeText x id_template_pertanyaan
 	result := domaintemplatejawaban.NewTemplateJawaban(
 		existingPertanyaan.ID,
 		cmd.Jawaban,

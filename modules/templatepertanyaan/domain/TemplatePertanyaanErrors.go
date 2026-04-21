@@ -17,6 +17,10 @@ func InvalidKategori() domain.Error {
 	return domain.NotFoundError("TemplatePertanyaan.InvalidKategori", "kategori is invalid")
 }
 
+func InvalidStatus() domain.Error {
+	return domain.NotFoundError("TemplatePertanyaan.InvalidStatus", "status is invalid")
+}
+
 func InvalidBankSoal() domain.Error {
 	return domain.NotFoundError("TemplatePertanyaan.InvalidBankSoal", "kategori is invalid")
 }

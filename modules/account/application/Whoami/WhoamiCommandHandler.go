@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"UnpakSiamida/common/helper"
 	domainaccount "UnpakSiamida/modules/account/domain"
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -23,12 +21,12 @@ func (h *WhoamiCommandHandler) Handle(
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	if cmd.SID != nil {
-		_, err := uuid.Parse(helper.StringValue(cmd.SID))
-		if err != nil {
-			return nil, domainaccount.NotFound(helper.StringValue(cmd.SID))
-		}
-	}
+	// if cmd.SID != nil {
+	// 	_, err := uuid.Parse(helper.StringValue(cmd.SID))
+	// 	if err != nil {
+	// 		return nil, domainaccount.NotFound(helper.StringValue(cmd.SID))
+	// 	}
+	// }
 
 	account := domainaccount.AccountIdentifier{
 		UserID: cmd.SID,

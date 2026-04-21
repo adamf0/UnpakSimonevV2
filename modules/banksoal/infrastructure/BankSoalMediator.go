@@ -6,10 +6,14 @@ import (
 	copy "UnpakSiamida/modules/banksoal/application/CopyBankSoal"
 	create "UnpakSiamida/modules/banksoal/application/CreateBankSoal"
 	delete "UnpakSiamida/modules/banksoal/application/DeleteBankSoal"
+	deleteTime "UnpakSiamida/modules/banksoal/application/DeleteTimeBankSoal"
 	getAll "UnpakSiamida/modules/banksoal/application/GetAllBankSoals"
 	get "UnpakSiamida/modules/banksoal/application/GetBankSoal"
+	getDefault "UnpakSiamida/modules/banksoal/application/GetBankSoalDefault"
 	restore "UnpakSiamida/modules/banksoal/application/RestoreBankSoal"
+	schedule "UnpakSiamida/modules/banksoal/application/ScheduleTimeBankSoal"
 	setupUuid "UnpakSiamida/modules/banksoal/application/SetupUuidBankSoal"
+	status "UnpakSiamida/modules/banksoal/application/StatusBankSoal"
 	update "UnpakSiamida/modules/banksoal/application/UpdateBankSoal"
 	domainBankSoal "UnpakSiamida/modules/banksoal/domain"
 
@@ -38,6 +42,27 @@ func RegisterModuleBankSoal(db *gorm.DB) error {
 	// mediatr.RegisterRequestPipelineBehaviors(NewValidationBehaviorBankSoal())
 
 	// Register request handler
+	mediatr.RegisterRequestHandler[
+		deleteTime.DeleteTimeBankSoalCommand,
+		string,
+	](&deleteTime.DeleteTimeBankSoalCommandHandler{
+		Repo: repoBankSoal,
+	})
+
+	mediatr.RegisterRequestHandler[
+		deleteTime.DeleteTimeExtBankSoalCommand,
+		string,
+	](&deleteTime.DeleteTimeExtBankSoalCommandHandler{
+		Repo: repoBankSoal,
+	})
+
+	mediatr.RegisterRequestHandler[
+		status.StatusBankSoalCommand,
+		string,
+	](&status.StatusBankSoalCommandHandler{
+		Repo: repoBankSoal,
+	})
+
 	mediatr.RegisterRequestHandler[
 		create.CreateBankSoalCommand,
 		string,
@@ -81,6 +106,13 @@ func RegisterModuleBankSoal(db *gorm.DB) error {
 	})
 
 	mediatr.RegisterRequestHandler[
+		getDefault.GetBankSoalDefaultByUuidQuery,
+		*domainBankSoal.BankSoalDefault,
+	](&getDefault.GetBankSoalDefaultByUuidQueryHandler{
+		Repo: repoBankSoal,
+	})
+
+	mediatr.RegisterRequestHandler[
 		getAll.GetAllBankSoalsQuery,
 		commondomain.Paged[domainBankSoal.BankSoalDefault],
 	](&getAll.GetAllBankSoalsQueryHandler{
@@ -94,11 +126,22 @@ func RegisterModuleBankSoal(db *gorm.DB) error {
 		Repo: repoBankSoal,
 	})
 
+	mediatr.RegisterRequestHandler[
+		schedule.ScheduleTimeBankSoalCommand,
+		string,
+	](&schedule.ScheduleTimeBankSoalCommandHandler{
+		Repo: repoBankSoal,
+	})
+
 	commoninfra.RegisterValidation(create.CreateBankSoalCommandValidation, "BankSoalCreate.Validation")
 	commoninfra.RegisterValidation(update.UpdateBankSoalCommandValidation, "BankSoalUpdate.Validation")
 	commoninfra.RegisterValidation(restore.RestoreBankSoalCommandValidation, "BankSoalRestore.Validation")
 	commoninfra.RegisterValidation(copy.CopyBankSoalCommandValidation, "BankSoalCopy.Validation")
 	commoninfra.RegisterValidation(delete.DeleteBankSoalCommandValidation, "BankSoalDelete.Validation")
+	commoninfra.RegisterValidation(deleteTime.DeleteTimeBankSoalCommandValidation, "BankSoalDeleteTime.Validation")
+	commoninfra.RegisterValidation(deleteTime.DeleteTimeExtBankSoalCommandValidation, "BankSoalDeleteTimeExt.Validation")
+	commoninfra.RegisterValidation(status.StatusBankSoalCommandValidation, "BankSoalStatus.Validation")
+	commoninfra.RegisterValidation(schedule.ScheduleTimeBankSoalCommandValidation, "BankSoalSchedule.Validation")
 
 	return nil
 }

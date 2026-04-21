@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/helmet"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -138,7 +139,7 @@ func NewMySQLSimpeg() (*gorm.DB, error) {
 // @title UnpakSiamidaV2 API
 // @version 1.0
 // @description All Module Siamida
-// @host localhost:3000
+// @host 127.0.0.1:3000
 // @BasePath /
 func main() {
 	cfg := commonpresentation.DefaultHeaderSecurityConfig()
@@ -152,11 +153,14 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  10 * time.Second,
 	})
+	app.Use(recover.New())
+
 	// app.Use(recover())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders: "*",
+		AllowOrigins:     "http://127.0.0.1:3000, http://localhost:4000",
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
 	}))
 	app.Use(helmet.New(helmet.Config{
 		XSSProtection:             "1; mode=block",

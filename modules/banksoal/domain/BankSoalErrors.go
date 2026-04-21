@@ -9,12 +9,24 @@ func EmptyData() domain.Error {
 	return domain.NotFoundError("BankSoal.EmptyData", "data is not found")
 }
 
+func OnlyStudentLecturerStaff() domain.Error {
+	return domain.NotFoundError("BankSoal.OnlyStudentLecturerStaff", "only student, lecture and staff can access this feature") //[note] temuan pada security karena memberikan informasi ke external secara spesifik
+}
+
+func OnlyAdminFacultyStudyProgram() domain.Error {
+	return domain.NotFoundError("BankSoal.OnlyAdminFacultyStudyProgram", "only admin, faculty and study program can access this feature") //[note] temuan pada security karena memberikan informasi ke external secara spesifik
+}
+
 func InvalidUuid() domain.Error {
 	return domain.NotFoundError("BankSoal.InvalidUuid", "uuid is invalid")
 }
 
 func InvalidData() domain.Error {
 	return domain.NotFoundError("BankSoal.InvalidData", "data is invalid")
+}
+
+func InvalidStatus() domain.Error {
+	return domain.NotFoundError("BankSoal.InvalidStatus", "status is invalid")
 }
 
 func NotFound(id string) domain.Error {

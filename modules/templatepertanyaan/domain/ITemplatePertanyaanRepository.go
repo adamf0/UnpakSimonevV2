@@ -11,6 +11,7 @@ type ITemplatePertanyaanRepository interface {
 	CountCopy(ctx context.Context, judul string) (int, error)
 	GetByUuid(ctx context.Context, uid uuid.UUID) (*TemplatePertanyaan, error)
 	GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*TemplatePertanyaanDefault, error)
+	GetDefaultWithAnswareByUuid(ctx context.Context, uid uuid.UUID) (*TemplatePertanyaanWithAnswareDefault, error)
 	GetAll(
 		ctx context.Context,
 		search string,

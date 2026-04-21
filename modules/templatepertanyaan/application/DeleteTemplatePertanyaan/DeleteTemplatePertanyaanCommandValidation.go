@@ -11,11 +11,9 @@ func DeleteTemplatePertanyaanCommandValidation(cmd DeleteTemplatePertanyaanComma
 		validation.Field(&cmd.Uuid,
 			validation.Required.Error("UUID cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 		validation.Field(&cmd.Uuid,
 			validation.Required.Error("mode cannot be blank"),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 	)
 }

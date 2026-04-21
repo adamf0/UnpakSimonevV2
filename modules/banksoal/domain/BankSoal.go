@@ -37,39 +37,11 @@ func NewBankSoal(
 	content *string,
 	deskripsi *string,
 	semester *string,
-	tanggalmulai *string,
-	tanggalakhir *string,
 	createdby string, //lpm, fakultas, prodi
 	createdbyref string,
 ) common.ResultValue[*BankSoal] {
-	format := "2006-01-02 15:04:05"
-
-	var tanggalMulai time.Time
-	var tanggalAkhir time.Time
-	var err error
-
 	if createdby != "local" {
 		return common.FailureValue[*BankSoal](InvalidOwner())
-	}
-
-	if tanggalmulai != nil {
-		tanggalMulai, err = time.Parse(format, helper.StringValue(tanggalmulai))
-		if err != nil {
-			return common.FailureValue[*BankSoal](InvalidDate("tanggal mulai"))
-		}
-	}
-
-	if tanggalakhir != nil {
-		tanggalAkhir, err = time.Parse(format, helper.StringValue(tanggalakhir))
-		if err != nil {
-			return common.FailureValue[*BankSoal](InvalidDate("tanggal akhir"))
-		}
-	}
-
-	if tanggalmulai != nil && tanggalakhir != nil {
-		if isOverlap(tanggalMulai, tanggalAkhir) {
-			return common.FailureValue[*BankSoal](InvalidDateRange())
-		}
 	}
 
 	aktivitasproker := &BankSoal{
@@ -78,8 +50,6 @@ func NewBankSoal(
 		Content:      content,
 		Deskripsi:    deskripsi,
 		Semester:     semester,
-		TanggalMulai: &tanggalMulai,
-		TanggalAkhir: &tanggalAkhir,
 		Status:       "draf",
 		CreatedBy:    helper.StrPtr(createdby),
 		CreatedByRef: helper.StrPtr(createdbyref),
@@ -96,8 +66,6 @@ func UpdateBankSoal(
 	content *string,
 	deskripsi *string,
 	semester *string,
-	tanggalmulai *string,
-	tanggalakhir *string,
 	createdby string, //lpm, fakultas, prodi
 	createdbyref string,
 ) common.ResultValue[*BankSoal] {
@@ -110,27 +78,51 @@ func UpdateBankSoal(
 		return common.FailureValue[*BankSoal](InvalidData())
 	}
 
-	format := "2006-01-02 15:04:05"
+	if createdby != "local" {
+		return common.FailureValue[*BankSoal](InvalidOwner())
+	}
+
+	prev.Judul = judul
+	prev.Content = content
+	prev.Deskripsi = deskripsi
+	prev.Semester = semester
+	prev.CreatedBy = helper.StrPtr(createdby)
+	prev.CreatedByRef = helper.StrPtr(createdbyref)
+
+	return common.SuccessValue(prev)
+}
+
+func UpdateTimeBankSoal(
+	prev *BankSoal,
+	uid uuid.UUID,
+	tanggalmulai *string,
+	tanggalakhir *string,
+) common.ResultValue[*BankSoal] {
+	if prev == nil {
+		return common.FailureValue[*BankSoal](EmptyData())
+	}
+
+	if prev.UUID != uid {
+		return common.FailureValue[*BankSoal](InvalidData())
+	}
+
+	format := "2006-01-02"
 
 	var tanggalMulai time.Time
 	var tanggalAkhir time.Time
 	var err error
 
-	if createdby != "local" {
-		return common.FailureValue[*BankSoal](InvalidOwner())
-	}
-
 	if tanggalmulai != nil {
 		tanggalMulai, err = time.Parse(format, helper.StringValue(tanggalmulai))
 		if err != nil {
-			return common.FailureValue[*BankSoal](InvalidDate("tanggal rk awal"))
+			return common.FailureValue[*BankSoal](InvalidDate("tanggal awal"))
 		}
 	}
 
 	if tanggalakhir != nil {
 		tanggalAkhir, err = time.Parse(format, helper.StringValue(tanggalakhir))
 		if err != nil {
-			return common.FailureValue[*BankSoal](InvalidDate("tanggal rk akhir"))
+			return common.FailureValue[*BankSoal](InvalidDate("tanggal akhir"))
 		}
 	}
 
@@ -140,14 +132,8 @@ func UpdateBankSoal(
 		}
 	}
 
-	prev.Judul = judul
-	prev.Content = content
-	prev.Deskripsi = deskripsi
-	prev.Semester = semester
 	prev.TanggalMulai = &tanggalMulai
 	prev.TanggalAkhir = &tanggalAkhir
-	prev.CreatedBy = helper.StrPtr(createdby)
-	prev.CreatedByRef = helper.StrPtr(createdbyref)
 
 	return common.SuccessValue(prev)
 }
@@ -163,6 +149,21 @@ func DeleteBankSoal(
 
 	now := time.Now()
 	prev.DeletedAt = &now
+
+	return common.SuccessValue(prev)
+}
+
+// === Reset Time ===
+func ResetTimeBankSoal(
+	prev *BankSoal,
+) common.ResultValue[*BankSoal] {
+
+	if prev == nil {
+		return common.FailureValue[*BankSoal](EmptyData())
+	}
+
+	prev.TanggalMulai = nil
+	prev.TanggalAkhir = nil
 
 	return common.SuccessValue(prev)
 }
@@ -214,6 +215,29 @@ func CopyBankSoal(
 	}
 
 	return common.SuccessValue(aktivitasproker)
+}
+
+func ChangeStatus(
+	prev *BankSoal,
+	status string,
+) common.ResultValue[*BankSoal] {
+
+	if prev == nil {
+		return common.FailureValue[*BankSoal](EmptyData())
+	}
+
+	validStatuses := map[string]bool{
+		"draf":   true,
+		"active": true,
+	}
+
+	if !validStatuses[status] {
+		return common.FailureValue[*BankSoal](InvalidStatus())
+	}
+
+	prev.Status = status
+
+	return common.SuccessValue(prev)
 }
 
 func isOverlap(start1, end1 time.Time) bool {

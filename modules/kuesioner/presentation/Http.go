@@ -8,14 +8,20 @@ import (
 	"github.com/mehdihadeli/go-mediatr"
 
 	commondomain "UnpakSiamida/common/domain"
+	"UnpakSiamida/common/helper"
 	commoninfra "UnpakSiamida/common/infrastructure"
 	commonpresentation "UnpakSiamida/common/presentation"
+	BankSoaldomain "UnpakSiamida/modules/banksoal/domain"
 	Kuesionerdomain "UnpakSiamida/modules/kuesioner/domain"
 
+	ActiveKuesioners "UnpakSiamida/modules/kuesioner/application/ActiveKuesioner"
+	ActiveKuesionersSingle "UnpakSiamida/modules/kuesioner/application/ActiveKuesionerSingle"
 	CreateKuesioner "UnpakSiamida/modules/kuesioner/application/CreateKuesioner"
 	DeleteKuesioner "UnpakSiamida/modules/kuesioner/application/DeleteKuesioner"
 	GetAllKuesioners "UnpakSiamida/modules/kuesioner/application/GetAllKuesioners"
 	GetKuesioner "UnpakSiamida/modules/kuesioner/application/GetKuesioner"
+	GetKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
+	SaveKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban"
 	SetupUuidKuesioner "UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner"
 )
 
@@ -58,6 +64,81 @@ func CreateKuesionerHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	return commonpresentation.JsonUUID(c, uuid)
+}
+
+// =======================================================
+// POST /kuesioner/{uuid}/jawaban
+// =======================================================
+
+// SaveKuesionerJawabanHandler godoc
+// @Summary Save new Kuesioner Jawaban
+// @Tags Kuesioner
+// @param pertanyaan formData string true "Pertanyaan" format(uuid)
+// @param jawaban formData string true "Jawaban"
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of created Kuesioner"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /kuesioner [post]
+func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error {
+
+	UuidKuesioner := c.Params("uuid")
+	UuidPertanyaan := c.FormValue("pertanyaan")
+	Jawaban := c.FormValue("jawaban")
+
+	SID := c.FormValue("sid")
+	Resource := c.FormValue("resource")
+	CodeCtx := c.FormValue("codectx")
+
+	cmd := SaveKuesionerJawaban.SaveKuesionerJawabanCommand{
+		UuidKuesioner:  UuidKuesioner,
+		UuidPertanyaan: UuidPertanyaan,
+		Jawaban:        Jawaban,
+		SID:            SID,
+		Resource:       Resource,
+		CodeCtx:        CodeCtx,
+	}
+
+	uuid, err := mediatr.Send[SaveKuesionerJawaban.SaveKuesionerJawabanCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return commonpresentation.JsonUUID(c, uuid)
+}
+
+// =======================================================
+// GET /Kuesioner/{uuid}/jawaban
+// =======================================================
+
+// GetKuesionerJawabanHandler godoc
+// @Summary Get Kuesioner Jawaban by UUID
+// @Tags Kuesioner
+// @Param uuid path string true "Kuesioner UUID" format(uuid)
+// @Produce json
+// @Success 200 {object} Kuesionerdomain.Kuesioner
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /Kuesioner/{uuid} [get]
+func GetKuesionerJawabanHandlerfunc(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+
+	query := GetKuesionerJawaban.GetKuesionerJawabanByUuidQuery{Uuid: uuid}
+
+	KuesionerJawaban, err := mediatr.Send[
+		GetKuesionerJawaban.GetKuesionerJawabanByUuidQuery,
+		[]Kuesionerdomain.KuesionerJawabanDefault,
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(KuesionerJawaban)
 }
 
 // =======================================================
@@ -212,6 +293,112 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 	return adapter.Send(c, result)
 }
 
+// =======================================================
+// GET /Kuesioners/Active
+// =======================================================
+
+// ActiveKuesionersHandler godoc
+// @Summary Get all Kuesioners
+// @Tags Kuesioner
+// @Param mode query string false "paging | all | ndjson | sse"
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page"
+// @Param search query string false "Search keyword"
+// @Produce json
+// @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
+// @Router /Kuesioners [get]
+func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error {
+	// flag := c.Query("flag", "none") //with deleted
+	nidn := c.FormValue("nidn")
+	nip := c.FormValue("nip")
+	npm := c.FormValue("npm")
+	fakultas := c.FormValue("fakultas")
+	prodi := c.FormValue("prodi")
+	unit := strings.TrimSpace(c.FormValue("unit"))
+	if strings.HasPrefix(strings.ToUpper(unit), "F.") || strings.HasPrefix(strings.ToUpper(unit), "F. ") {
+		unit = "Fakultas " + strings.TrimSpace(unit[2:])
+	}
+	unit = strings.ToLower(unit)
+
+	// withDeleted := false
+	// if flag == "deleted" {
+	// 	withDeleted = true
+	// }
+	query := ActiveKuesioners.ActiveKuesionerQuery{
+		NPM:      helper.StrPtr(npm),
+		NIDN:     helper.StrPtr(nidn),
+		NIP:      helper.StrPtr(nip),
+		Fakultas: helper.StrPtr(fakultas),
+		Prodi:    helper.StrPtr(prodi),
+		Unit:     helper.StrPtr(unit),
+	}
+
+	result, err := mediatr.Send[
+		ActiveKuesioners.ActiveKuesionerQuery,
+		[]BankSoaldomain.BankSoalDefault,
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(result)
+}
+
+// =======================================================
+// GET /Kuesioners/Active/{uuid}
+// =======================================================
+
+// GetKuesionersActiveByTargetHandler godoc
+// @Summary Get Kuesioner Active
+// @Tags Kuesioner
+// @Param mode query string false "paging | all | ndjson | sse"
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page"
+// @Param search query string false "Search keyword"
+// @Produce json
+// @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
+// @Router /Kuesioners [get]
+func GetKuesionersActiveByTargetHandler(c *fiber.Ctx) error {
+	// flag := c.Query("flag", "none") //with deleted
+	uuid := c.Params("uuid")
+	nidn := c.FormValue("nidn")
+	nip := c.FormValue("nip")
+	npm := c.FormValue("npm")
+	fakultas := c.FormValue("fakultas")
+	prodi := c.FormValue("prodi")
+	unit := strings.TrimSpace(c.FormValue("unit"))
+	if strings.HasPrefix(strings.ToUpper(unit), "F.") || strings.HasPrefix(strings.ToUpper(unit), "F. ") {
+		unit = "Fakultas " + strings.TrimSpace(unit[2:])
+	}
+	unit = strings.ToLower(unit)
+
+	// withDeleted := false
+	// if flag == "deleted" {
+	// 	withDeleted = true
+	// }
+	query := ActiveKuesionersSingle.ActiveKuesionerSingleQuery{
+		NPM:      helper.StrPtr(npm),
+		NIDN:     helper.StrPtr(nidn),
+		NIP:      helper.StrPtr(nip),
+		Fakultas: helper.StrPtr(fakultas),
+		Prodi:    helper.StrPtr(prodi),
+		Unit:     helper.StrPtr(unit),
+		UUID:     uuid,
+	}
+
+	result, err := mediatr.Send[
+		ActiveKuesionersSingle.ActiveKuesionerSingleQuery,
+		*BankSoaldomain.BankSoalDefault,
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(result)
+}
+
 func SetupUuidKuesionersHandlerfunc(c *fiber.Ctx) error {
 	cmd := SetupUuidKuesioner.SetupUuidKuesionerCommand{}
 
@@ -224,15 +411,19 @@ func SetupUuidKuesionersHandlerfunc(c *fiber.Ctx) error {
 }
 
 func ModuleKuesioner(app *fiber.App) {
-	// admin := []string{"admin"}
-	// whoamiURL := "http://localhost:3000/whoami"
+	admin := []string{"admin"}
+	whoamiURL := "http://127.0.0.1:3000/whoami"
 
 	app.Get("/kuesioner/setupuuid", SetupUuidKuesionersHandlerfunc)
 
 	app.Post("/kuesioner", commonpresentation.JWTMiddleware(), CreateKuesionerHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Get("/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), GetKuesionerJawabanHandlerfunc)
+	app.Post("/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), SaveKuesionerJawabanHandlerfunc)
 
 	app.Delete("/kuesioner/:uuid", commonpresentation.JWTMiddleware(), DeleteKuesionerHandlerfunc)
 
 	app.Get("/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
 	app.Get("/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
+	app.Get("/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
+	app.Get("/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }

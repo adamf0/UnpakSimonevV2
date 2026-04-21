@@ -11,7 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"UnpakSiamida/common/helper"
 	commoninfra "UnpakSiamida/common/infrastructure"
+	domainaccount "UnpakSiamida/modules/account/domain"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -60,7 +62,7 @@ func DefaultBlacklistedHeaderNames() map[string]bool {
 func DefaultHeaderSecurityConfig() *HeaderSecurityConfig {
 	return &HeaderSecurityConfig{
 		BlacklistedHeaderNames: DefaultBlacklistedHeaderNames(),
-		AllowDomains:           []string{"siamida.unpak.ac.id", "localhost", "localhost:3000", "thunderclient.com"},
+		AllowDomains:           []string{"simonev.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com"},
 		MaxHeaderLen:           8192,
 		ResolveAndCheck:        false,
 		LookupTimeout:          1 * time.Second,
@@ -82,14 +84,28 @@ var (
 )
 
 type Account struct {
-	UUID         string      `json:"uuid"`
-	NidnUsername string      `json:"nidn_username"`
-	Password     string      `json:"password"`
-	Level        string      `json:"level"`
-	Name         string      `json:"name"`
-	Email        string      `json:"email"`
-	FakultasUnit string      `json:"fakultas_unit"`
-	ExtraRole    []ExtraRole `gorm:"-" json:"extrarole,omitempty"`
+	// UUID         string      `json:"uuid"`
+	// NidnUsername string      `json:"nidn_username"`
+	// Password     string      `json:"password"`
+	// Level        string      `json:"level"`
+	// Name         string      `json:"name"`
+	// Email        string      `json:"email"`
+	// FakultasUnit string      `json:"fakultas_unit"`
+	// ExtraRole    []ExtraRole `gorm:"-" json:"extrarole,omitempty"`
+	ID          string  `json:"ID"`
+	UUID        *string `json:"UUID"`
+	Username    *string `json:"Username"`
+	Password    *string `json:"-"`
+	Level       *string `json:"Level"`
+	Name        *string `json:"Name"`
+	Email       *string `json:"Email"`
+	RefFakultas *string `json:"RefFakultas"`
+	Fakultas    *string `json:"Fakultas"`
+	RefProdi    *string `json:"RefProdi"`
+	Prodi       *string `json:"Prodi"`
+	Unit        *string `json:"Unit"`
+	Resource    *string `json:"Resource"`
+	CodeCtx     *string `json:"CodeCtx"` //untuk membedakan dosen & mahasiswa
 }
 type ExtraRole struct {
 	Tahun string `json:"tahun"`
@@ -240,6 +256,7 @@ func validateHostHeader(name, decoded string, cfg *HeaderSecurityConfig) error {
 		return nil
 	}
 
+	// godump.Dd(decoded, cfg.AllowDomains)
 	if !domainAllowed(decoded, cfg.AllowDomains) {
 		return commoninfra.NewResponseError("common.check[A+8]", "host header spoof: "+decoded)
 	}
@@ -320,16 +337,24 @@ func JWTMiddleware() fiber.Handler {
 }
 
 func extractBearerToken(c *fiber.Ctx) (string, error) {
+	authQuery := c.Query("ctxtoken")
 	authHeader := c.Get("Authorization")
 	log.Printf("Authorization header: %s", authHeader)
 
-	if authHeader == "" {
+	if authHeader == "" && authQuery == "" {
 		log.Println("Authorization header missing")
 		return "", c.Status(400).
 			JSON(commoninfra.NewResponseError(logCommonRbac, "authorization header missing"))
 	}
 
-	parts := strings.Split(authHeader, " ")
+	var jwt = authHeader
+	if authQuery != "" {
+		jwt = strings.TrimPrefix(authQuery, "Bearer ")
+		jwt = strings.TrimSpace(jwt)
+		jwt = "Bearer " + jwt
+	}
+
+	parts := strings.Split(jwt, " ")
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 		log.Println("Invalid authorization header format")
 		return "", c.Status(400).
@@ -415,25 +440,46 @@ func RBACMiddleware(whitelist []string, whoamiURL string) fiber.Handler {
 		if err != nil {
 			return err
 		}
+		nidn := ""
+		nip := ""
+		npm := ""
 
-		if isAdmin(user) {
-			log.Println("[RBAC] User is admin, access granted")
-			return c.Next()
+		if helper.NullableString(user.CodeCtx) == domainaccount.CtxDosen && helper.NullableString(user.Resource) == "simak" {
+			nidn = helper.NullableString(&user.ID)
+		}
+		if helper.NullableString(user.CodeCtx) == domainaccount.CtxMahasiswa && helper.NullableString(user.Resource) == "simak" {
+			npm = helper.NullableString(&user.ID)
+		}
+		if helper.NullableString(user.Resource) == "simpeg" {
+			nip = helper.NullableString(&user.ID)
 		}
 
-		tahun, err := validateTahun(c)
-		if err != nil {
-			return err
-		}
+		c.Request().PostArgs().Set("nidn", nidn)
+		c.Request().PostArgs().Set("nip", nip)
+		c.Request().PostArgs().Set("npm", npm)
 
-		hasAccess, grantedAccess := checkRoleAccess(user, tahun, whitelist)
-		if !hasAccess {
-			log.Println("[RBAC] Access denied")
-			return c.Status(400).
-				JSON(commoninfra.NewResponseError(logCommonRbac, "Access denied"))
-		}
+		c.Request().PostArgs().Set("fakultas", helper.NullableString(user.RefFakultas))
+		c.Request().PostArgs().Set("prodi", helper.NullableString(user.RefProdi))
+		c.Request().PostArgs().Set("unit", helper.NullableString(user.Unit))
 
-		c.Request().PostArgs().Set("grantedaccess", strings.Join(grantedAccess, ", "))
+		// if isAdmin(user) {
+		// 	log.Println("[RBAC] User is admin, access granted")
+		// 	return c.Next()
+		// }
+
+		// tahun, err := validateTahun(c)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// hasAccess, grantedAccess := checkRoleAccess(user, tahun, whitelist)
+		// if !hasAccess {
+		// 	log.Println("[RBAC] Access denied")
+		// 	return c.Status(400).
+		// 		JSON(commoninfra.NewResponseError(logCommonRbac, "Access denied"))
+		// }
+
+		// c.Request().PostArgs().Set("grantedaccess", strings.Join(grantedAccess, ", "))
 		log.Println("[RBAC] Middleware passed, continue to handler")
 
 		return c.Next()
@@ -507,7 +553,7 @@ func handleWhoAmIError(body []byte, c *fiber.Ctx) error {
 //
 
 func isAdmin(user *Account) bool {
-	return user.Level == "admin"
+	return helper.NullableString(user.Level) == "admin"
 }
 
 func validateTahun(c *fiber.Ctx) (string, error) {
@@ -538,20 +584,20 @@ func checkRoleAccess(user *Account, tahun string, whitelist []string) (bool, []s
 
 	grantedAccess := []string{}
 
-	for _, r := range user.ExtraRole {
-		key := r.Tahun + "#" + r.Role
-		grantedAccess = append(grantedAccess, key)
+	// for _, r := range user.ExtraRole {
+	// 	key := r.Tahun + "#" + r.Role
+	// 	grantedAccess = append(grantedAccess, key)
 
-		if r.Tahun != tahun {
-			continue
-		}
+	// 	if r.Tahun != tahun {
+	// 		continue
+	// 	}
 
-		role := strings.ToLower(strings.TrimSpace(r.Role))
-		if roleInWhitelist(role, whitelist) {
-			log.Printf("[RBAC] User has role '%s' for tahun %s, access granted", r.Role, r.Tahun)
-			return true, grantedAccess
-		}
-	}
+	// 	role := strings.ToLower(strings.TrimSpace(r.Role))
+	// 	if roleInWhitelist(role, whitelist) {
+	// 		log.Printf("[RBAC] User has role '%s' for tahun %s, access granted", r.Role, r.Tahun)
+	// 		return true, grantedAccess
+	// 	}
+	// }
 
 	return false, grantedAccess
 }

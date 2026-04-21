@@ -8,6 +8,7 @@ import (
 	"github.com/mehdihadeli/go-mediatr"
 
 	commondomain "UnpakSiamida/common/domain"
+	"UnpakSiamida/common/helper"
 	commoninfra "UnpakSiamida/common/infrastructure"
 	commonpresentation "UnpakSiamida/common/presentation"
 	BankSoaldomain "UnpakSiamida/modules/banksoal/domain"
@@ -15,10 +16,13 @@ import (
 	CopyBankSoal "UnpakSiamida/modules/banksoal/application/CopyBankSoal"
 	CreateBankSoal "UnpakSiamida/modules/banksoal/application/CreateBankSoal"
 	DeleteBankSoal "UnpakSiamida/modules/banksoal/application/DeleteBankSoal"
+	DeleteTimeBankSoal "UnpakSiamida/modules/banksoal/application/DeleteTimeBankSoal"
 	GetAllBankSoals "UnpakSiamida/modules/banksoal/application/GetAllBankSoals"
-	GetBankSoal "UnpakSiamida/modules/banksoal/application/GetBankSoal"
+	GetBankSoalDefault "UnpakSiamida/modules/banksoal/application/GetBankSoalDefault"
 	RestoreBankSoal "UnpakSiamida/modules/banksoal/application/RestoreBankSoal"
+	ScheduleTimeBankSoal "UnpakSiamida/modules/banksoal/application/ScheduleTimeBankSoal"
 	SetupUuidBankSoal "UnpakSiamida/modules/banksoal/application/SetupUuidBankSoal"
+	StatusBankSoal "UnpakSiamida/modules/banksoal/application/StatusBankSoal"
 	UpdateBankSoal "UnpakSiamida/modules/banksoal/application/UpdateBankSoal"
 )
 
@@ -49,20 +53,16 @@ func CreateBankSoalHandlerfunc(c *fiber.Ctx) error {
 	Content := c.FormValue("content")
 	Deskripsi := c.FormValue("deskripsi")
 	Semester := c.FormValue("semester")
-	TanggalMulai := c.FormValue("tanggal_mulai")
-	TanggalAkhir := c.FormValue("tanggal_akhir")
 	SID := c.FormValue("sid")
 	Resource := c.FormValue("resource")
 
 	cmd := CreateBankSoal.CreateBankSoalCommand{
-		Judul:        Judul,
-		Content:      Content,
-		Deskripsi:    Deskripsi,
-		Semester:     Semester,
-		TanggalMulai: TanggalMulai,
-		TanggalAkhir: TanggalAkhir,
-		SID:          SID,
-		Resource:     Resource,
+		Judul:     Judul,
+		Content:   Content,
+		Deskripsi: Deskripsi,
+		Semester:  Semester,
+		SID:       SID,
+		Resource:  Resource,
 	}
 
 	uuid, err := mediatr.Send[CreateBankSoal.CreateBankSoalCommand, string](context.Background(), cmd)
@@ -71,6 +71,48 @@ func CreateBankSoalHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	return commonpresentation.JsonUUID(c, uuid)
+}
+
+// =======================================================
+// PUT /banksoal/{uuid}/schedule
+// =======================================================
+
+// ChangeTimeBankSoalHandler godoc
+// @Summary Create new BankSoal
+// @Tags BankSoal
+// @Param uuid path string true "BankSoal UUID" format(uuid)
+//@param tanggal_mulai formData string true "TanggalMulai"
+//@param tanggal_akhir formData string true "TanggalAkhir"
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of created BankSoal"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /banksoal [post]
+
+func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error {
+
+	UuidBankSoal := c.Params("uuid")
+	TanggalMulai := c.FormValue("tanggal_mulai")
+	TanggalAkhir := c.FormValue("tanggal_akhir")
+	SID := c.FormValue("sid")
+	Resource := c.FormValue("resource")
+
+	cmd := ScheduleTimeBankSoal.ScheduleTimeBankSoalCommand{
+		UuidBankSoal: UuidBankSoal,
+		TanggalMulai: TanggalMulai,
+		TanggalAkhir: TanggalAkhir,
+		SID:          SID,
+		Resource:     Resource,
+	}
+
+	_, err := mediatr.Send[ScheduleTimeBankSoal.ScheduleTimeBankSoalCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
 // =======================================================
@@ -101,24 +143,54 @@ func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error {
 	Content := c.FormValue("content")
 	Deskripsi := c.FormValue("deskripsi")
 	Semester := c.FormValue("semester")
-	TanggalMulai := c.FormValue("tanggal_mulai")
-	TanggalAkhir := c.FormValue("tanggal_akhir")
 	SID := c.FormValue("sid")
 	Resource := c.FormValue("resource")
 
 	cmd := UpdateBankSoal.UpdateBankSoalCommand{
-		Uuid:         uuid,
-		Judul:        Judul,
-		Content:      Content,
-		Deskripsi:    Deskripsi,
-		Semester:     Semester,
-		TanggalMulai: TanggalMulai,
-		TanggalAkhir: TanggalAkhir,
-		SID:          SID,
-		Resource:     Resource,
+		Uuid:      uuid,
+		Judul:     Judul,
+		Content:   Content,
+		Deskripsi: Deskripsi,
+		Semester:  Semester,
+		SID:       SID,
+		Resource:  Resource,
 	}
 
 	updatedID, err := mediatr.Send[UpdateBankSoal.UpdateBankSoalCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(fiber.Map{"uuid": updatedID})
+}
+
+// =======================================================
+// PUT /banksoal/{uuid}/status
+// =======================================================
+
+// StatusBankSoalHandler godoc
+// @Summary Change status existing BankSoal
+// @Tags BankSoal
+// @Param uuid path string true "BankSoal UUID" format(uuid)
+// @param status formData string true "Status"
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of updated BankSoal"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /banksoal/{uuid}/status [put]
+func StatusBankSoalHandlerfunc(c *fiber.Ctx) error {
+
+	uuid := c.Params("uuid")
+	status := c.FormValue("status")
+
+	cmd := StatusBankSoal.StatusBankSoalCommand{
+		Uuid:   uuid,
+		Status: status,
+	}
+
+	updatedID, err := mediatr.Send[StatusBankSoal.StatusBankSoalCommand, string](context.Background(), cmd)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -151,6 +223,70 @@ func DeleteBankSoalHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	deletedID, err := mediatr.Send[DeleteBankSoal.DeleteBankSoalCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(fiber.Map{"uuid": deletedID})
+}
+
+// =======================================================
+// DELETE /banksoal/{uuid}/time
+// =======================================================
+
+// DeleteTimeBankSoalHandler godoc
+// @Summary Delete Time a BankSoal
+// @Tags BankSoal
+// @Param uuid path string true "BankSoal UUID" format(uuid)
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of deleted BankSoal"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /banksoal/{uuid}/time [delete]
+func DeleteTimeBankSoalHandlerfunc(c *fiber.Ctx) error {
+
+	uuid := c.Params("uuid")
+
+	cmd := DeleteTimeBankSoal.DeleteTimeBankSoalCommand{
+		Uuid: uuid,
+	}
+
+	deletedID, err := mediatr.Send[DeleteTimeBankSoal.DeleteTimeBankSoalCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(fiber.Map{"uuid": deletedID})
+}
+
+// =======================================================
+// DELETE /banksoal/{uuid}/timeext
+// =======================================================
+
+// DeleteTimeExtBankSoalHandler godoc
+// @Summary Delete Time a BankSoal
+// @Tags BankSoal
+// @param banksoal formData string true "BankSoal" format(uuid)
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of deleted BankSoal"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /banksoal/{uuid}/timeext [delete]
+func DeleteTimeExtBankSoalHandlerfunc(c *fiber.Ctx) error {
+
+	uuid := c.Params("uuid")
+	uuidbanksoal := c.FormValue("banksoal")
+
+	cmd := DeleteTimeBankSoal.DeleteTimeExtBankSoalCommand{
+		Uuid:         uuid,
+		UuidBankSoal: uuidbanksoal,
+	}
+
+	deletedID, err := mediatr.Send[DeleteTimeBankSoal.DeleteTimeExtBankSoalCommand, string](context.Background(), cmd)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -274,11 +410,11 @@ func CopyBankSoalHandlerfunc(c *fiber.Ctx) error {
 func GetBankSoalHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
-	query := GetBankSoal.GetBankSoalByUuidQuery{Uuid: uuid}
+	query := GetBankSoalDefault.GetBankSoalDefaultByUuidQuery{Uuid: uuid}
 
 	BankSoal, err := mediatr.Send[
-		GetBankSoal.GetBankSoalByUuidQuery,
-		*BankSoaldomain.BankSoal,
+		GetBankSoalDefault.GetBankSoalDefaultByUuidQuery,
+		*BankSoaldomain.BankSoalDefault,
 	](context.Background(), query)
 
 	if err != nil {
@@ -307,7 +443,7 @@ func GetBankSoalHandlerfunc(c *fiber.Ctx) error {
 // @Success 200 {object} commondomain.Paged[BankSoaldomain.BankSoalDefault]
 // @Router /BankSoals [get]
 func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
-	flag := c.Query("flag", "none") //with deleted
+	flag := c.Query("flag", "none")
 	mode := c.Query("mode", "paging")
 	page := c.QueryInt("page", 1)
 	limit := c.QueryInt("limit", 10)
@@ -345,13 +481,29 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 	if flag == "deleted" {
 		withDeleted = true
 	}
+
+	nidn := c.FormValue("nidn")
+	nip := c.FormValue("nip")
+	npm := c.FormValue("npm")
+	fakultas := c.FormValue("fakultas")
+	prodi := c.FormValue("prodi")
+
 	query := GetAllBankSoals.GetAllBankSoalsQuery{
-		Search:        search,
-		SearchFilters: filters,
-		Deleted:       withDeleted,
+		Search:         search,
+		SearchFilter:   filters,
+		NPM:            helper.StrPtr(npm),
+		NIDN:           helper.StrPtr(nidn),
+		NIP:            helper.StrPtr(nip),
+		TargetFakultas: helper.StrPtr(fakultas),
+		TargetProdi:    helper.StrPtr(prodi),
+		Deleted:        withDeleted,
 	}
 
+	// =====================================
+	// 🔥 ADAPTER
+	// =====================================
 	var adapter commonpresentation.OutputAdapter[BankSoaldomain.BankSoalDefault]
+
 	switch mode {
 	case "all":
 		adapter = &commonpresentation.AllAdapter[BankSoaldomain.BankSoalDefault]{}
@@ -365,6 +517,9 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 		adapter = &commonpresentation.PagingAdapter[BankSoaldomain.BankSoalDefault]{}
 	}
 
+	// =====================================
+	// 🔥 EXECUTE
+	// =====================================
 	result, err := mediatr.Send[
 		GetAllBankSoals.GetAllBankSoalsQuery,
 		commondomain.Paged[BankSoaldomain.BankSoalDefault],
@@ -389,19 +544,24 @@ func SetupUuidBankSoalsHandlerfunc(c *fiber.Ctx) error {
 }
 
 func ModuleBankSoal(app *fiber.App) {
-	// admin := []string{"admin"}
-	// whoamiURL := "http://localhost:3000/whoami"
+	admin := []string{"admin"}
+	whoamiURL := "http://127.0.0.1:3000/whoami"
 
 	app.Get("/banksoal/setupuuid", SetupUuidBankSoalsHandlerfunc)
 
 	app.Post("/banksoal", commonpresentation.JWTMiddleware(), CreateBankSoalHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
 	app.Put("/banksoal/:uuid", commonpresentation.JWTMiddleware(), UpdateBankSoalHandlerfunc)
 
-	app.Delete("/banksoal/:uuid", commonpresentation.JWTMiddleware(), DeleteBankSoalHandlerfunc)            //soft delete
+	app.Delete("/banksoal/:uuid", commonpresentation.JWTMiddleware(), DeleteBankSoalHandlerfunc) //soft delete
+	app.Put("/banksoal/:uuid/schedule", commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ChangeTimeBankSoalHandlerfunc)
 	app.Delete("/banksoal/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteBankSoalHandlerfunc) //hanya lpm saja yg hard delete
 	app.Put("/banksoal/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreBankSoalHandlerfunc)
 	app.Post("/banksoal/:uuid/copy", commonpresentation.JWTMiddleware(), CopyBankSoalHandlerfunc)
+	app.Put("/banksoal/:uuid/status", commonpresentation.JWTMiddleware(), StatusBankSoalHandlerfunc)
+
+	app.Delete("/banksoal/:uuid/time", commonpresentation.JWTMiddleware(), DeleteTimeBankSoalHandlerfunc)
+	app.Delete("/banksoal/:uuid/timeext", commonpresentation.JWTMiddleware(), DeleteTimeExtBankSoalHandlerfunc)
 
 	app.Get("/banksoal/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetBankSoalHandlerfunc)
-	app.Get("/banksoals", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllBankSoalsHandlerfunc)
+	app.Get("/banksoals", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetAllBankSoalsHandlerfunc)
 }

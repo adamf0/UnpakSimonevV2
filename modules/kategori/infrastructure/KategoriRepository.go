@@ -54,18 +54,67 @@ func (r *KategoriRepository) GetDefaultByUuid(
 	// Ambil hanya kolom yang benar-benar ada di struct KategoriDefault
 	var rowData domainkategori.KategoriDefault
 
+	uuidSub := clause.Expr{
+		SQL: `(SELECT k.uuid FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+	}
+
+	namaSub := clause.Expr{
+		SQL: `(SELECT k.nama_kategori FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+	}
+
+	// Subquery dosen
+	dosenSub := r.db.
+		Table("m_dosen d").
+		Select(`
+			CAST(d.NIDN AS CHAR) AS nidn,
+			d.nama_dosen,
+			f.kode_fakultas,
+			f.nama_fakultas,
+			p.kode_prodi,
+			p.nama_prodi,
+			'dosen' as role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+
+	// Subquery account
+	accountSub := r.db.
+		Table("users u").
+		Select(`
+			CAST(u.id AS CHAR) AS id,
+			u.name,
+			f.kode_fakultas,
+			f.nama_fakultas,
+			p.kode_prodi,
+			p.nama_prodi,
+			u.level as role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+
 	err := r.db.WithContext(ctx).
 		Table("kategori a").
 		Select(`
-			id as ID,
-			uuid as UUID,
-			nama_kategori as NamaKategori,
-			full_text as FullTexts,
-			sub_kategori as SubKategori,
-			createdBy as CreatedBy,
-			createdByRef as CreatedByRef,
-			deleted_at as DeletedAt
-	`).
+			a.id as ID,
+			a.uuid as UUID,
+			a.nama_kategori as NamaKategori,
+			a.full_text as FullTexts,
+			a.sub_kategori as IdSubKategori,
+			? as UuidSubKategori,
+			? as NamaSubKategori,
+			a.createdBy as CreatedBy,
+			a.createdByRef as CreatedByRef,
+			a.deleted_at as DeletedAt,
+
+			COALESCE(ul.name, dc.nama_dosen) AS Nama,
+			COALESCE(ul.role, dc.role) AS Role,
+			COALESCE(ul.kode_fakultas, dc.kode_fakultas) AS KodeFakultas,
+			COALESCE(ul.nama_fakultas, dc.nama_fakultas) AS NamaFakultas,
+			COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
+			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi
+	`, uuidSub, namaSub).
+		Joins(`LEFT JOIN (?) ul ON ul.id = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'local'`, accountSub).
+		Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'simak'`, dosenSub).
 		Where("a.uuid = ?", id).
 		Take(&rowData).Error
 
@@ -81,7 +130,14 @@ func (r *KategoriRepository) GetDefaultByUuid(
 
 var allowedSearchColumns = map[string]string{
 	// key:param -> db column
-	"kategori": "a.nama_kategori",
+	"kategori":  "a.nama_kategori",
+	"full_text": "a.full_text",
+
+	"role":          "COALESCE(ul.role, dc.role)",
+	"kode_fakultas": "COALESCE(ul.kode_fakultas, dc.kode_fakultas)",
+	"kode_prodi":    "COALESCE(ul.kode_prodi, dc.kode_prodi)",
+	"nama_prodi":    "COALESCE(ul.nama_prodi, dc.nama_prodi)",
+	"nama_fakultas": "COALESCE(ul.nama_fakultas, dc.nama_fakultas)",
 }
 
 // ------------------------
@@ -98,99 +154,120 @@ func (r *KategoriRepository) GetAll(
 	var rows = make([]domainkategori.KategoriDefault, 0)
 	var total int64
 
+	uuidSub := clause.Expr{
+		SQL: `(SELECT k.uuid FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+	}
+
+	namaSub := clause.Expr{
+		SQL: `(SELECT k.nama_kategori FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+	}
+
+	// Subquery dosen
+	dosenSub := r.db.
+		Table("m_dosen d").
+		Select(`
+			CAST(d.NIDN AS CHAR) AS nidn,
+			d.nama_dosen,
+			f.kode_fakultas,
+			f.nama_fakultas,
+			p.kode_prodi,
+			p.nama_prodi,
+			'dosen' as role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+
+	// Subquery account
+	accountSub := r.db.
+		Table("users u").
+		Select(`
+			CAST(u.id AS CHAR) AS id,
+			u.name,
+			f.kode_fakultas,
+			f.nama_fakultas,
+			p.kode_prodi,
+			p.nama_prodi,
+			u.level as role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+
 	db := r.db.Debug().WithContext(ctx).
 		Table("kategori a").
 		Select(`
-			id as ID,
-			uuid as UUID,
-			nama_kategori as NamaKategori,
-			full_text as FullTexts,
-			sub_kategori as SubKategori,
-			createdBy as CreatedBy,
-			createdByRef as CreatedByRef,
-			deleted_at as DeletedAt
-	`)
+			a.id as ID,
+			a.uuid as UUID,
+			a.nama_kategori as NamaKategori,
+			a.full_text as FullTexts,
+			a.sub_kategori as IdSubKategori,
+			? as UuidSubKategori,
+			? as NamaSubKategori,
+			a.createdBy as CreatedBy,
+			a.createdByRef as CreatedByRef,
+			a.deleted_at as DeletedAt,
+
+			COALESCE(ul.name, dc.nama_dosen) AS Nama,
+			COALESCE(ul.role, dc.role) AS Role,
+			COALESCE(ul.kode_fakultas, dc.kode_fakultas) AS KodeFakultas,
+			COALESCE(ul.nama_fakultas, dc.nama_fakultas) AS NamaFakultas,
+			COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
+			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi
+	`, uuidSub, namaSub).
+		Joins(`LEFT JOIN (?) ul ON ul.id = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'local'`, accountSub).
+		Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'simak'`, dosenSub)
 
 	if deleted {
 		db = db.Where(clause.Expr{
-			SQL: "deleted_at IS NOT NULL",
+			SQL: "a.deleted_at IS NOT NULL",
 		})
 	} else {
 		db = db.Where(clause.Expr{
-			SQL: "deleted_at IS NULL",
+			SQL: "a.deleted_at IS NULL",
 		})
 	}
 
-	// -----------------------------------
-	// ADVANCED FILTERS
-	// -----------------------------------
+	// Advanced search filters
 	for _, f := range searchFilters {
 		col, ok := allowedSearchColumns[strings.ToLower(f.Field)]
-		if !ok {
+		if !ok || f.Value == nil {
 			continue
 		}
-
-		val := ""
-		if f.Value != nil {
-			val = strings.TrimSpace(*f.Value)
-		}
+		val := strings.TrimSpace(*f.Value)
 		if val == "" {
 			continue
 		}
-
 		switch strings.ToLower(f.Operator) {
 		case "eq":
-			db = db.Where(clause.Eq{
-				Column: col,
-				Value:  val,
-			})
+			db = db.Where(fmt.Sprintf("%s = ?", col), val)
 		case "neq":
-			db = db.Where(clause.Neq{
-				Column: col,
-				Value:  val,
-			})
+			db = db.Where(fmt.Sprintf("%s != ?", col), val)
 		case "like":
-			db = db.Where(clause.Like{
-				Column: col,
-				Value:  "%" + helper.EscapeLike(val) + "%",
-			})
+			db = db.Where(fmt.Sprintf("%s LIKE ?", col), "%"+helper.EscapeLike(val)+"%")
 		case "in":
 			rawVals := strings.Split(val, ",")
 			vals := make([]interface{}, 0, len(rawVals))
-
 			for _, v := range rawVals {
 				v = strings.TrimSpace(v)
 				if v != "" {
 					vals = append(vals, v)
 				}
 			}
-
 			if len(vals) > 0 {
-				db = db.Where(clause.IN{
-					Column: col,
-					Values: vals,
-				})
+				db = db.Where(fmt.Sprintf("%s IN ?", col), vals)
 			}
 		}
 	}
 
-	// -----------------------------------
-	// GLOBAL SEARCH
-	// -----------------------------------
-	if strings.TrimSpace(search) != "" {
-		like := "%" + search + "%"
-		var conditions []clause.Expression
-
+	// Global search
+	if s := strings.TrimSpace(search); s != "" {
+		like := "%" + s + "%"
+		var conditions []string
+		var args []interface{}
 		for _, col := range allowedSearchColumns {
-			conditions = append(conditions, clause.Like{
-				Column: col,
-				Value:  like,
-			})
+			conditions = append(conditions, fmt.Sprintf("%s LIKE ?", col))
+			args = append(args, like)
 		}
-
-		if len(conditions) > 0 {
-			db = db.Where(clause.Or(conditions...))
-		}
+		db = db.Where("("+strings.Join(conditions, " OR ")+")", args...)
 	}
 
 	// -----------------------------------
@@ -309,7 +386,7 @@ func (r *KategoriRepository) CountCopy(ctx context.Context, nama_kategori string
 
 func (r *KategoriRepository) GetChildren(ctx context.Context, parentID int) ([]domainkategori.Kategori, error) {
 
-	var rows []domainkategori.Kategori
+	rows := make([]domainkategori.Kategori, 0)
 
 	err := r.db.WithContext(ctx).
 		Where("sub_kategori = ?", parentID).
@@ -320,7 +397,7 @@ func (r *KategoriRepository) GetChildren(ctx context.Context, parentID int) ([]d
 
 func (r *KategoriRepository) RebuildFullText(ctx context.Context) error {
 
-	var list []domainkategori.Kategori
+	list := make([]domainkategori.Kategori, 0)
 
 	if err := r.db.WithContext(ctx).
 		Find(&list).Error; err != nil {
@@ -328,7 +405,7 @@ func (r *KategoriRepository) RebuildFullText(ctx context.Context) error {
 	}
 
 	childrenMap := map[uint][]domainkategori.Kategori{}
-	var roots []domainkategori.Kategori
+	roots := make([]domainkategori.Kategori, 0)
 
 	for _, k := range list {
 

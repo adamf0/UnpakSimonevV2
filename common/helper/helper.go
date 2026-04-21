@@ -2,6 +2,7 @@ package helper
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"html"
@@ -12,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/google/uuid"
 	"github.com/skip2/go-qrcode"
 )
@@ -74,6 +76,103 @@ func IsValidUnpakEmail(email string) bool {
 	}
 
 	return true
+}
+
+func ValidateJSONArray(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return validation.NewError("validation_json", "must be a JSON string")
+	}
+
+	var arr []interface{}
+	if err := json.Unmarshal([]byte(str), &arr); err != nil {
+		return validation.NewError("validation_json", "invalid JSON format")
+	}
+
+	if len(arr) == 0 {
+		return validation.NewError("validation_json", "cannot be empty")
+	}
+
+	for i, v := range arr {
+
+		// =====================================
+		// CASE 1 : STRING UUID
+		// =====================================
+		if val, ok := v.(string); ok {
+
+			if strings.TrimSpace(val) == "" {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("string at index %d cannot be empty", i),
+				)
+			}
+
+			if _, err := uuid.Parse(val); err != nil {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("invalid uuid at index %d", i),
+				)
+			}
+
+			continue
+		}
+
+		// =====================================
+		// CASE 2 : OBJECT {uuid:"", freetext:""}
+		// =====================================
+		if obj, ok := v.(map[string]interface{}); ok {
+
+			// key uuid wajib ada
+			rawUUIDValue, existsUUID := obj["uuid"]
+			if !existsUUID {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("missing uuid key at index %d", i),
+				)
+			}
+
+			rawUUID, okUUID := rawUUIDValue.(string)
+			if !okUUID || strings.TrimSpace(rawUUID) == "" {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("uuid required at index %d", i),
+				)
+			}
+
+			if _, err := uuid.Parse(rawUUID); err != nil {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("invalid uuid at index %d", i),
+				)
+			}
+
+			// key freetext wajib ada
+			rawTextValue, existsText := obj["freetext"]
+			if !existsText {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("missing freetext key at index %d", i),
+				)
+			}
+
+			_, okText := rawTextValue.(string)
+			if !okText {
+				return validation.NewError(
+					"validation_json",
+					fmt.Sprintf("freetext must be string at index %d", i),
+				)
+			}
+
+			continue
+		}
+
+		return validation.NewError(
+			"validation_json",
+			fmt.Sprintf("invalid type at index %d", i),
+		)
+	}
+
+	return nil
 }
 
 func ValidateUnpakEmail(value interface{}) error {
@@ -215,6 +314,7 @@ func ParseInt64(s string) (int64, error) {
 }
 
 func ParseUint(s string) (uint, error) {
+	s = strings.TrimSpace(s)
 	val, err := strconv.ParseUint(s, 10, 64)
 	if err != nil {
 		if numErr, ok := err.(*strconv.NumError); ok {

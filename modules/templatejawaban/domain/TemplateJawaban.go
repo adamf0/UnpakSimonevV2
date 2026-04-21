@@ -16,7 +16,7 @@ type TemplateJawaban struct {
 	UUID                 uuid.UUID  `gorm:"type:char(36);uniqueIndex"`
 	IdTemplatePertanyaan uint       `gorm:"column:id_template_pertanyaan"`
 	Jawaban              string     `gorm:"column:jawaban"`
-	Nilai                uint       `gorm:"column:nilai"`
+	Nilai                *uint      `gorm:"column:nilai"`
 	IsFreeText           uint       `gorm:"column:isFreeText"`
 	CreatedBy            *string    `gorm:"column:createdBy"`
 	CreatedByRef         *string    `gorm:"column:createdByRef"`
@@ -33,7 +33,7 @@ func (TemplateJawaban) TableName() string {
 func NewTemplateJawaban(
 	id_template_pertanyaan uint,
 	jawaban string,
-	nilai uint,
+	nilai *uint,
 	isFreeText uint,
 	createdby string,
 	createdbyref string,
@@ -62,7 +62,7 @@ func UpdateTemplateJawaban(
 	uid uuid.UUID,
 	id_template_pertanyaan uint,
 	jawaban string,
-	nilai uint,
+	nilai *uint,
 	isFreeText uint,
 	createdby string,
 	createdbyref string,

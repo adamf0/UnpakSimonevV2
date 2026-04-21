@@ -17,12 +17,28 @@ func InvalidBankSoal() domain.Error {
 	return domain.NotFoundError("Kuesioner.InvalidBankSoal", "bank soal is invalid")
 }
 
+func InvalidPertanyaan() domain.Error {
+	return domain.NotFoundError("Kuesioner.InvalidPertanyaan", "pertanyaan is invalid")
+}
+
+func InvalidJawaban() domain.Error {
+	return domain.NotFoundError("Kuesioner.InvalidJawaban", "jawaban is invalid")
+}
+
 func NotFound(id string) domain.Error {
 	return domain.NotFoundError("Kuesioner.NotFound", fmt.Sprintf("kuesioner with identifier %s not found", id))
 }
 
 func NotFoundBankSoal() domain.Error {
 	return domain.NotFoundError("Kuesioner.NotFoundBankSoal", "bank soal is not found")
+}
+
+func NotFoundPertanyaan() domain.Error {
+	return domain.NotFoundError("Kuesioner.NotFoundPertanyaan", "pertanyaan is not found")
+}
+
+func NotFoundJawaban() domain.Error {
+	return domain.NotFoundError("Kuesioner.NotFoundJawaban", "jawaban is not found")
 }
 
 func NotFoundResource() domain.Error {

@@ -7,9 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"strings"
-	"sync"
 
-	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 
 	"UnpakSiamida/common/helper"
@@ -32,70 +30,41 @@ func NewAccountRepository(db *gorm.DB, dbsimak *gorm.DB, dbsimpeg *gorm.DB) doma
 
 func (r *AccountRepository) Auth(ctx context.Context, username string, password string) (*domain.Account, error) {
 
-	type result struct {
-		priority int
-		user     *domain.Account
-	}
-
-	g, ctx := errgroup.WithContext(ctx)
-	results := make([]result, 0)
-	mu := sync.Mutex{}
-
-	dbs := []struct {
-		priority int
-		fn       func(ctx context.Context) (*domain.Account, error)
-	}{
-		{1, func(ctx context.Context) (*domain.Account, error) { return r.authDB(ctx, username, password) }},
-		{2, func(ctx context.Context) (*domain.Account, error) { return r.authSimak(ctx, username, password) }},
-		{3, func(ctx context.Context) (*domain.Account, error) { return r.authSimpeg(ctx, username, password) }},
-	}
-
-	for _, db := range dbs {
-		// db := db
-		g.Go(func() error {
-			user, err := db.fn(ctx)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					// Record not found → jangan cancel, goroutine lain mungkin sukses
-					return nil
+	// Rekursi chain function
+	var chain func(func(ctx context.Context) (*domain.Account, error), ...func(ctx context.Context) (*domain.Account, error)) (*domain.Account, error)
+	chain = func(current func(ctx context.Context) (*domain.Account, error), rest ...func(ctx context.Context) (*domain.Account, error)) (*domain.Account, error) {
+		user, err := current(ctx)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// Not found → lanjut ke function berikutnya
+				if len(rest) == 0 {
+					return nil, gorm.ErrRecordNotFound
 				}
-				// Error fatal → cancel semua goroutine
-				return err
+				return chain(rest[0], rest[1:]...)
 			}
-			mu.Lock()
-			if user.ID != "" {
-				results = append(results, result{db.priority, user})
-			}
-			mu.Unlock()
-			return nil
-		})
-	}
-
-	if err := g.Wait(); err != nil {
-		// Salah satu goroutine error → cancel semua
-		return nil, err
-	}
-
-	// Jika semua DB tidak menemukan user
-	if len(results) == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
-
-	// Pilih user terbaik sesuai priority
-	bestPriority := 999
-	var bestUser *domain.Account
-	for _, r := range results {
-		if r.priority < bestPriority {
-			bestPriority = r.priority
-			bestUser = r.user
+			// Fatal error → stop
+			return nil, err
 		}
+
+		if user != nil && user.ID != "" {
+			return user, nil
+		}
+
+		if len(rest) == 0 {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return chain(rest[0], rest[1:]...)
 	}
 
-	return bestUser, nil
+	// Panggil chain sesuai urutan prioritas: authDB -> authSimak -> authSimpeg
+	return chain(
+		func(ctx context.Context) (*domain.Account, error) { return r.authDB(ctx, username, password) },
+		func(ctx context.Context) (*domain.Account, error) { return r.authSimak(ctx, username, password) },
+		func(ctx context.Context) (*domain.Account, error) { return r.authSimpeg(ctx, username, password) },
+	)
 }
 
 func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier) (*domain.Account, error) {
-
 	if strings.TrimSpace(helper.StringValue(id.NIDN)) != "" {
 		return r.getSimakDosen(ctx, helper.StringValue(id.NIDN))
 	}
@@ -205,7 +174,7 @@ LIMIT 1;
 	return &user, nil
 }
 
-func (r *AccountRepository) authSimpeg(ctx context.Context, username string, password string) (*domain.Account, error) {
+func (r *AccountRepository) authSimpeg(ctx context.Context, username string, password string) (*domain.Account, error) { //[review] hanya pegawai saja seharusnya
 
 	var user domain.Account
 
@@ -248,8 +217,20 @@ func (r *AccountRepository) getDB(ctx context.Context, userid string) (*domain.A
 	var user domain.Account
 
 	err := r.db.WithContext(ctx).
-		Table("users").
-		Where("uuid = ?", userid).
+		Table("users u").
+		Select(`
+			u.*,
+			u.fakultas as RefFakultas,
+			f.nama_fakultas as Fakultas,
+			u.prodi as RefProdi,
+			p.nama_prodi as Prodi,
+			null as Unit,
+			'local' as Resource,
+			null as CodeCtx
+		`).
+		Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
+		Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi").
+		Where("u.id = ?", userid).
 		First(&user).Error
 
 	if err != nil {
@@ -289,7 +270,8 @@ SELECT
     d.Fakultas AS Fakultas,
     d.RefProdi AS RefProdi,
     d.Prodi AS Prodi,
-    NULL AS Unit
+    NULL AS Unit,
+	'` + domain.CtxDosen + `' AS CodeCtx
 FROM user u
 LEFT JOIN dosen_cte d ON d.nidn = u.userid
 WHERE d.nidn = ? and u.level = "DOSEN"
@@ -339,7 +321,8 @@ SELECT
     m.Fakultas AS Fakultas,
     m.RefProdi AS RefProdi,
     m.Prodi AS Prodi,
-    NULL AS Unit
+    NULL AS Unit,
+	'` + domain.CtxMahasiswa + `' AS CodeCtx
 FROM user u
 LEFT JOIN mahasiswa_cte m ON m.nim = u.userid
 WHERE m.nim = ? and u.level = "MAHASISWA"
@@ -376,15 +359,16 @@ SELECT
 	t.fakultas AS Fakultas,
 	NULL AS RefProdi,
 	NULL AS Prodi,
-	t.unit AS Unit
+	t.unit AS Unit,
+	null as CodeCtx
 FROM pengguna u
 LEFT JOIN v_tendik t ON t.nip = u.username
-WHERE t.nip = ? or t.nidn = ?
+WHERE u.id = ?
 LIMIT 1
 `
 
 	err := r.dbSimpeg.WithContext(ctx).
-		Raw(query, helper.StringValue(nip), helper.StringValue(nidn)).
+		Raw(query, helper.StringValue(nip)).
 		Scan(&user).Error
 
 	if err != nil {

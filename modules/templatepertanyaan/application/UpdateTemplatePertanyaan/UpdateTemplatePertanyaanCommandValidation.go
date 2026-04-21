@@ -11,17 +11,14 @@ func UpdateTemplatePertanyaanCommandValidation(cmd UpdateTemplatePertanyaanComma
 		validation.Field(&cmd.UuidBankSoal,
 			validation.Required.Error("BankSoal cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 
 		validation.Field(&cmd.Uuid,
 			validation.Required.Error("UUID cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 		validation.Field(&cmd.Pertanyaan,
 			validation.Required.Error("Pertanyaan cannot be blank"),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 
 		validation.Field(&cmd.JenisPilihan,
@@ -37,7 +34,6 @@ func UpdateTemplatePertanyaanCommandValidation(cmd UpdateTemplatePertanyaanComma
 		validation.Field(&cmd.UuidKategori,
 			validation.Required.Error("Kategori cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 
 		validation.Field(&cmd.Required,
@@ -46,12 +42,10 @@ func UpdateTemplatePertanyaanCommandValidation(cmd UpdateTemplatePertanyaanComma
 
 		validation.Field(&cmd.SID,
 			validation.Required.Error("SID cannot be blank"),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 
 		validation.Field(&cmd.Resource,
 			validation.Required.Error("Resource cannot be blank"),
-			validation.By(helper.NoXSSFullScanWithDecode()),
 		),
 	)
 }

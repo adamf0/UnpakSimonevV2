@@ -18,7 +18,9 @@ type TemplatePertanyaanDefault struct {
 	IdKategori   *int
 	UuidKategori *uuid.UUID
 	Kategori     *string
+	FullPath     *string
 	Required     int
+	Status       string
 	CreatedBy    *string
 	CreatedByRef *string
 	Fakultas     *string

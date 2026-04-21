@@ -15,12 +15,12 @@ import (
 )
 
 // =======================================================
-// POST /account
+// POST /login
 // =======================================================
 
 // LoginHandler godoc
-// @Summary Create new Account
-// @Tags Account
+// @Summary Login
+// @Tags Login
 // @Param username formData string true "Username"
 // @Param password formData string true "Password"
 // @Produce json
@@ -29,7 +29,7 @@ import (
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /account [post]
+// @Router /login [post]
 func LoginHandlerfunc(c *fiber.Ctx) error {
 	username := c.FormValue("username")
 	password := c.FormValue("password")
@@ -55,6 +55,7 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 
 	userID := c.FormValue("sid")
 	resource := c.FormValue("resource")
+	codectx := c.FormValue("codectx")
 
 	var (
 		SID  *string
@@ -63,18 +64,13 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 		NPM  *string
 	)
 
-	switch resource {
-
-	case "dosen":
+	if codectx == domainaccount.CtxDosen && helper.NullableString(&resource) == "simak" {
 		NIDN = helper.StrPtr(userID)
-
-	case "mahasiswa":
+	} else if codectx == domainaccount.CtxMahasiswa && helper.NullableString(&resource) == "simak" {
 		NPM = helper.StrPtr(userID)
-
-	case "pegawai":
+	} else if resource == "simpeg" {
 		NIP = helper.StrPtr(userID)
-
-	default:
+	} else {
 		SID = helper.StrPtr(userID)
 	}
 

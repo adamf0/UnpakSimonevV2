@@ -53,7 +53,7 @@ definitions:
       total_pages:
         type: integer
     type: object
-host: localhost:3000
+host: 127.0.0.1:3000
 info:
   contact: {}
   description: All Module Siamida

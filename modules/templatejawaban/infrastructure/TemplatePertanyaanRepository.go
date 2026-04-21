@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	commondomaintemplatejawaban "UnpakSiamida/common/domain"
+	commondomain "UnpakSiamida/common/domain"
 	"UnpakSiamida/common/helper"
 	domaintemplatejawaban "UnpakSiamida/modules/templatejawaban/domain"
 	"context"
@@ -41,6 +41,71 @@ func (r *TemplateJawabanRepository) GetByUuid(ctx context.Context, uid uuid.UUID
 	}
 
 	return &TemplateJawaban, nil
+}
+
+func (r *TemplateJawabanRepository) GetByUUIDs(
+	ctx context.Context,
+	uuids []string,
+) ([]domaintemplatejawaban.TemplateJawaban, error) {
+
+	rows := make([]domaintemplatejawaban.TemplateJawaban, 0)
+
+	if len(uuids) == 0 {
+		return rows, nil
+	}
+
+	parsed := make([]string, 0, len(uuids))
+
+	for _, u := range uuids {
+		if _, err := uuid.Parse(u); err != nil {
+			return nil, errors.New("uuid jawaban tidak valid: " + u)
+		}
+		parsed = append(parsed, u)
+	}
+
+	err := r.db.WithContext(ctx).
+		Where("uuid IN ?", parsed).
+		Where("deleted_at IS NULL").
+		Find(&rows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	foundMap := make(map[string]bool, len(rows))
+	for _, r := range rows {
+		foundMap[r.UUID.String()] = true
+	}
+
+	for _, u := range parsed {
+		if !foundMap[u] {
+			return nil, errors.New("jawaban tidak ditemukan: " + u)
+		}
+	}
+
+	return rows, nil
+}
+
+func (r *TemplateJawabanRepository) GetFreeTextByPertanyaan(
+	ctx context.Context,
+	pertanyaanID uint,
+) (*domaintemplatejawaban.TemplateJawaban, error) {
+
+	var result domaintemplatejawaban.TemplateJawaban
+
+	err := r.db.WithContext(ctx).
+		Where("id_template_pertanyaan = ?", pertanyaanID).
+		Where("isFreeText = ?", true).
+		First(&result).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &result, nil
 }
 
 // ------------------------
@@ -85,8 +150,9 @@ func (r *TemplateJawabanRepository) GetDefaultByUuid(
 
 var allowedSearchColumns = map[string]string{
 	// key:param -> db column
-	"pertanyaan": "b.pertanyaan",
-	"jawaban":    "a.jawaban",
+	"uuidtemplate": "b.uuid",
+	"pertanyaan":   "b.pertanyaan",
+	"jawaban":      "a.jawaban",
 }
 
 // ------------------------
@@ -95,7 +161,7 @@ var allowedSearchColumns = map[string]string{
 func (r *TemplateJawabanRepository) GetAll(
 	ctx context.Context,
 	search string,
-	searchFilters []commondomaintemplatejawaban.SearchFilter,
+	searchFilters []commondomain.SearchFilter,
 	page, limit *int,
 	deleted bool,
 ) ([]domaintemplatejawaban.TemplateJawabanDefault, int64, error) {

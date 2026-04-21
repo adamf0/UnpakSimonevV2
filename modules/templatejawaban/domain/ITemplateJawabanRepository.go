@@ -9,6 +9,8 @@ import (
 
 type ITemplateJawabanRepository interface {
 	GetByUuid(ctx context.Context, uid uuid.UUID) (*TemplateJawaban, error)
+	GetByUUIDs(ctx context.Context, uuids []string) ([]TemplateJawaban, error)
+	GetFreeTextByPertanyaan(ctx context.Context, pertanyaanID uint) (*TemplateJawaban, error)
 	GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*TemplateJawabanDefault, error)
 	GetAll(
 		ctx context.Context,
