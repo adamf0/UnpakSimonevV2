@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"html"
+	"math/rand"
 	"os"
 	"regexp"
 	"slices"
@@ -429,6 +430,35 @@ func NullableString(u *string) string {
 		return ""
 	}
 	return *u
+}
+
+func RandomQuote() string {
+	quotes := []string{
+		"the server tripped over its own cable",
+		"our hamster stopped running the wheel",
+		"something exploded quietly in the backend",
+		"the database is emotionally unavailable",
+		"request got lost in the void",
+		"the code entered a dramatic pause",
+		"server is pretending to work",
+		"bits are fighting each other",
+		"the API needs coffee first",
+		"someone forgot a semicolon somewhere",
+		"the backend is taking a power nap",
+		"this request offended the server",
+		"our goblin unplugged something important",
+		"the system is buffering its feelings",
+		"magic smoke escaped the machine",
+		"the request was eaten by bugs",
+		"server is stuck in traffic",
+		"the internet sneezed unexpectedly",
+		"the code became self-aware and left",
+		"everything is fine (probably not)",
+	}
+
+	rand.Seed(time.Now().UnixNano())
+
+	return quotes[rand.Intn(len(quotes))]
 }
 
 func UintPtr(v uint) *uint { return &v }

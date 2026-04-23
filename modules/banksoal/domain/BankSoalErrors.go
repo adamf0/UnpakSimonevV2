@@ -2,6 +2,7 @@ package domain
 
 import (
 	"UnpakSiamida/common/domain"
+	"UnpakSiamida/common/helper"
 	"fmt"
 )
 
@@ -21,8 +22,21 @@ func InvalidUuid() domain.Error {
 	return domain.NotFoundError("BankSoal.InvalidUuid", "uuid is invalid")
 }
 
-func InvalidData() domain.Error {
-	return domain.NotFoundError("BankSoal.InvalidData", "data is invalid")
+func InvalidData(message ...*string) domain.Error {
+	var msg *string
+
+	if len(message) > 0 {
+		msg = message[0]
+	}
+
+	if helper.NullableString(msg) == "" {
+		msg = helper.StrPtr("data is invalid")
+	}
+
+	return domain.NotFoundError(
+		"BankSoal.InvalidData",
+		helper.NullableString(msg),
+	)
 }
 
 func InvalidStatus() domain.Error {

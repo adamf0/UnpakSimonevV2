@@ -41,7 +41,7 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
 	if helper.NullableString(q.NIDN) != helper.NullableString(kuesionerActive.NIDN) ||
 		helper.NullableString(q.NIP) != helper.NullableString(kuesionerActive.NIP) ||
 		helper.NullableString(q.NPM) != helper.NullableString(kuesionerActive.NPM) {
-		return nil, domainBankSoal.OnlyStudentLecturerStaff()
+		return nil, domainBankSoal.InvalidData(helper.StrPtr(helper.RandomQuote()))
 	}
 
 	bankUUID, err := uuid.Parse(kuesionerActive.UUID.String())
