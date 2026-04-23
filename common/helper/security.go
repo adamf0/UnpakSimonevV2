@@ -267,8 +267,15 @@ func NoXSSFullScanWithDecode() validation.RuleFunc {
 }
 
 func EscapeLike(s string) string {
-	s = strings.ReplaceAll(s, `\`, `\\`)
-	s = strings.ReplaceAll(s, `%`, `\%`)
-	s = strings.ReplaceAll(s, `_`, `\_`)
-	return s
+	if !utf8.ValidString(s) {
+		s = strings.ToValidUTF8(s, "")
+	}
+
+	replacer := strings.NewReplacer(
+		`\`, `\\`,
+		`%`, `\%`,
+		`_`, `\_`,
+	)
+
+	return replacer.Replace(s)
 }

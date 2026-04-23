@@ -18,6 +18,7 @@ import (
 	ActiveKuesionersSingle "UnpakSiamida/modules/kuesioner/application/ActiveKuesionerSingle"
 	CreateKuesioner "UnpakSiamida/modules/kuesioner/application/CreateKuesioner"
 	DeleteKuesioner "UnpakSiamida/modules/kuesioner/application/DeleteKuesioner"
+	GetAllKuesionerReport "UnpakSiamida/modules/kuesioner/application/GetAllKuesionerReport"
 	GetAllKuesioners "UnpakSiamida/modules/kuesioner/application/GetAllKuesioners"
 	GetKuesioner "UnpakSiamida/modules/kuesioner/application/GetKuesioner"
 	GetKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
@@ -209,7 +210,7 @@ func GetKuesionerHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Kuesioners
+// GET /kuesioners
 // =======================================================
 
 // GetAllKuesionersHandler godoc
@@ -221,7 +222,7 @@ func GetKuesionerHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
-// @Router /Kuesioners [get]
+// @Router /kuesioners [get]
 func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 	flag := c.Query("flag", "none") //with deleted
 	mode := c.Query("mode", "paging")
@@ -294,7 +295,52 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Kuesioners/Active
+// GET /kuesioners/Report
+// =======================================================
+
+// GetAllKuesionersReportHandler godoc
+// @Summary Get all Kuesioners For Report
+// @Tags Kuesioner
+// @param judul formData string true "Judul"
+// @param semester formData string true "semster"
+// @param is4year formData string true "is4year"
+// @Produce json
+// @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
+// @Router /kuesioners [get]
+func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error { //langsung sse
+	judul := c.FormValue("judul")
+	semester := c.FormValue("semester")
+	is4year := false
+	if c.FormValue("is4year") == "1" {
+		is4year = true
+	}
+
+	query := GetAllKuesionerReport.GetAllKuesionersReportQuery{
+		JudulBankSoal: helper.StrPtr(judul),
+		Semester:      helper.StrPtr(semester),
+		Is4Year:       is4year,
+	}
+
+	result, err := mediatr.Send[
+		GetAllKuesionerReport.GetAllKuesionersReportQuery,
+		[]Kuesionerdomain.KuesionerResult,
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	paged := commondomain.Paged[Kuesionerdomain.KuesionerResult]{
+		Data: result,
+	}
+
+	var adapter commonpresentation.SSEAdapter[Kuesionerdomain.KuesionerResult]
+
+	return adapter.Send(c, paged)
+}
+
+// =======================================================
+// GET /kuesioners/Active
 // =======================================================
 
 // ActiveKuesionersHandler godoc
@@ -306,7 +352,7 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
-// @Router /Kuesioners [get]
+// @Router /kuesioners [get]
 func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error {
 	// flag := c.Query("flag", "none") //with deleted
 	nidn := c.FormValue("nidn")
@@ -346,7 +392,7 @@ func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Kuesioners/Active/{uuid}
+// GET /kuesioners/Active/{uuid}
 // =======================================================
 
 // GetKuesionersActiveByTargetHandler godoc
@@ -358,7 +404,7 @@ func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
-// @Router /Kuesioners [get]
+// @Router /kuesioners [get]
 func GetKuesionersActiveByTargetHandler(c *fiber.Ctx) error {
 	// flag := c.Query("flag", "none") //with deleted
 	uuid := c.Params("uuid")
@@ -424,6 +470,7 @@ func ModuleKuesioner(app *fiber.App) {
 
 	app.Get("/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
 	app.Get("/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
+	app.Get("/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
 	app.Get("/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
 	app.Get("/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }

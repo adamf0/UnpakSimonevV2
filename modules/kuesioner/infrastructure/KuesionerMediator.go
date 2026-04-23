@@ -8,6 +8,7 @@ import (
 	getActiveSingle "UnpakSiamida/modules/kuesioner/application/ActiveKuesionerSingle"
 	create "UnpakSiamida/modules/kuesioner/application/CreateKuesioner"
 	delete "UnpakSiamida/modules/kuesioner/application/DeleteKuesioner"
+	getReport "UnpakSiamida/modules/kuesioner/application/GetAllKuesionerReport"
 	getAll "UnpakSiamida/modules/kuesioner/application/GetAllKuesioners"
 	get "UnpakSiamida/modules/kuesioner/application/GetKuesioner"
 	getAnsware "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
@@ -70,6 +71,13 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 	})
 
 	mediatr.RegisterRequestHandler[
+		getReport.GetAllKuesionersReportQuery,
+		[]domainKuesioner.KuesionerResult,
+	](&getReport.GetAllKuesionersReportQueryHandler{
+		Repo: repoKuesioner,
+	})
+
+	mediatr.RegisterRequestHandler[
 		getAnsware.GetKuesionerJawabanByUuidQuery,
 		[]domainKuesioner.KuesionerJawabanDefault,
 	](&getAnsware.GetKuesionerJawabanByUuidQueryQueryHandler{
@@ -125,6 +133,7 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 	commoninfra.RegisterValidation(create.CreateKuesionerCommandValidation, "KuesionerCreate.Validation")
 	commoninfra.RegisterValidation(save.SaveKuesionerJawabanCommandValidation, "KuesionerJawabanSave.Validation")
 	commoninfra.RegisterValidation(delete.DeleteKuesionerCommandValidation, "KuesionerDelete.Validation")
+	commoninfra.RegisterValidation(getReport.GetAllKuesionersReportQueryValidation, "KuesionerReport.Validation")
 
 	return nil
 }

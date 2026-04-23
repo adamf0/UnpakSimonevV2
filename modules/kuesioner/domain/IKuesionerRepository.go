@@ -8,6 +8,12 @@ import (
 )
 
 type IKuesionerRepository interface {
+	GetAllKuesionerResult(
+		ctx context.Context,
+		JudulBankSoal *string,
+		Semester *string,
+		Is4Year bool,
+	) ([]KuesionerResult, error)
 	GetByUuid(ctx context.Context, uid uuid.UUID) (*Kuesioner, error)
 	GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*KuesionerDefault, error)
 	GetAllFormFromActiveBankSoal(ctx context.Context, nidn string, nip string, npm string, banksoal []uint) ([]KuesionerDefault, error)

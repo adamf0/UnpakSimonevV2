@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -86,6 +87,120 @@ func (r *KuesionerRepository) GetDefaultByUuid(
 	}
 
 	return &rowData, nil
+}
+
+func (r *KuesionerRepository) buildWhere(
+	ctx context.Context,
+	db *gorm.DB,
+	JudulBankSoal *string,
+	Semester *string,
+	Is4Year bool,
+) (*gorm.DB, error) {
+
+	// =====================================================
+	// MODE 4 TAHUN
+	// =====================================================
+	if Is4Year {
+		loc, err := time.LoadLocation("Asia/Jakarta")
+		if err != nil {
+			return nil, err
+		}
+
+		now := time.Now().In(loc)
+		start := time.Date(now.Year()-4, 1, 1, 0, 0, 0, 0, loc)
+		end := time.Date(now.Year(), 12, 31, 0, 0, 0, 0, loc)
+		startStr := start.Format("2006-01-02")
+		endStr := end.Format("2006-01-02")
+
+		db = db.Where("k.tanggal BETWEEN ? AND ?", startStr, endStr)
+
+		return db, nil
+	}
+
+	// =====================================================
+	// MODE NORMAL (WAJIB JUDUL)
+	// =====================================================
+	if helper.NullableString(JudulBankSoal) == "" {
+		return nil, errors.New("judul bank soal wajib diisi")
+	}
+
+	val := helper.EscapeLike(helper.NullableString(JudulBankSoal))
+
+	db = db.Where(clause.Like{
+		Column: "b.judul",
+		Value:  "%" + val + "%",
+	})
+
+	// =====================================================
+	// SEMESTER (OPSIONAL)
+	// =====================================================
+	if helper.NullableString(Semester) != "" {
+		db = db.Where("b.semester = ?", helper.NullableString(Semester))
+	}
+
+	return db, nil
+}
+
+func (r *KuesionerRepository) GetAllKuesionerResult(
+	ctx context.Context,
+	JudulBankSoal *string,
+	Semester *string,
+	Is4Year bool,
+) ([]domainkuesioner.KuesionerResult, error) {
+
+	result := make([]domainkuesioner.KuesionerResult, 0)
+
+	// =========================
+	// BASE QUERY (JANGAN HILANG)
+	// =========================
+	db := r.db.WithContext(ctx).
+		Debug().
+		Table("bank_soalv2 b").
+		Select(`
+			k.id,
+			k.uuid,
+			k.nidn,
+			k.nama_dosen,
+			k.nip,
+			k.nama_tendik,
+			k.npm,
+			k.nama_mahasiswa,
+			k.kode_fakultas,
+			k.fakultas,
+			k.kode_prodi,
+			k.prodi,
+			k.unit,
+			b.judul,
+			b.semester,
+			tp.pertanyaan,
+			tj.jawaban
+		`).
+		Joins("STRAIGHT_JOIN kuesionerv2 k FORCE INDEX (idx_bank) ON k.id_bank_soal = b.id").
+		Joins("STRAIGHT_JOIN kuesioner_jawabanv2 kj FORCE INDEX (idx_kuesioner) ON kj.id_kuesioner = k.id").
+		Joins("LEFT JOIN template_pertanyaanv2 tp ON tp.id = kj.id_template_pertanyaan").
+		Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban").
+		Joins("LEFT JOIN m_dosen md ON md.NIDN = k.nidn").
+		Joins("LEFT JOIN users us1 ON us1.id = k.npm").
+		Joins("LEFT JOIN users us2 ON us2.id = k.nip").
+		Order("b.semester DESC, tp.pertanyaan ASC, tj.jawaban ASC")
+
+	// =========================
+	// APPLY WHERE (FIXED)
+	// =========================
+	db, err := r.buildWhere(ctx, db, JudulBankSoal, Semester, Is4Year)
+	if err != nil {
+		return nil, err
+	}
+
+	// =========================
+	// EXECUTE
+	// =========================
+	err = db.Scan(&result).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 var allowedSearchColumns = map[string]string{
