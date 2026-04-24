@@ -157,27 +157,32 @@ func (r *KuesionerRepository) GetAllKuesionerResult(
 		Debug().
 		Table("bank_soalv2 b").
 		Select(`
-			k.id,
-			k.uuid,
-			k.nidn,
-			k.nama_dosen,
-			k.nip,
-			k.nama_tendik,
-			k.npm,
-			k.nama_mahasiswa,
-			k.kode_fakultas,
-			k.fakultas,
-			k.kode_prodi,
-			k.prodi,
-			k.unit,
-			b.judul,
-			b.semester,
-			tp.pertanyaan,
-			tj.jawaban
+			k.id as ID,
+			k.uuid as UUID,
+			k.nidn as NIDN,
+			k.nama_dosen as NamaDosen,
+			k.nip as NIP,
+			k.nama_tendik as NamaTendik,
+			k.npm as NPM,
+			k.nama_mahasiswa as NamaMahasiswa,
+			k.kode_fakultas as KodeFakultas,
+			k.fakultas as Fakultas,
+			k.kode_prodi as KodeProdi,
+			k.prodi as Prodi,
+			k.unit as Unit,
+			b.judul as Judul,
+			b.semester as Semester,
+			tp.pertanyaan as Pertanyaan,
+			tj.jawaban as Jawaban,
+			kj.freeText as FreeText,
+			tp.jenis_pilihan as JenisPilihan,
+			ka.nama_kategori as Kategori,
+			ka.full_text as FullPath
 		`).
 		Joins("STRAIGHT_JOIN kuesionerv2 k FORCE INDEX (idx_bank) ON k.id_bank_soal = b.id").
 		Joins("STRAIGHT_JOIN kuesioner_jawabanv2 kj FORCE INDEX (idx_kuesioner) ON kj.id_kuesioner = k.id").
 		Joins("LEFT JOIN template_pertanyaanv2 tp ON tp.id = kj.id_template_pertanyaan").
+		Joins("LEFT JOIN kategori ka ON tp.id_kategori = ka.id").
 		Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban").
 		Joins("LEFT JOIN m_dosen md ON md.NIDN = k.nidn").
 		Joins("LEFT JOIN users us1 ON us1.id = k.npm").

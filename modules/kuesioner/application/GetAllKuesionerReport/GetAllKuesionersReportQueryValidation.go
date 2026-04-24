@@ -7,18 +7,14 @@ import (
 func GetAllKuesionersReportQueryValidation(q GetAllKuesionersReportQuery) error {
 	return validation.ValidateStruct(&q,
 
-		// =========================
-		// JUDUL BANK SOAL
-		// =========================
 		validation.Field(&q.JudulBankSoal,
-			validation.When(!q.Is4Year,
+			validation.When(q.Is4Year == false,
 				validation.Required.Error("Judul bank soal wajib diisi"),
+			),
+			validation.When(q.JudulBankSoal != nil,
 				validation.By(func(value interface{}) error {
-					v, ok := value.(*string)
-					if !ok || v == nil {
-						return nil
-					}
-					if *v == "" {
+					v, _ := value.(*string)
+					if v != nil && *v == "" {
 						return validation.NewError("required", "Judul bank soal tidak boleh kosong")
 					}
 					return nil
@@ -26,13 +22,11 @@ func GetAllKuesionersReportQueryValidation(q GetAllKuesionersReportQuery) error 
 			),
 		),
 
-		// =========================
-		// SEMESTER (OPSIONAL)
-		// =========================
 		validation.Field(&q.Semester,
 			validation.By(func(value interface{}) error {
-				v, ok := value.(*string)
-				if !ok || v == nil || *v == "" {
+				v, _ := value.(*string)
+
+				if v == nil || *v == "" {
 					return nil
 				}
 

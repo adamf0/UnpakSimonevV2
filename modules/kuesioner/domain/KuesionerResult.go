@@ -16,9 +16,12 @@ type KuesionerResult struct {
 	Prodi        string
 	Unit         string
 
-	Judul      string
-	Semester   int
-	Pertanyaan string
-	Jawaban    string
-	FreeText   string
+	Judul        string
+	Semester     int
+	Pertanyaan   string
+	Jawaban      string
+	FreeText     string
+	JenisPilihan string
+	Kategori     string
+	FullPath     string
 }

@@ -295,7 +295,7 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /kuesioners/Report
+// POST /kuesioners/Report
 // =======================================================
 
 // GetAllKuesionersReportHandler godoc
@@ -306,14 +306,11 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 // @param is4year formData string true "is4year"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
-// @Router /kuesioners [get]
+// @Router /kuesioners [post]
 func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error { //langsung sse
 	judul := c.FormValue("judul")
 	semester := c.FormValue("semester")
-	is4year := false
-	if c.FormValue("is4year") == "1" {
-		is4year = true
-	}
+	is4year := c.FormValue("is4year") == "1"
 
 	query := GetAllKuesionerReport.GetAllKuesionersReportQuery{
 		JudulBankSoal: helper.StrPtr(judul),
@@ -470,7 +467,7 @@ func ModuleKuesioner(app *fiber.App) {
 
 	app.Get("/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
 	app.Get("/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
-	app.Get("/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
+	app.Post("/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
 	app.Get("/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
 	app.Get("/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }
