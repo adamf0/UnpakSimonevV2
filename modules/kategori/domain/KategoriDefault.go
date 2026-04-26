@@ -7,7 +7,7 @@ import (
 )
 
 type KategoriDefault struct {
-	ID              uint
+	ID              uint `json:"-"`
 	UUID            uuid.UUID
 	NamaKategori    string
 	IdSubKategori   *int

@@ -7,9 +7,9 @@ import (
 )
 
 type TemplateJawabanDefault struct {
-	ID                     uint
+	ID                     uint `json:"-"`
 	UUID                   uuid.UUID
-	IdTemplatePertanyaan   *uint
+	IdTemplatePertanyaan   *uint `json:"-"`
 	UUIDTemplatePertanyaan *uuid.UUID
 	NamaTemplatePertanyaan *string
 	Jawaban                string

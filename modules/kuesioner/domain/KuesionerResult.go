@@ -1,7 +1,7 @@
 package domain
 
 type KuesionerResult struct {
-	ID            uint
+	ID            uint `json:"-"`
 	UUID          string
 	NIDN          string
 	NamaDosen     string

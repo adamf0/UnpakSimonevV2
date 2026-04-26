@@ -147,7 +147,7 @@ type KuesionerAccountData struct {
 }
 
 func MapAccountToKuesioner(
-	acc *domainaccount.Account,
+	acc *domainaccount.AccountDefault,
 	cmd CreateKuesionerCommand,
 ) KuesionerAccountData {
 

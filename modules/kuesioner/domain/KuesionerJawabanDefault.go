@@ -3,13 +3,13 @@ package domain
 import "github.com/google/uuid"
 
 type KuesionerJawabanDefault struct {
-	ID                     uint
+	ID                     uint `json:"-"`
 	UUID                   *string
 	IdKuesioner            uint
 	UuidKuesioner          *uuid.UUID
-	IdTemplatePertanyaan   uint
+	IdTemplatePertanyaan   uint `json:"-"`
 	UuidTemplatePertanyaan *uuid.UUID
-	IdTemplateJawaban      *uint
+	IdTemplateJawaban      *uint `json:"-"`
 	UuidTemplateJawaban    *uuid.UUID
 	FreeText               *string
 }

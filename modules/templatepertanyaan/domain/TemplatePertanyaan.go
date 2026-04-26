@@ -13,7 +13,7 @@ import (
 type TemplatePertanyaan struct {
 	common.Entity
 
-	ID           uint       `gorm:"primaryKey;autoIncrement"`
+	ID           uint       `gorm:"primaryKey;autoIncrement" json:"-"`
 	UUID         uuid.UUID  `gorm:"type:char(36);uniqueIndex"`
 	IdBankSoal   uint       `gorm:"column:id_bank_soal"`
 	Pertanyaan   string     `gorm:"column:pertanyaan"`

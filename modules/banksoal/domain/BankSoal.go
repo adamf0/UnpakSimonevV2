@@ -13,7 +13,7 @@ import (
 type BankSoal struct {
 	common.Entity
 
-	ID           uint       `gorm:"primaryKey;autoIncrement"`
+	ID           uint       `gorm:"primaryKey;autoIncrement" json:"-"`
 	UUID         uuid.UUID  `gorm:"type:char(36);uniqueIndex"`
 	Judul        string     `gorm:"column:judul"`
 	Content      *string    `gorm:"column:content"`

@@ -17,7 +17,7 @@ type WhoamiCommandHandler struct {
 func (h *WhoamiCommandHandler) Handle(
 	ctx context.Context,
 	cmd WhoamiCommand,
-) (*domainaccount.Account, error) {
+) (*domainaccount.AccountDefault, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 

@@ -13,7 +13,7 @@ import (
 type Kategori struct {
 	common.Entity
 
-	ID           uint       `gorm:"primaryKey;autoIncrement"`
+	ID           uint       `gorm:"primaryKey;autoIncrement" json:"-"`
 	UUID         uuid.UUID  `gorm:"type:char(36);uniqueIndex"`
 	NamaKategori string     `gorm:"column:nama_kategori"`
 	SubKategori  *uint      `gorm:"column:sub_kategori"`

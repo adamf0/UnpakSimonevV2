@@ -7,7 +7,7 @@ import (
 )
 
 type KuesionerDefault struct {
-	Id            uint
+	Id            uint `json:"-"`
 	UUID          uuid.UUID
 	NIDN          *string
 	NamaDosen     *string
@@ -20,7 +20,7 @@ type KuesionerDefault struct {
 	KodeProdi     *string
 	Prodi         *string
 	Unit          *string
-	IdBankSoal    string
+	IdBankSoal    string `json:"-"`
 	UUIDBankSoal  uuid.UUID
 	Judul         string
 	Semester      *string

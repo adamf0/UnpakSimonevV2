@@ -12,7 +12,7 @@ import (
 type Kuesioner struct {
 	common.Entity
 
-	ID            uint      `gorm:"primaryKey;autoIncrement"`
+	ID            uint      `gorm:"primaryKey;autoIncrement" json:"-"`
 	UUID          uuid.UUID `gorm:"type:char(36);uniqueIndex"`
 	NIDN          string    `gorm:"column:nidn"`
 	NamaDosen     *string   `gorm:"column:nama_dosen"`

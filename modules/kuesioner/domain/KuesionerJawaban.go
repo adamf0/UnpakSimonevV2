@@ -10,11 +10,11 @@ import (
 )
 
 type KuesionerJawaban struct {
-	ID                   uint       `gorm:"primaryKey;autoIncrement"`
+	ID                   uint       `gorm:"primaryKey;autoIncrement" json:"-"`
 	UUID                 *string    `gorm:"type:varchar(36)"`
 	IdKuesioner          uint       `gorm:"column:id_kuesioner"`
-	IdTemplatePertanyaan uint       `gorm:"column:id_template_pertanyaan"`
-	IdTemplateJawaban    *uint      `gorm:"column:id_template_jawaban"`
+	IdTemplatePertanyaan uint       `gorm:"column:id_template_pertanyaan" json:"-"`
+	IdTemplateJawaban    *uint      `gorm:"column:id_template_jawaban" json:"-"`
 	FreeText             *string    `gorm:"column:freeText"`
 	CreatedBy            *string    `gorm:"column:createdBy"`
 	CreatedByRef         *string    `gorm:"column:createdByRef"`

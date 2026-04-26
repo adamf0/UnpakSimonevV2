@@ -7,15 +7,15 @@ import (
 )
 
 type TemplatePertanyaanWithAnswareDefault struct {
-	ID           uint
+	ID           uint `json:"-"`
 	UUID         uuid.UUID
-	IdBankSoal   *uint
+	IdBankSoal   *uint `json:"-"`
 	UUIDBankSoal *uuid.UUID
 	NamaBankSoal *string
 	Pertanyaan   string
 	JenisPilihan string
 	Bobot        int
-	IdKategori   *int
+	IdKategori   *int `json:"-"`
 	UuidKategori *uuid.UUID
 	Kategori     *string
 	FullPath     *string
