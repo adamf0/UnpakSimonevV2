@@ -38,6 +38,14 @@ import (
 
 	kuesionerPresentation "UnpakSiamida/modules/kuesioner/presentation"
 
+	fakultasPresentation "UnpakSiamida/modules/fakultas/presentation"
+
+	fakultasInfrastructure "UnpakSiamida/modules/fakultas/infrastructure"
+
+	prodiPresentation "UnpakSiamida/modules/prodi/presentation"
+
+	prodiInfrastructure "UnpakSiamida/modules/prodi/infrastructure"
+
 	// userInfrastructure "UnpakSiamida/modules/user/infrastructure"
 
 	// userPresentation "UnpakSiamida/modules/user/presentation"
@@ -252,6 +260,14 @@ func main() {
 		return kuesionerInfrastructure.RegisterModuleKuesioner(db, dbSimak, dbSimpeg)
 	})
 
+	mustStart("Fakultas Module", func() error {
+		return fakultasInfrastructure.RegisterModuleFakultas(dbSimak)
+	})
+
+	mustStart("Prodi Module", func() error {
+		return prodiInfrastructure.RegisterModuleProdi(dbSimak)
+	})
+
 	if len(startupErrors) > 0 {
 		app.Use(func(c *fiber.Ctx) error {
 			return c.Status(500).JSON(fiber.Map{
@@ -273,6 +289,8 @@ func main() {
 	templatepertanyaanPresentation.ModuleTemplatePertanyaan(app)
 	templatejawabanPresentation.ModuleTemplateJawaban(app)
 	kuesionerPresentation.ModuleKuesioner(app)
+	fakultasPresentation.ModuleFakultas(app)
+	prodiPresentation.ModuleProdi(app)
 
 	// ctx, stop := signal.NotifyContext(
 	// 	context.Background(),

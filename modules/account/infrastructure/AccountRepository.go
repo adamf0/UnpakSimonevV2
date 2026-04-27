@@ -409,7 +409,10 @@ func (r *AccountRepository) GetByUuid(
 			u.fakultas as RefFakultas,
 			f.nama_fakultas as Fakultas,
 			u.prodi as RefProdi,
-			p.nama_prodi as Prodi
+			p.nama_prodi as Prodi,
+			u.deleted_at as DeletedAt,
+			u.created_at as CreatedAt,
+			u.updated_at as UpdatedAt
 		`).
 		Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
 		Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi").
@@ -460,7 +463,10 @@ func (r *AccountRepository) GetAll(
 			u.fakultas as RefFakultas,
 			f.nama_fakultas as Fakultas,
 			u.prodi as RefProdi,
-			p.nama_prodi as Prodi
+			p.nama_prodi as Prodi,
+			u.deleted_at as DeletedAt,
+			u.created_at as CreatedAt,
+			u.updated_at as UpdatedAt
 		`).
 		Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
 		Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi")

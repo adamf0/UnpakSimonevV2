@@ -18,11 +18,6 @@ func UpdateAccountCommandValidation(cmd UpdateAccountCommand) error {
 		),
 
 		validation.Field(
-			&cmd.Password,
-			validation.Required.Error("Password cannot be blank"),
-		),
-
-		validation.Field(
 			&cmd.Level,
 			validation.Required.Error("Level cannot be blank"),
 		),
