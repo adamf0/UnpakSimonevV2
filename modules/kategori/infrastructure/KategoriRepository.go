@@ -71,7 +71,17 @@ func (r *KategoriRepository) GetDefaultByUuid(
 			f.kode_fakultas,
 			f.nama_fakultas,
 			p.kode_prodi,
-			p.nama_prodi,
+			p.kode_jenjang,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS nama_prodi,
 			'dosen' as role
 		`).
 		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
@@ -86,7 +96,17 @@ func (r *KategoriRepository) GetDefaultByUuid(
 			f.kode_fakultas,
 			f.nama_fakultas,
 			p.kode_prodi,
-			p.nama_prodi,
+			p.kode_jenjang,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS nama_prodi,
 			u.level as role
 		`).
 		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
@@ -136,7 +156,19 @@ var allowedSearchColumns = map[string]string{
 	"role":          "COALESCE(ul.role, dc.role)",
 	"kode_fakultas": "COALESCE(ul.kode_fakultas, dc.kode_fakultas)",
 	"kode_prodi":    "COALESCE(ul.kode_prodi, dc.kode_prodi)",
-	"nama_prodi":    "COALESCE(ul.nama_prodi, dc.nama_prodi)",
+	"nama_prodi": `
+		CONCAT(
+			COALESCE(ul.nama_prodi, dc.nama_prodi),
+			' ',
+			CASE COALESCE(ul.kode_jenjang, dc.kode_jenjang)
+				WHEN 'E' THEN 'D3'
+				WHEN 'A' THEN 'S3'
+				WHEN 'B' THEN 'S2'
+				WHEN 'C' THEN 'S1'
+				ELSE ''
+			END
+		)
+	`,
 	"nama_fakultas": "COALESCE(ul.nama_fakultas, dc.nama_fakultas)",
 }
 
@@ -171,7 +203,17 @@ func (r *KategoriRepository) GetAll(
 			f.kode_fakultas,
 			f.nama_fakultas,
 			p.kode_prodi,
-			p.nama_prodi,
+			p.kode_jenjang,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS nama_prodi,
 			'dosen' as role
 		`).
 		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
@@ -186,7 +228,17 @@ func (r *KategoriRepository) GetAll(
 			f.kode_fakultas,
 			f.nama_fakultas,
 			p.kode_prodi,
-			p.nama_prodi,
+			p.kode_jenjang,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS nama_prodi,
 			u.level as role
 		`).
 		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").

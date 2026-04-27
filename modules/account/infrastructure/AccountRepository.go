@@ -119,7 +119,16 @@ WITH dosen_cte AS (
         f.kode_fakultas AS RefFakultas,
         f.nama_fakultas AS Fakultas,
         p.kode_prodi AS RefProdi,
-        p.nama_prodi AS Prodi
+        CONCAT(
+			p.nama_prodi,
+			CASE p.kode_jenjang
+				WHEN 'E' THEN ' (D3)'
+				WHEN 'A' THEN ' (S3)'
+				WHEN 'B' THEN ' (S2)'
+				WHEN 'C' THEN ' (S1)'
+				ELSE ''
+			END
+		) AS Prodi 
     FROM m_dosen d
     LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
     LEFT JOIN r_prodi p ON p.kode_prodi = d.kode_prodi
@@ -132,7 +141,16 @@ mahasiswa_cte AS (
         f.kode_fakultas AS RefFakultas,
         f.nama_fakultas AS Fakultas,
         p.kode_prodi AS RefProdi,
-        p.nama_prodi AS Prodi
+        CONCAT(
+			p.nama_prodi,
+			CASE p.kode_jenjang
+				WHEN 'E' THEN ' (D3)'
+				WHEN 'A' THEN ' (S3)'
+				WHEN 'B' THEN ' (S2)'
+				WHEN 'C' THEN ' (S1)'
+				ELSE ''
+			END
+		) AS Prodi 
     FROM m_mahasiswa m
     LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
     LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
@@ -258,7 +276,16 @@ WITH dosen_cte AS (
         f.kode_fakultas AS RefFakultas,
         f.nama_fakultas AS Fakultas,
         p.kode_prodi AS RefProdi,
-        p.nama_prodi AS Prodi
+        CONCAT(
+			p.nama_prodi,
+			CASE p.kode_jenjang
+				WHEN 'E' THEN ' (D3)'
+				WHEN 'A' THEN ' (S3)'
+				WHEN 'B' THEN ' (S2)'
+				WHEN 'C' THEN ' (S1)'
+				ELSE ''
+			END
+		) AS Prodi 
     FROM m_dosen d
     LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
     LEFT JOIN r_prodi p ON p.kode_prodi = d.kode_prodi
@@ -309,7 +336,16 @@ WITH mahasiswa_cte AS (
         f.kode_fakultas AS RefFakultas,
         f.nama_fakultas AS Fakultas,
         p.kode_prodi AS RefProdi,
-        p.nama_prodi AS Prodi
+        CONCAT(
+			p.nama_prodi,
+			CASE p.kode_jenjang
+				WHEN 'E' THEN ' (D3)'
+				WHEN 'A' THEN ' (S3)'
+				WHEN 'B' THEN ' (S2)'
+				WHEN 'C' THEN ' (S1)'
+				ELSE ''
+			END
+		) AS Prodi 
     FROM m_mahasiswa m
     LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
     LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
@@ -434,7 +470,19 @@ var allowedSearchColumns = map[string]string{
 	"fakultas":      "u.fakultas",
 	"prodi":         "u.prodi",
 	"nama_fakultas": "f.nama_fakultas",
-	"nama_prodi":    "p.nama_prodi",
+	"nama_prodi": `
+		CONCAT(
+			COALESCE(ul.nama_prodi, dc.nama_prodi),
+			' ',
+			CASE COALESCE(ul.kode_jenjang, dc.kode_jenjang)
+				WHEN 'E' THEN 'D3'
+				WHEN 'A' THEN 'S3'
+				WHEN 'B' THEN 'S2'
+				WHEN 'C' THEN 'S1'
+				ELSE ''
+			END
+		)
+	`,
 }
 
 // ------------------------
@@ -463,7 +511,16 @@ func (r *AccountRepository) GetAll(
 			u.fakultas as RefFakultas,
 			f.nama_fakultas as Fakultas,
 			u.prodi as RefProdi,
-			p.nama_prodi as Prodi,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS Prodi, 
 			u.deleted_at as DeletedAt,
 			u.created_at as CreatedAt,
 			u.updated_at as UpdatedAt

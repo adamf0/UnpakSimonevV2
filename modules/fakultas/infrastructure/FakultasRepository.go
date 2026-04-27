@@ -41,7 +41,7 @@ func (r *FakultasRepository) GetAll(
 	var total int64
 
 	db := r.db.WithContext(ctx).
-		Table("fakultas").
+		Table("m_fakultas").
 		Select(`
 			kode_fakultas as KodeFakultas,
 			nama_fakultas as NamaFakultas
