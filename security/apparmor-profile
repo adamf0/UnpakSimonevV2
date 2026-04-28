@@ -1,0 +1,22 @@
+#include <tunables/global>
+
+profile golang-fiber flags=(attach_disconnected,mediate_deleted) {
+
+  network inet tcp,
+  network inet udp,
+
+  file,
+  capability net_bind_service,
+
+  deny /bin/** mrwklx,
+  deny /usr/bin/** mrwklx,
+  deny /sbin/** mrwklx,
+
+  /app/app rix,
+
+  /etc/ssl/** r,
+  /usr/share/zoneinfo/** r,
+
+  deny /proc/sys/** rwklx,
+  deny /sys/** rwklx,
+}

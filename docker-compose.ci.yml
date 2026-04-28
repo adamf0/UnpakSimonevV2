@@ -1,14 +1,27 @@
 version: "3.9"
 
 services:
-  db:
-    image: mariadb:11
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: unpak_sijamu_server
+  app:
+    build: .
+    image: unpaksiamida:latest
     ports:
-      - "3306:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot"]
-      interval: 5s
-      retries: 10
+      - "3000:3000"
+
+    read_only: true
+    tmpfs:
+      - /tmp
+
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:./security/seccomp.json
+      - apparmor:golang-fiber
+
+    cap_drop:
+      - ALL
+
+    restart: unless-stopped
+
+    environment:
+      DB_SIMONEV: ${DB_SIMONEV}
+      DB_SIMAK: ${DB_SIMAK}
+      DB_SIMPEG: ${DB_SIMPEG}
