@@ -329,7 +329,7 @@ func RestoreAccountHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Account/{uuid}
+// GET /account/{uuid}
 // =======================================================
 
 // GetAccountHandler godoc
@@ -342,7 +342,7 @@ func RestoreAccountHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /Account/{uuid} [get]
+// @Router /account/{uuid} [get]
 func GetAccountHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
@@ -365,7 +365,7 @@ func GetAccountHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Accounts
+// GET /accounts
 // =======================================================
 
 // GetAllAccountsHandler godoc
@@ -377,7 +377,7 @@ func GetAccountHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[domainaccount.Account]
-// @Router /Accounts [get]
+// @Router /accounts [get]
 func GetAllAccountsHandlerfunc(c *fiber.Ctx) error {
 	flag := c.Query("flag", "none") //with deleted
 	mode := c.Query("mode", "paging")
@@ -461,18 +461,18 @@ func SetupUuidAccountsHandlerfunc(c *fiber.Ctx) error {
 }
 
 func ModuleAccount(app *fiber.App) {
-	app.Post("/login", LoginHandlerfunc)
-	app.Get("/whoami", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), WhoAmIHandler)
+	app.Post("/api/v2/login", LoginHandlerfunc)
+	app.Get("/api/v2/whoami", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), WhoAmIHandler)
 
-	app.Get("/account/setupuuid", SetupUuidAccountsHandlerfunc)
+	app.Get("/api/v2/account/setupuuid", SetupUuidAccountsHandlerfunc)
 
-	app.Post("/account", commonpresentation.JWTMiddleware(), CreateAccountHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
-	app.Put("/account/:uuid", commonpresentation.JWTMiddleware(), UpdateAccountHandlerfunc)
+	app.Post("/api/v2/account", commonpresentation.JWTMiddleware(), CreateAccountHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Put("/api/v2/account/:uuid", commonpresentation.JWTMiddleware(), UpdateAccountHandlerfunc)
 
-	app.Delete("/account/:uuid", commonpresentation.JWTMiddleware(), DeleteAccountHandlerfunc)            //soft delete
-	app.Delete("/account/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteAccountHandlerfunc) //hanya lpm saja yg hard delete
-	app.Put("/account/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreAccountHandlerfunc)
+	app.Delete("/api/v2/account/:uuid", commonpresentation.JWTMiddleware(), DeleteAccountHandlerfunc)            //soft delete
+	app.Delete("/api/v2/account/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteAccountHandlerfunc) //hanya lpm saja yg hard delete
+	app.Put("/api/v2/account/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreAccountHandlerfunc)
 
-	app.Get("/account/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAccountHandlerfunc)
-	app.Get("/accounts", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllAccountsHandlerfunc)
+	app.Get("/api/v2/account/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAccountHandlerfunc)
+	app.Get("/api/v2/accounts", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllAccountsHandlerfunc)
 }

@@ -122,7 +122,9 @@ WITH dosen_cte AS (
         CONCAT(
 			p.nama_prodi,
 			CASE p.kode_jenjang
+				WHEN 'J' THEN ' (Profesi)'
 				WHEN 'E' THEN ' (D3)'
+				WHEN 'D' THEN ' (D4)'
 				WHEN 'A' THEN ' (S3)'
 				WHEN 'B' THEN ' (S2)'
 				WHEN 'C' THEN ' (S1)'
@@ -144,7 +146,9 @@ mahasiswa_cte AS (
         CONCAT(
 			p.nama_prodi,
 			CASE p.kode_jenjang
+				WHEN 'J' THEN ' (Profesi)'
 				WHEN 'E' THEN ' (D3)'
+				WHEN 'D' THEN ' (D4)'
 				WHEN 'A' THEN ' (S3)'
 				WHEN 'B' THEN ' (S2)'
 				WHEN 'C' THEN ' (S1)'
@@ -279,7 +283,9 @@ WITH dosen_cte AS (
         CONCAT(
 			p.nama_prodi,
 			CASE p.kode_jenjang
+				WHEN 'J' THEN ' (Profesi)'
 				WHEN 'E' THEN ' (D3)'
+				WHEN 'D' THEN ' (D4)'
 				WHEN 'A' THEN ' (S3)'
 				WHEN 'B' THEN ' (S2)'
 				WHEN 'C' THEN ' (S1)'
@@ -339,7 +345,9 @@ WITH mahasiswa_cte AS (
         CONCAT(
 			p.nama_prodi,
 			CASE p.kode_jenjang
+				WHEN 'J' THEN ' (Profesi)'
 				WHEN 'E' THEN ' (D3)'
+				WHEN 'D' THEN ' (D4)'
 				WHEN 'A' THEN ' (S3)'
 				WHEN 'B' THEN ' (S2)'
 				WHEN 'C' THEN ' (S1)'
@@ -514,7 +522,9 @@ func (r *AccountRepository) GetAll(
 			CONCAT(
 				p.nama_prodi,
 				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
 					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
 					WHEN 'A' THEN ' (S3)'
 					WHEN 'B' THEN ' (S2)'
 					WHEN 'C' THEN ' (S1)'

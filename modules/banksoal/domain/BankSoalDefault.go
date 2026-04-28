@@ -29,5 +29,5 @@ type BankSoalDefault struct {
 	TargetPertanyaan []uuid.UUID `gorm:"-"`
 	RawTargetUUIDs   string      `gorm:"column:TargetPertanyaan" json:"-"`
 	UUIDKuesioner    uuid.UUID
-	ListExt          []BankSoalExtDefault `gorm:"-"`
+	ListExt          []BankSoalExtDefault `gorm:"-" json:"ListExt"`
 }

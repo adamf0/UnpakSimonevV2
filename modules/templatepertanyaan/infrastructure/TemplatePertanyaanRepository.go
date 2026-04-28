@@ -175,6 +175,112 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 	return &rowData, nil
 }
 
+func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
+	ctx context.Context,
+	id_bank_soal uint,
+) ([]domaintemplatepertanyaan.TemplatePertanyaanWithAnswareDefault, error) {
+
+	rows := make([]domaintemplatepertanyaan.TemplatePertanyaanWithAnswareDefault, 0)
+
+	// =========================
+	// QUERY LIST PERTANYAAN
+	// =========================
+	err := r.db.Debug().
+		WithContext(ctx).
+		Table("template_pertanyaanv2 a").
+		Joins("LEFT JOIN kategori k ON k.id = a.id_kategori").
+		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+		Select(`
+			a.id as ID,
+			a.uuid as UUID,
+			a.id_bank_soal as IdBankSoal,
+			b.uuid as UUIDBankSoal,
+			b.judul as NamaBankSoal,
+			a.pertanyaan as Pertanyaan,
+			a.jenis_pilihan as JenisPilihan,
+			a.bobot as Bobot,
+			a.id_kategori as IdKategori,
+			k.uuid as UUIDKategori,
+			k.nama_kategori as Kategori,
+			k.full_text as FullPath,
+			a.required as Required,
+			a.status as Status,
+			a.createdBy as CreatedBy,
+			a.createdByRef as CreatedByRef,
+			a.fakultas as Fakultas,
+			a.prodi as Prodi,
+			a.unit as Unit,
+			a.jenjang as Jenjang,
+			a.deleted_at as DeletedAt,
+			a.created_at as CreatedAt,
+			a.updated_at as UpdatedAt
+		`).
+		Where("a.id_bank_soal = ?", id_bank_soal).
+		Where("a.deleted_at IS NULL").
+		Order("a.id ASC").
+		Find(&rows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// =========================
+	// PARALLEL FETCH JAWABAN
+	// =========================
+	type result struct {
+		index   int
+		jawaban []domaintemplatepertanyaan.TemplateJawabanDefault
+		err     error
+	}
+
+	resultCh := make(chan result, len(rows))
+
+	for i := range rows {
+		go func(i int) {
+			var listJawaban []domaintemplatepertanyaan.TemplateJawabanDefault
+
+			err := r.db.Debug().
+				WithContext(ctx).
+				Table("template_pilihanv2 p").
+				Select(`
+					p.id as ID,
+					p.uuid as UUID,
+					p.id_template_pertanyaan as IdTemplatePertanyaan,
+					? as UUIDTemplatePertanyaan,
+					? as NamaTemplatePertanyaan,
+					p.jawaban as Jawaban,
+					p.nilai as Nilai,
+					p.isFreeText as IsFreeText,
+					p.deleted_at as DeletedAt,
+					p.created_at as CreatedAt,
+					p.updated_at as UpdatedAt
+				`, rows[i].UUID, rows[i].Pertanyaan).
+				Where("p.id_template_pertanyaan = ?", rows[i].ID).
+				Where("p.deleted_at IS NULL").
+				Order("p.id ASC").
+				Find(&listJawaban).Error
+
+			resultCh <- result{
+				index:   i,
+				jawaban: listJawaban,
+				err:     err,
+			}
+		}(i)
+	}
+
+	// collect result
+	for i := 0; i < len(rows); i++ {
+		res := <-resultCh
+		if res.err != nil {
+			return nil, res.err
+		}
+
+		rows[res.index].ListJawaban = res.jawaban
+	}
+
+	return rows, nil
+}
+
 var allowedSearchColumns = map[string]string{
 	// key:param -> db column
 	"uuidbanksoal": "b.uuid",

@@ -45,56 +45,188 @@ func (r *BankSoalRepository) GetByUuid(ctx context.Context, uid uuid.UUID) (*dom
 // ------------------------
 // GET DEFAULT BY UUID
 // ------------------------
-func (r *BankSoalRepository) GetDefaultByUuid( //[note] ini lebih optimal dibandingkan getall ketika di analyze, tapi perlu di alaisis kembali tingkat ddd. ini secara data tidak boleh direct langsung kalau beda bounded context
+// func (r *BankSoalRepository) GetDefaultByUuid( //[note] ini lebih optimal dibandingkan getall ketika di analyze
+// 	ctx context.Context,
+// 	id uuid.UUID,
+// ) (*domainbanksoal.BankSoalDefault, error) {
+
+// 	var row domainbanksoal.BankSoalDefault
+
+// 	db := r.db.WithContext(ctx).
+// 		Table("bank_soalv2 b").
+// 		Debug().
+// 		Select(`
+// 		b.id AS ID,
+// 		b.uuid AS UUID,
+// 		b.judul AS Judul,
+// 		b.content AS Content,
+// 		b.deskripsi AS Deskripsi,
+// 		b.semester AS Semester,
+// 		b.tanggal_mulai AS TanggalMulai,
+// 		b.tanggal_akhir AS TanggalAkhir,
+// 		b.createdBy AS CreatedBy,
+// 		b.createdByRef AS CreatedByRef,
+// 		b.deleted_at AS DeletedAt,
+// 		b.status AS Status,
+
+// 		COALESCE(u.name, d.nama_dosen) AS Nama,
+// 		COALESCE(u.level, 'dosen') AS Role,
+// 		COALESCE(fu.kode_fakultas, fd.kode_fakultas) AS KodeFakultas,
+// 		COALESCE(fu.nama_fakultas, fd.nama_fakultas) AS NamaFakultas,
+// 		COALESCE(pu.kode_prodi, pd.kode_prodi) AS KodeProdi,
+// 		COALESCE(pu.nama_prodi, pd.nama_prodi) AS NamaProdi,
+
+// 		COALESCE(pc.total_pertanyaan, 0) AS TotalPertanyaan,
+// 		0 AS TotalInput,
+// 		k.uuid AS UUIDKuesioner
+// 	`).
+// 		Joins(`LEFT JOIN users u ON u.id = b.createdByRef AND b.createdBy = 'local'`).
+// 		Joins(`LEFT JOIN m_fakultas fu ON fu.kode_fakultas = u.fakultas`).
+// 		Joins(`LEFT JOIN m_program_studi pu ON pu.kode_prodi = u.prodi`).
+// 		Joins(`LEFT JOIN m_dosen d ON d.NIDN = b.createdByRef AND b.createdBy = 'simak'`).
+// 		Joins(`LEFT JOIN m_fakultas fd ON fd.kode_fakultas = d.kode_fak`).
+// 		Joins(`LEFT JOIN m_program_studi pd ON pd.kode_prodi = d.kode_prodi`).
+// 		Joins(`
+// 		LEFT JOIN (
+// 			SELECT id_bank_soal, COUNT(id) AS total_pertanyaan
+// 			FROM template_pertanyaanv2
+// 			GROUP BY id_bank_soal
+// 		) pc ON pc.id_bank_soal = b.id
+// 	`).
+// 		Joins(`LEFT JOIN kuesionerv2 k ON k.id_bank_soal = b.id`).
+// 		Where("b.uuid = ?", id).
+// 		Order("b.id DESC")
+
+// 	if err := db.First(&row).Error; err != nil {
+// 		if errors.Is(err, gorm.ErrRecordNotFound) {
+// 			return nil, gorm.ErrRecordNotFound
+// 		}
+// 		return nil, err
+// 	}
+
+//		return &row, nil
+//	}
+func (r *BankSoalRepository) GetDefaultByUuid(
 	ctx context.Context,
 	id uuid.UUID,
 ) (*domainbanksoal.BankSoalDefault, error) {
 
 	var row domainbanksoal.BankSoalDefault
 
+	// =========================
+	// Subquery dosen
+	// =========================
+	dosenSub := r.db.
+		Table("m_dosen d").
+		Select(`
+			CAST(d.NIDN AS CHAR) AS nidn,
+			d.nama_dosen,
+			f.kode_fakultas,
+			f.nama_fakultas,
+			p.kode_prodi,
+			p.kode_jenjang,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS nama_prodi,
+			'dosen' AS role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+
+	// =========================
+	// Subquery account
+	// =========================
+	accountSub := r.db.
+		Table("users u").
+		Select(`
+			CAST(u.id AS CHAR) AS id,
+			u.name,
+			f.kode_fakultas,
+			f.nama_fakultas,
+			p.kode_prodi,
+			p.kode_jenjang,
+			CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			) AS nama_prodi,
+			u.level AS role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+
+	// =========================
+	// Subquery pertanyaan
+	// =========================
+	pertanyaanSub := r.db.
+		Table("template_pertanyaanv2 tp").
+		Select(`
+			tp.id_bank_soal,
+			COUNT(tp.id) AS total_pertanyaan,
+			GROUP_CONCAT(tp.uuid) AS uuids
+		`).
+		Where("tp.deleted_at IS NULL").
+		Where("tp.status = 'active'").
+		Group("tp.id_bank_soal")
+
+	// =========================
+	// Main query
+	// =========================
 	db := r.db.WithContext(ctx).
 		Table("bank_soalv2 b").
 		Debug().
 		Select(`
-		b.id AS ID,
-		b.uuid AS UUID,
-		b.judul AS Judul,
-		b.content AS Content,
-		b.deskripsi AS Deskripsi,
-		b.semester AS Semester,
-		b.tanggal_mulai AS TanggalMulai,
-		b.tanggal_akhir AS TanggalAkhir,
-		b.createdBy AS CreatedBy,
-		b.createdByRef AS CreatedByRef,
-		b.deleted_at AS DeletedAt,
-		b.status AS Status,
+			b.id AS ID,
+			b.uuid AS UUID,
+			b.judul AS Judul,
+			b.content AS Content,
+			b.deskripsi AS Deskripsi,
+			b.semester AS Semester,
+			b.tanggal_mulai AS TanggalMulai,
+			b.tanggal_akhir AS TanggalAkhir,
+			b.createdBy AS CreatedBy,
+			b.createdByRef AS CreatedByRef,
+			b.deleted_at AS DeletedAt,
+			b.status AS Status,
 
-		COALESCE(u.name, d.nama_dosen) AS Nama,
-		COALESCE(u.level, 'dosen') AS Role,
-		COALESCE(fu.kode_fakultas, fd.kode_fakultas) AS KodeFakultas,
-		COALESCE(fu.nama_fakultas, fd.nama_fakultas) AS NamaFakultas,
-		COALESCE(pu.kode_prodi, pd.kode_prodi) AS KodeProdi,
-		COALESCE(pu.nama_prodi, pd.nama_prodi) AS NamaProdi,
+			COALESCE(ul.name, dc.nama_dosen) AS Nama,
+			COALESCE(ul.role, dc.role) AS Role,
+			COALESCE(ul.kode_fakultas, dc.kode_fakultas) AS KodeFakultas,
+			COALESCE(ul.nama_fakultas, dc.nama_fakultas) AS NamaFakultas,
+			COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
+			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi,
 
-		COALESCE(pc.total_pertanyaan, 0) AS TotalPertanyaan,
-		0 AS TotalInput,
-		k.uuid AS UUIDKuesioner
-	`).
-		Joins(`LEFT JOIN users u ON u.id = b.createdByRef AND b.createdBy = 'local'`).
-		Joins(`LEFT JOIN m_fakultas fu ON fu.kode_fakultas = u.fakultas`).
-		Joins(`LEFT JOIN m_program_studi pu ON pu.kode_prodi = u.prodi`).
-		Joins(`LEFT JOIN m_dosen d ON d.NIDN = b.createdByRef AND b.createdBy = 'simak'`).
-		Joins(`LEFT JOIN m_fakultas fd ON fd.kode_fakultas = d.kode_fak`).
-		Joins(`LEFT JOIN m_program_studi pd ON pd.kode_prodi = d.kode_prodi`).
-		Joins(`
-		LEFT JOIN (
-			SELECT id_bank_soal, COUNT(id) AS total_pertanyaan
-			FROM template_pertanyaanv2
-			GROUP BY id_bank_soal
-		) pc ON pc.id_bank_soal = b.id
-	`).
+			COALESCE(pc.total_pertanyaan, 0) AS TotalPertanyaan,
+			0 AS TotalInput,
+			COALESCE(pc.uuids, '') AS RawTargetUUIDs,
+			k.uuid AS UUIDKuesioner
+		`).
+		Joins(`LEFT JOIN (?) ul 
+			ON ul.id = CAST(b.createdByRef AS CHAR)
+			AND LOWER(b.createdBy) = 'local'`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON dc.nidn = CAST(b.createdByRef AS CHAR)
+			AND LOWER(b.createdBy) = 'simak'`, dosenSub).
+		Joins(`LEFT JOIN (?) pc ON b.id = pc.id_bank_soal`, pertanyaanSub).
 		Joins(`LEFT JOIN kuesionerv2 k ON k.id_bank_soal = b.id`).
 		Where("b.uuid = ?", id).
+		Where("b.deleted_at IS NULL").
 		Order("b.id DESC")
 
 	if err := db.First(&row).Error; err != nil {
@@ -102,6 +234,60 @@ func (r *BankSoalRepository) GetDefaultByUuid( //[note] ini lebih optimal diband
 			return nil, gorm.ErrRecordNotFound
 		}
 		return nil, err
+	}
+
+	// =========================
+	// LOAD EXTENSION DATA
+	// =========================
+	var extRows []domainbanksoal.BankSoalExtDefault
+
+	err := r.db.
+		Table("bank_soal_extendv2 e").
+		Debug().
+		Select(`
+			e.id AS ID,
+			e.uuid AS UUID,
+			e.id_bank_soal AS IdBankSoal,
+			e.tanggal_mulai AS TanggalMulai,
+			e.tanggal_akhir AS TanggalAkhir,
+			e.createdBy AS CreatedBy,
+			e.createdByRef AS CreatedByRef,
+
+			COALESCE(ul.kode_fakultas, dc.kode_fakultas) AS KodeFakultas,
+			COALESCE(ul.nama_fakultas, dc.nama_fakultas) AS NamaFakultas,
+			COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
+			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi,
+			COALESCE(ul.role, dc.role) AS Role
+		`).
+		Joins(`LEFT JOIN (?) ul 
+			ON ul.id = CAST(e.createdByRef AS CHAR)
+			AND LOWER(e.createdBy) = 'local'`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON dc.nidn = CAST(e.createdByRef AS CHAR)
+			AND LOWER(e.createdBy) = 'simak'`, dosenSub).
+		Where("e.id_bank_soal = ?", row.Id).
+		Order("e.id DESC").
+		Scan(&extRows).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	row.ListExt = append(
+		[]domainbanksoal.BankSoalExtDefault{},
+		extRows...,
+	)
+
+	// =========================
+	// Parse UUID Pertanyaan
+	// =========================
+	if row.RawTargetUUIDs != "" {
+		uuids := strings.Split(row.RawTargetUUIDs, ",")
+		for _, s := range uuids {
+			if u, err := uuid.Parse(strings.TrimSpace(s)); err == nil {
+				row.TargetPertanyaan = append(row.TargetPertanyaan, u)
+			}
+		}
 	}
 
 	return &row, nil
@@ -127,7 +313,9 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 			CONCAT(
 				p.nama_prodi,
 				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
 					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
 					WHEN 'A' THEN ' (S3)'
 					WHEN 'B' THEN ' (S2)'
 					WHEN 'C' THEN ' (S1)'
@@ -152,7 +340,9 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 			CONCAT(
 				p.nama_prodi,
 				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
 					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
 					WHEN 'A' THEN ' (S3)'
 					WHEN 'B' THEN ' (S2)'
 					WHEN 'C' THEN ' (S1)'
@@ -284,7 +474,10 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 		return nil, err
 	}
 
-	row.ListExt = extRows
+	row.ListExt = append(
+		[]domainbanksoal.BankSoalExtDefault{},
+		extRows...,
+	)
 
 	// =========================
 	// PARSE TARGET UUID
@@ -356,7 +549,9 @@ func (r *BankSoalRepository) GetAll(
 			CONCAT(
 				p.nama_prodi,
 				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
 					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
 					WHEN 'A' THEN ' (S3)'
 					WHEN 'B' THEN ' (S2)'
 					WHEN 'C' THEN ' (S1)'
@@ -381,7 +576,9 @@ func (r *BankSoalRepository) GetAll(
 			CONCAT(
 				p.nama_prodi,
 				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
 					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
 					WHEN 'A' THEN ' (S3)'
 					WHEN 'B' THEN ' (S2)'
 					WHEN 'C' THEN ' (S1)'
@@ -546,6 +743,7 @@ func (r *BankSoalRepository) GetAll(
 
 		err := r.db.
 			Table("bank_soal_extendv2 e").
+			Debug().
 			Select(`
 				e.id as ID,
 				e.uuid as UUID,
@@ -581,7 +779,14 @@ func (r *BankSoalRepository) GetAll(
 		}
 
 		for i := range rows {
-			rows[i].ListExt = extMap[rows[i].Id]
+			if val, ok := extMap[rows[i].Id]; ok {
+				rows[i].ListExt = append(
+					[]domainbanksoal.BankSoalExtDefault{},
+					val...,
+				)
+			} else {
+				rows[i].ListExt = []domainbanksoal.BankSoalExtDefault{}
+			}
 		}
 	}
 

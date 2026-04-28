@@ -16,7 +16,7 @@ import (
 )
 
 // =======================================================
-// GET /Prodis
+// GET /prodis
 // =======================================================
 
 // GetAllProdisHandler godoc
@@ -28,7 +28,7 @@ import (
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Prodidomain.ProdiDefault]
-// @Router /Prodis [get]
+// @Router /prodis [get]
 func GetAllProdisHandlerfunc(c *fiber.Ctx) error {
 	mode := c.Query("mode", "paging")
 	page := c.QueryInt("page", 1)
@@ -96,7 +96,7 @@ func GetAllProdisHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleProdi(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://127.0.0.1:3000/whoami"
+	// whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/prodis", commonpresentation.SmartCompress(), GetAllProdisHandlerfunc)
+	app.Get("/api/v2/prodis", commonpresentation.SmartCompress(), GetAllProdisHandlerfunc)
 }

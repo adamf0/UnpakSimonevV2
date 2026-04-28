@@ -210,7 +210,7 @@ func RestoreTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /TemplateJawaban/{uuid}
+// GET /templatejawaban/{uuid}
 // =======================================================
 
 // GetTemplateJawabanHandler godoc
@@ -223,7 +223,7 @@ func RestoreTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /TemplateJawaban/{uuid} [get]
+// @Router /templatejawaban/{uuid} [get]
 func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
@@ -246,7 +246,7 @@ func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /TemplateJawabans
+// GET /templatejawabans
 // =======================================================
 
 // GetAllTemplateJawabansHandler godoc
@@ -258,7 +258,7 @@ func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[TemplateJawabandomain.TemplateJawabanDefault]
-// @Router /TemplateJawabans [get]
+// @Router /templatejawabans [get]
 func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error {
 	flag := c.Query("flag", "none") //with deleted
 	mode := c.Query("mode", "paging")
@@ -343,17 +343,17 @@ func SetupUuidTemplateJawabansHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleTemplateJawaban(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://127.0.0.1:3000/whoami"
+	// whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/templatejawaban/setupuuid", SetupUuidTemplateJawabansHandlerfunc)
+	app.Get("/api/v2/templatejawaban/setupuuid", SetupUuidTemplateJawabansHandlerfunc)
 
-	app.Post("/templatejawaban", commonpresentation.JWTMiddleware(), CreateTemplateJawabanHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
-	app.Put("/templatejawaban/:uuid", commonpresentation.JWTMiddleware(), UpdateTemplateJawabanHandlerfunc)
+	app.Post("/api/v2/templatejawaban", commonpresentation.JWTMiddleware(), CreateTemplateJawabanHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Put("/api/v2/templatejawaban/:uuid", commonpresentation.JWTMiddleware(), UpdateTemplateJawabanHandlerfunc)
 
-	app.Delete("/templatejawaban/:uuid", commonpresentation.JWTMiddleware(), DeleteTemplateJawabanHandlerfunc)            //soft delete
-	app.Delete("/templatejawaban/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteTemplateJawabanHandlerfunc) //hanya lpm saja yg hard delete
-	app.Put("/templatejawaban/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreTemplateJawabanHandlerfunc)
+	app.Delete("/api/v2/templatejawaban/:uuid", commonpresentation.JWTMiddleware(), DeleteTemplateJawabanHandlerfunc)            //soft delete
+	app.Delete("/api/v2/templatejawaban/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteTemplateJawabanHandlerfunc) //hanya lpm saja yg hard delete
+	app.Put("/api/v2/templatejawaban/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreTemplateJawabanHandlerfunc)
 
-	app.Get("/templatejawaban/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplateJawabanHandlerfunc)
-	app.Get("/templatejawabans", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllTemplateJawabansHandlerfunc)
+	app.Get("/api/v2/templatejawaban/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplateJawabanHandlerfunc)
+	app.Get("/api/v2/templatejawabans", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllTemplateJawabansHandlerfunc)
 }

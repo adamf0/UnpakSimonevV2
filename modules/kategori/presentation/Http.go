@@ -234,7 +234,7 @@ func CopyKategoriHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Kategori/{uuid}
+// GET /kategori/{uuid}
 // =======================================================
 
 // GetKategoriHandler godoc
@@ -247,7 +247,7 @@ func CopyKategoriHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /Kategori/{uuid} [get]
+// @Router /kategori/{uuid} [get]
 func GetKategoriHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
@@ -270,7 +270,7 @@ func GetKategoriHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /Kategoris
+// GET /kategoris
 // =======================================================
 
 // GetAllKategorisHandler godoc
@@ -282,7 +282,7 @@ func GetKategoriHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kategoridomain.KategoriDefault]
-// @Router /Kategoris [get]
+// @Router /kategoris [get]
 func GetAllKategorisHandlerfunc(c *fiber.Ctx) error {
 	flag := c.Query("flag", "none") //with deleted
 	mode := c.Query("mode", "paging")
@@ -367,18 +367,18 @@ func SetupUuidKategorisHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleKategori(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://127.0.0.1:3000/whoami"
+	// whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/kategori/setupuuid", SetupUuidKategorisHandlerfunc)
+	app.Get("/api/v2/kategori/setupuuid", SetupUuidKategorisHandlerfunc)
 
-	app.Post("/kategori", commonpresentation.JWTMiddleware(), CreateKategoriHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
-	app.Put("/kategori/:uuid", commonpresentation.JWTMiddleware(), UpdateKategoriHandlerfunc)
+	app.Post("/api/v2/kategori", commonpresentation.JWTMiddleware(), CreateKategoriHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Put("/api/v2/kategori/:uuid", commonpresentation.JWTMiddleware(), UpdateKategoriHandlerfunc)
 
-	app.Delete("/kategori/:uuid", commonpresentation.JWTMiddleware(), DeleteKategoriHandlerfunc)            //soft delete
-	app.Delete("/kategori/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteKategoriHandlerfunc) //hanya lpm saja yg hard delete
-	app.Put("/kategori/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreKategoriHandlerfunc)
-	app.Post("/kategori/:uuid/copy", commonpresentation.JWTMiddleware(), CopyKategoriHandlerfunc)
+	app.Delete("/api/v2/kategori/:uuid", commonpresentation.JWTMiddleware(), DeleteKategoriHandlerfunc)            //soft delete
+	app.Delete("/api/v2/kategori/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteKategoriHandlerfunc) //hanya lpm saja yg hard delete
+	app.Put("/api/v2/kategori/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreKategoriHandlerfunc)
+	app.Post("/api/v2/kategori/:uuid/copy", commonpresentation.JWTMiddleware(), CopyKategoriHandlerfunc)
 
-	app.Get("/kategori/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKategoriHandlerfunc)
-	app.Get("/kategoris", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKategorisHandlerfunc)
+	app.Get("/api/v2/kategori/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKategoriHandlerfunc)
+	app.Get("/api/v2/kategoris", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKategorisHandlerfunc)
 }

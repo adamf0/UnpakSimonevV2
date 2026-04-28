@@ -12,6 +12,7 @@ type ITemplatePertanyaanRepository interface {
 	GetByUuid(ctx context.Context, uid uuid.UUID) (*TemplatePertanyaan, error)
 	GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*TemplatePertanyaanDefault, error)
 	GetDefaultWithAnswareByUuid(ctx context.Context, uid uuid.UUID) (*TemplatePertanyaanWithAnswareDefault, error)
+	GetDefaultWithAnswareByBankSoal(ctx context.Context, id_banksoal uint) ([]TemplatePertanyaanWithAnswareDefault, error)
 	GetAll(
 		ctx context.Context,
 		search string,

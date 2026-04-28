@@ -2,8 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
+	"log"
+	"os"
 	"sync"
 	"time"
+
+	"github.com/joho/godotenv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mehdihadeli/go-mediatr"
@@ -90,12 +95,18 @@ var (
 func NewMySQL() (*gorm.DB, error) {
 	var err error
 	onceMain.Do(func() {
-		dsn := "root:@tcp(127.0.0.1:3306)/unpak_simonev?charset=utf8mb4&parseTime=true&loc=Local"
+		dsn := os.Getenv("DB_SIMONEV")
 
+		if dsn == "" {
+			log.Print("gagal ambil env simonev")
+			err = errors.New("gagal ambil env DB_SIMONEV")
+			return
+		}
 		dbMain, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			return
 		}
+		log.Print("berhasil konek simonev")
 
 		sqlDB, _ := dbMain.DB()
 		sqlDB.SetMaxOpenConns(20)
@@ -109,12 +120,18 @@ func NewMySQL() (*gorm.DB, error) {
 func NewMySQLSimak() (*gorm.DB, error) {
 	var err error
 	onceSimak.Do(func() {
-		dsn := "root:@tcp(127.0.0.1:3306)/unpak_simak?charset=utf8mb4&parseTime=true&loc=Local"
+		dsn := os.Getenv("DB_SIMAK")
 
+		if dsn == "" {
+			log.Print("gagal ambil env simak")
+			err = errors.New("gagal ambil env DB_SIMAK")
+			return
+		}
 		dbSimak, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			return
 		}
+		log.Print("berhasil konek simak")
 
 		sqlDB, _ := dbSimak.DB()
 		sqlDB.SetMaxOpenConns(20)
@@ -128,12 +145,18 @@ func NewMySQLSimak() (*gorm.DB, error) {
 func NewMySQLSimpeg() (*gorm.DB, error) {
 	var err error
 	onceSimpeg.Do(func() {
-		dsn := "root:@tcp(127.0.0.1:3306)/unpak_simpeg?charset=utf8mb4&parseTime=true&loc=Local"
+		dsn := os.Getenv("DB_SIMPEG")
 
+		if dsn == "" {
+			log.Print("gagal ambil env simpeg")
+			err = errors.New("gagal ambil env DB_SIMPEG")
+			return
+		}
 		dbSimpeg, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 		if err != nil {
 			return
 		}
+		log.Print("berhasil konek simpeg")
 
 		sqlDB, _ := dbSimpeg.DB()
 		sqlDB.SetMaxOpenConns(20)
@@ -188,6 +211,13 @@ func main() {
 	})
 
 	mediatr.RegisterRequestPipelineBehaviors(NewValidationBehavior())
+
+	mustStart("ENV", func() error {
+		if err := godotenv.Load(); err != nil {
+			return errors.New("tidak ada env")
+		}
+		return nil
+	})
 
 	var db *gorm.DB
 	var dbSimak *gorm.DB

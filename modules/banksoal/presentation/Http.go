@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -393,7 +394,7 @@ func CopyBankSoalHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /BankSoal/{uuid}
+// GET /banksoal/{uuid}
 // =======================================================
 
 // GetBankSoalHandler godoc
@@ -406,7 +407,7 @@ func CopyBankSoalHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /BankSoal/{uuid} [get]
+// @Router /banksoal/{uuid} [get]
 func GetBankSoalHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
@@ -429,7 +430,7 @@ func GetBankSoalHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
-// GET /BankSoals
+// GET /banksoals
 // =======================================================
 
 // GetAllBankSoalsHandler godoc
@@ -441,7 +442,7 @@ func GetBankSoalHandlerfunc(c *fiber.Ctx) error {
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[BankSoaldomain.BankSoalDefault]
-// @Router /BankSoals [get]
+// @Router /banksoals [get]
 func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 	flag := c.Query("flag", "none")
 	mode := c.Query("mode", "paging")
@@ -525,6 +526,8 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 		commondomain.Paged[BankSoaldomain.BankSoalDefault],
 	](context.Background(), query)
 
+	// godump.Dd(result, err)
+
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -545,23 +548,23 @@ func SetupUuidBankSoalsHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleBankSoal(app *fiber.App) {
 	admin := []string{"admin"}
-	whoamiURL := "http://127.0.0.1:3000/whoami"
+	whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/banksoal/setupuuid", SetupUuidBankSoalsHandlerfunc)
+	app.Get("/api/v2/banksoal/setupuuid", SetupUuidBankSoalsHandlerfunc)
 
-	app.Post("/banksoal", commonpresentation.JWTMiddleware(), CreateBankSoalHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
-	app.Put("/banksoal/:uuid", commonpresentation.JWTMiddleware(), UpdateBankSoalHandlerfunc)
+	app.Post("/api/v2/banksoal", commonpresentation.JWTMiddleware(), CreateBankSoalHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Put("/api/v2/banksoal/:uuid", commonpresentation.JWTMiddleware(), UpdateBankSoalHandlerfunc)
 
-	app.Delete("/banksoal/:uuid", commonpresentation.JWTMiddleware(), DeleteBankSoalHandlerfunc) //soft delete
-	app.Put("/banksoal/:uuid/schedule", commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ChangeTimeBankSoalHandlerfunc)
-	app.Delete("/banksoal/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteBankSoalHandlerfunc) //hanya lpm saja yg hard delete
-	app.Put("/banksoal/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreBankSoalHandlerfunc)
-	app.Post("/banksoal/:uuid/copy", commonpresentation.JWTMiddleware(), CopyBankSoalHandlerfunc)
-	app.Put("/banksoal/:uuid/status", commonpresentation.JWTMiddleware(), StatusBankSoalHandlerfunc)
+	app.Delete("/api/v2/banksoal/:uuid", commonpresentation.JWTMiddleware(), DeleteBankSoalHandlerfunc) //soft delete
+	app.Put("/api/v2/banksoal/:uuid/schedule", commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ChangeTimeBankSoalHandlerfunc)
+	app.Delete("/api/v2/banksoal/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteBankSoalHandlerfunc) //hanya lpm saja yg hard delete
+	app.Put("/api/v2/banksoal/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreBankSoalHandlerfunc)
+	app.Post("/api/v2/banksoal/:uuid/copy", commonpresentation.JWTMiddleware(), CopyBankSoalHandlerfunc)
+	app.Put("/api/v2/banksoal/:uuid/status", commonpresentation.JWTMiddleware(), StatusBankSoalHandlerfunc)
 
-	app.Delete("/banksoal/:uuid/time", commonpresentation.JWTMiddleware(), DeleteTimeBankSoalHandlerfunc)
-	app.Delete("/banksoal/:uuid/timeext", commonpresentation.JWTMiddleware(), DeleteTimeExtBankSoalHandlerfunc)
+	app.Delete("/api/v2/banksoal/:uuid/time", commonpresentation.JWTMiddleware(), DeleteTimeBankSoalHandlerfunc)
+	app.Delete("/api/v2/banksoal/:uuid/timeext", commonpresentation.JWTMiddleware(), DeleteTimeExtBankSoalHandlerfunc)
 
-	app.Get("/banksoal/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetBankSoalHandlerfunc)
-	app.Get("/banksoals", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetAllBankSoalsHandlerfunc)
+	app.Get("/api/v2/banksoal/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetBankSoalHandlerfunc)
+	app.Get("/api/v2/banksoals", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetAllBankSoalsHandlerfunc)
 }

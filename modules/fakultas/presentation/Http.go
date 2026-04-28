@@ -16,7 +16,7 @@ import (
 )
 
 // =======================================================
-// GET /Fakultass
+// GET /fakultass
 // =======================================================
 
 // GetAllFakultassHandler godoc
@@ -28,7 +28,7 @@ import (
 // @Param search query string false "Search keyword"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Fakultasdomain.FakultasDefault]
-// @Router /Fakultass [get]
+// @Router /fakultass [get]
 func GetAllFakultassHandlerfunc(c *fiber.Ctx) error {
 	mode := c.Query("mode", "paging")
 	page := c.QueryInt("page", 1)
@@ -96,7 +96,7 @@ func GetAllFakultassHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleFakultas(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://127.0.0.1:3000/whoami"
+	// whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/fakultass", commonpresentation.SmartCompress(), GetAllFakultassHandlerfunc)
+	app.Get("/api/v2/fakultass", commonpresentation.SmartCompress(), GetAllFakultassHandlerfunc)
 }

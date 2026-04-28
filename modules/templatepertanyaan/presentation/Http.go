@@ -353,7 +353,7 @@ func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /templatepertanyaan/{uuid} [get]
+// @Router /templatepertanyaan/{uuid}/template [get]
 func GetTemplateHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
@@ -373,6 +373,41 @@ func GetTemplateHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(TemplatePertanyaan)
+}
+
+// =======================================================
+// GET /templatepertanyaan/{uuid}/banksoal
+// =======================================================
+
+// GetTemplateHandler godoc
+// @Summary Get TemplatePertanyaan by UUID
+// @Tags TemplatePertanyaan
+// @Param uuid path string true "TemplatePertanyaan UUID" format(uuid)
+// @Produce json
+// @Success 200 {object} TemplatePertanyaandomain.TemplatePertanyaan
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /templatepertanyaan/{uuid}/banksoal [get]
+func GetTemplateBankSoalHandlerfunc(c *fiber.Ctx) error {
+	uuid := c.Params("uuid")
+
+	var adapter commonpresentation.OutputAdapter[TemplatePertanyaandomain.TemplatePertanyaanWithAnswareDefault]
+	adapter = &commonpresentation.SSEAdapter[TemplatePertanyaandomain.TemplatePertanyaanWithAnswareDefault]{}
+
+	query := GetTemplate.GetTemplatePertanyaanWithAnswareDefaultByBankSoalQuery{UuidBankSoal: uuid}
+	result, err := mediatr.Send[
+		GetTemplate.GetTemplatePertanyaanWithAnswareDefaultByBankSoalQuery,
+		commondomain.Paged[TemplatePertanyaandomain.TemplatePertanyaanWithAnswareDefault],
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return adapter.Send(c, result)
+
 }
 
 // =======================================================
@@ -473,20 +508,21 @@ func SetupUuidTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleTemplatePertanyaan(app *fiber.App) {
 	// admin := []string{"admin"}
-	// whoamiURL := "http://127.0.0.1:3000/whoami"
+	// whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/templatepertanyaan/setupuuid", SetupUuidTemplatePertanyaansHandlerfunc)
+	app.Get("/api/v2/templatepertanyaan/setupuuid", SetupUuidTemplatePertanyaansHandlerfunc)
 
-	app.Post("/templatepertanyaan", commonpresentation.JWTMiddleware(), CreateTemplatePertanyaanHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
-	app.Put("/templatepertanyaan/:uuid", commonpresentation.JWTMiddleware(), UpdateTemplatePertanyaanHandlerfunc)
+	app.Post("/api/v2/templatepertanyaan", commonpresentation.JWTMiddleware(), CreateTemplatePertanyaanHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Put("/api/v2/templatepertanyaan/:uuid", commonpresentation.JWTMiddleware(), UpdateTemplatePertanyaanHandlerfunc)
 
-	app.Delete("/templatepertanyaan/:uuid", commonpresentation.JWTMiddleware(), DeleteTemplatePertanyaanHandlerfunc)            //soft delete
-	app.Delete("/templatepertanyaan/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteTemplatePertanyaanHandlerfunc) //hanya lpm saja yg hard delete
-	app.Put("/templatepertanyaan/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreTemplatePertanyaanHandlerfunc)
-	app.Post("/templatepertanyaan/:uuid/copy", commonpresentation.JWTMiddleware(), CopyTemplatePertanyaanHandlerfunc)
-	app.Put("/templatepertanyaan/:uuid/status", commonpresentation.JWTMiddleware(), StatusTemplatePertanyaanHandlerfunc)
+	app.Delete("/api/v2/templatepertanyaan/:uuid", commonpresentation.JWTMiddleware(), DeleteTemplatePertanyaanHandlerfunc)            //soft delete
+	app.Delete("/api/v2/templatepertanyaan/:uuid/force", commonpresentation.JWTMiddleware(), ForceDeleteTemplatePertanyaanHandlerfunc) //hanya lpm saja yg hard delete
+	app.Put("/api/v2/templatepertanyaan/:uuid/restore", commonpresentation.JWTMiddleware(), RestoreTemplatePertanyaanHandlerfunc)
+	app.Post("/api/v2/templatepertanyaan/:uuid/copy", commonpresentation.JWTMiddleware(), CopyTemplatePertanyaanHandlerfunc)
+	app.Put("/api/v2/templatepertanyaan/:uuid/status", commonpresentation.JWTMiddleware(), StatusTemplatePertanyaanHandlerfunc)
 
-	app.Get("/templatepertanyaan/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplatePertanyaanHandlerfunc)
-	app.Get("/templatepertanyaan/:uuid/template", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplateHandlerfunc)
-	app.Get("/templatepertanyaans", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllTemplatePertanyaansHandlerfunc)
+	app.Get("/api/v2/templatepertanyaan/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplatePertanyaanHandlerfunc)
+	app.Get("/api/v2/templatepertanyaan/:uuid/template", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetTemplateHandlerfunc)
+	app.Get("/api/v2/templatepertanyaan/:uuid/banksoal", commonpresentation.SmartCompress(), GetTemplateBankSoalHandlerfunc)
+	app.Get("/api/v2/templatepertanyaans", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllTemplatePertanyaansHandlerfunc)
 }

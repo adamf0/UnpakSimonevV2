@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -455,19 +456,19 @@ func SetupUuidKuesionersHandlerfunc(c *fiber.Ctx) error {
 
 func ModuleKuesioner(app *fiber.App) {
 	admin := []string{"admin"}
-	whoamiURL := "http://127.0.0.1:3000/whoami"
+	whoamiURL := os.Getenv("WHOAMI_URL")
 
-	app.Get("/kuesioner/setupuuid", SetupUuidKuesionersHandlerfunc)
+	app.Get("/api/v2/kuesioner/setupuuid", SetupUuidKuesionersHandlerfunc)
 
-	app.Post("/kuesioner", commonpresentation.JWTMiddleware(), CreateKuesionerHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
-	app.Get("/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), GetKuesionerJawabanHandlerfunc)
-	app.Post("/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), SaveKuesionerJawabanHandlerfunc)
+	app.Post("/api/v2/kuesioner", commonpresentation.JWTMiddleware(), CreateKuesionerHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Get("/api/v2/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), GetKuesionerJawabanHandlerfunc)
+	app.Post("/api/v2/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), SaveKuesionerJawabanHandlerfunc)
 
-	app.Delete("/kuesioner/:uuid", commonpresentation.JWTMiddleware(), DeleteKuesionerHandlerfunc)
+	app.Delete("/api/v2/kuesioner/:uuid", commonpresentation.JWTMiddleware(), DeleteKuesionerHandlerfunc)
 
-	app.Get("/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
-	app.Get("/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
-	app.Post("/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
-	app.Get("/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
-	app.Get("/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
+	app.Get("/api/v2/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
+	app.Get("/api/v2/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
+	app.Post("/api/v2/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
+	app.Get("/api/v2/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
+	app.Get("/api/v2/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }

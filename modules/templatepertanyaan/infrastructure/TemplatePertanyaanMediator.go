@@ -106,6 +106,14 @@ func RegisterModuleTemplatePertanyaan(db *gorm.DB) error {
 	})
 
 	mediatr.RegisterRequestHandler[
+		getTemplate.GetTemplatePertanyaanWithAnswareDefaultByBankSoalQuery,
+		commondomain.Paged[domainTemplatePertanyaan.TemplatePertanyaanWithAnswareDefault],
+	](&getTemplate.GetTemplatePertanyaanWithAnswareDefaultByBankSoalQueryHandler{
+		Repo:         repoTemplatePertanyaan,
+		RepoBankSoal: repoBankSoal,
+	})
+
+	mediatr.RegisterRequestHandler[
 		getAll.GetAllTemplatePertanyaansQuery,
 		commondomain.Paged[domainTemplatePertanyaan.TemplatePertanyaanDefault],
 	](&getAll.GetAllTemplatePertanyaansQueryHandler{
