@@ -5,67 +5,71 @@ FROM registry.access.redhat.com/ubi9/go-toolset:latest AS builder
 
 WORKDIR /src
 
-# copy dependency file only first (cache layer)
+# dependency cache
 COPY go.mod go.sum ./
 RUN go mod download
 
-# copy source
+# source code
 COPY . .
 
-# static binary
+# prepare output folder
+RUN mkdir -p /out
+
+# build binary (gunakan main.go di root)
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -ldflags="-s -w" -o /out/app .
+    go build -v -trimpath -ldflags="-s -w" -o /out/app ./main.go
 
 # =========================
 # Runtime Stage (Hardened)
 # =========================
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
-# timezone + cert only
+# timezone + ssl cert
 COPY --from=builder /usr/share/zoneinfo/Asia/Jakarta /usr/share/zoneinfo/Asia/Jakarta
 COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 
 ENV TZ=Asia/Jakarta \
     HOME=/nonexistent \
     PATH=/app \
-    GODEBUG=madvdontneed=1
+    GODEBUG=madvdontneed=1 \
+    GIN_MODE=release
 
-# create minimal passwd/group manually (no useradd package needed)
+# create unprivileged user manually
 RUN mkdir -p /app /tmp && \
     echo 'user:x:10001:10001::/nonexistent:/sbin/nologin' > /etc/passwd && \
     echo 'user:x:10001:' > /etc/group && \
     chmod 1777 /tmp
 
-# binary only
+# copy binary only
 COPY --from=builder /out/app /app/app
 
-# ownership + immutable style perms
+# secure permission
 RUN chown -R 10001:10001 /app && \
     chmod 0555 /app/app && \
     chmod 0555 /app
 
-# remove shells/tools commonly abused for reverse shell / privilege abuse
-RUN rm -f /bin/sh \
-          /bin/bash \
-          /usr/bin/bash \
-          /usr/bin/sh \
-          /usr/bin/curl \
-          /usr/bin/wget \
-          /usr/bin/nc \
-          /usr/bin/netcat \
-          /usr/bin/python \
-          /usr/bin/python3 \
-          /usr/bin/perl \
-          /usr/bin/ruby \
-          /usr/bin/lua \
-          /usr/bin/php 2>/dev/null || true
+# remove common abuse tools if exists
+RUN rm -f \
+    /bin/sh \
+    /bin/bash \
+    /usr/bin/bash \
+    /usr/bin/sh \
+    /usr/bin/curl \
+    /usr/bin/wget \
+    /usr/bin/nc \
+    /usr/bin/netcat \
+    /usr/bin/python \
+    /usr/bin/python3 \
+    /usr/bin/perl \
+    /usr/bin/ruby \
+    /usr/bin/php \
+    /usr/bin/lua 2>/dev/null || true
 
-# run as unprivileged user
+# run as non-root
 USER 10001:10001
 
 WORKDIR /app
 
 EXPOSE 3000/tcp
 
-# read-only style app process
 ENTRYPOINT ["/app/app"]
