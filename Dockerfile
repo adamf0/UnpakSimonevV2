@@ -15,47 +15,28 @@ RUN mkdir -p ./out
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -v -trimpath -ldflags="-s -w" -o ./out/app ./main.go
 
-
 # =========================
 # Runtime Stage
 # =========================
-FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
+FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
-RUN microdnf update -y && \
-    microdnf install -y tzdata ca-certificates shadow-utils && \
-    microdnf clean all
+COPY --from=builder /usr/share/zoneinfo/Asia/Jakarta /usr/share/zoneinfo/Asia/Jakarta
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 
 ENV TZ=Asia/Jakarta \
     HOME=/nonexistent \
     PATH=/app
 
-RUN mkdir -p /app /tmp && \
-    useradd -r -u 10001 -g 0 user && \
-    chmod 1777 /tmp
+# RUN mkdir -p /app /tmp && \
+#     echo 'user:x:10001:10001::/nonexistent:/sbin/nologin' > /etc/passwd && \
+#     echo 'user:x:10001:' > /etc/group && \
+#     chmod 1777 /tmp
 
 COPY --from=builder /src/out/app /app/app
 
-RUN chown -R 10001:0 /app && \
-    chmod 0555 /app/app && \
-    chmod -R g=u /app
+# RUN chown -R 10001:10001 /app && chmod 0555 /app/app
 
-RUN rm -f /bin/sh \
-    /bin/bash \
-    /usr/bin/bash \
-    /usr/bin/sh \
-    /usr/bin/curl \
-    /usr/bin/wget \
-    /usr/bin/nc \
-    /usr/bin/netcat \
-    /usr/bin/python \
-    /usr/bin/python3 \
-    /usr/bin/perl \
-    /usr/bin/ruby \
-    /usr/bin/lua \
-    /usr/bin/php 2>/dev/null || true
-    
-USER 10001
-
+# USER 10001:10001
 WORKDIR /app
 
 EXPOSE 3000
