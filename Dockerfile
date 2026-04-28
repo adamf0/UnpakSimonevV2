@@ -34,9 +34,9 @@ ENV TZ=Asia/Jakarta \
 
 COPY --from=builder /src/out/app /app/app
 
-# RUN chown -R 10001:10001 /app && chmod 0555 /app/app
+RUN chown -R 10001:10001 /app && chmod 0555 /app/app
 
-# USER 10001:10001
+USER 10001:10001
 WORKDIR /app
 
 EXPOSE 3000
