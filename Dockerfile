@@ -27,10 +27,24 @@ ENV TZ=Asia/Jakarta \
     HOME=/nonexistent \
     PATH=/app
 
-# RUN mkdir -p /app /tmp && \
-#     echo 'user:x:10001:10001::/nonexistent:/sbin/nologin' > /etc/passwd && \
-#     echo 'user:x:10001:' > /etc/group && \
-#     chmod 1777 /tmp
+# buat identity user manual + shell disable total
+# /sbin/nologin dipakai jika ada attempt login
+COPY <<EOF /etc/passwd
+root:x:0:0:root:/root:/sbin/nologin
+user:x:10001:10001:App User:/nonexistent:/sbin/nologin
+EOF
+
+COPY <<EOF /etc/group
+root:x:0:
+user:x:10001:
+EOF
+
+# block shell path tambahan (defense in depth)
+COPY <<EOF /sbin/nologin
+#!/bin/sh
+echo "This account is not available."
+exit 1
+EOF
 
 COPY --from=builder --chown=10001:10001 /src/out/app /app/app
 
