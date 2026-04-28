@@ -8,8 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/joho/godotenv"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/mehdihadeli/go-mediatr"
 
@@ -212,12 +210,12 @@ func main() {
 
 	mediatr.RegisterRequestPipelineBehaviors(NewValidationBehavior())
 
-	mustStart("ENV", func() error {
-		if err := godotenv.Load(); err != nil {
-			return errors.New("tidak ada env")
-		}
-		return nil
-	})
+	// mustStart("ENV", func() error {
+	// 	if err := godotenv.Load(); err != nil {
+	// 		return errors.New("tidak ada env")
+	// 	}
+	// 	return nil
+	// })
 
 	var db *gorm.DB
 	var dbSimak *gorm.DB
