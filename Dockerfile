@@ -32,12 +32,11 @@ ENV TZ=Asia/Jakarta \
 #     echo 'user:x:10001:' > /etc/group && \
 #     chmod 1777 /tmp
 
-COPY --from=builder /src/out/app /app/app
+COPY --from=builder --chown=10001:10001 /src/out/app /app/app
 
-RUN chown -R 10001:10001 /app && chmod 0555 /app/app
+WORKDIR /app
 
 USER 10001:10001
-WORKDIR /app
 
 EXPOSE 3000
 
