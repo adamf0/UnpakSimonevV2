@@ -26,7 +26,7 @@ type Kategori struct {
 }
 
 func (Kategori) TableName() string {
-	return "kategori"
+	return "kategoriv2"
 }
 
 // === CREATE ===

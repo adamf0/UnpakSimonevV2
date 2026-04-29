@@ -56,7 +56,7 @@ func (r *TemplatePertanyaanRepository) GetDefaultByUuid(
 
 	err := r.db.Debug().WithContext(ctx).
 		Table("template_pertanyaanv2 a").
-		Joins("LEFT JOIN kategori k ON k.id = a.id_kategori").
+		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Select(`
 		a.id as ID,
@@ -103,7 +103,7 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 	err := r.db.Debug().
 		WithContext(ctx).
 		Table("template_pertanyaanv2 a").
-		Joins("LEFT JOIN kategori k ON k.id = a.id_kategori").
+		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Select(`
 			a.id as ID,
@@ -188,7 +188,7 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 	err := r.db.Debug().
 		WithContext(ctx).
 		Table("template_pertanyaanv2 a").
-		Joins("LEFT JOIN kategori k ON k.id = a.id_kategori").
+		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Select(`
 			a.id as ID,
@@ -304,7 +304,7 @@ func (r *TemplatePertanyaanRepository) GetAll(
 
 	db := r.db.Debug().WithContext(ctx).
 		Table("template_pertanyaanv2 a").
-		Joins("LEFT JOIN kategori k ON k.id = a.id_kategori").
+		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Select(`
 		a.id as ID,

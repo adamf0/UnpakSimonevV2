@@ -117,7 +117,7 @@ func (r *KategoriRepository) GetDefaultByUuid(
 		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
 
 	err := r.db.WithContext(ctx).
-		Table("kategori a").
+		Table("kategoriv2 a").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,
@@ -253,7 +253,7 @@ func (r *KategoriRepository) GetAll(
 		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
 
 	db := r.db.Debug().WithContext(ctx).
-		Table("kategori a").
+		Table("kategoriv2 a").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,

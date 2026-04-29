@@ -182,7 +182,7 @@ func (r *KuesionerRepository) GetAllKuesionerResult(
 		Joins("STRAIGHT_JOIN kuesionerv2 k FORCE INDEX (idx_bank) ON k.id_bank_soal = b.id").
 		Joins("STRAIGHT_JOIN kuesioner_jawabanv2 kj FORCE INDEX (idx_kuesioner) ON kj.id_kuesioner = k.id").
 		Joins("LEFT JOIN template_pertanyaanv2 tp ON tp.id = kj.id_template_pertanyaan").
-		Joins("LEFT JOIN kategori ka ON tp.id_kategori = ka.id").
+		Joins("LEFT JOIN kategoriv2 ka ON tp.id_kategori = ka.id").
 		Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban").
 		Joins("LEFT JOIN m_dosen md ON md.NIDN = k.nidn").
 		Joins("LEFT JOIN users us1 ON us1.id = k.npm").
