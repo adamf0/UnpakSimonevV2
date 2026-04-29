@@ -55,11 +55,11 @@ func (r *KategoriRepository) GetDefaultByUuid(
 	var rowData domainkategori.KategoriDefault
 
 	uuidSub := clause.Expr{
-		SQL: `(SELECT k.uuid FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+		SQL: `(SELECT k.uuid FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
 	namaSub := clause.Expr{
-		SQL: `(SELECT k.nama_kategori FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+		SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
 	// Subquery dosen
@@ -191,11 +191,11 @@ func (r *KategoriRepository) GetAll(
 	var total int64
 
 	uuidSub := clause.Expr{
-		SQL: `(SELECT k.uuid FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+		SQL: `(SELECT k.uuid FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
 	namaSub := clause.Expr{
-		SQL: `(SELECT k.nama_kategori FROM kategori k WHERE k.id = a.sub_kategori LIMIT 1)`,
+		SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
 	// Subquery dosen
