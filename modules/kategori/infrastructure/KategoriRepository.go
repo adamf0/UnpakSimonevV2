@@ -434,7 +434,7 @@ func (r *KategoriRepository) CountCopy(ctx context.Context, nama_kategori string
 	var count int64
 
 	err := r.db.WithContext(ctx).
-		Table("kategori").
+		Table("kategoriv2").
 		Where("nama_kategori = ? OR nama_kategori LIKE ?",
 			fmt.Sprintf("salin - %s", nama_kategori),
 			fmt.Sprintf("salin (%%) - %s", nama_kategori),
