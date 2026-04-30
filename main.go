@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -188,7 +189,19 @@ func main() {
 	origins := os.Getenv("ALLOWED_ORIGINS")
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
+		AllowOriginsFunc: func(origin string) bool {
+			if origin == "" {
+				return true // curl / internal
+			}
+
+			allowed := strings.Split(origins, ",")
+			for _, o := range allowed {
+				if strings.TrimSpace(o) == origin {
+					return true
+				}
+			}
+			return false
+		},
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
