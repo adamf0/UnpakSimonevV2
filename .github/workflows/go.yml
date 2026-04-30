@@ -13,20 +13,77 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # =========================
+      # Checkout
+      # =========================
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # =========================
+      # Setup Go + Swagger
+      # =========================
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 1.22
+
+      - name: Install swag
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger
+        run: swag init
+
+      # =========================
+      # Prepare Swagger UI (INI YANG KAMU MAKSUD)
+      # =========================
+      - name: Prepare Swagger UI
+        run: |
+          mkdir -p public
+          cp docs/swagger.json public/swagger.json
+
+          cat <<EOF > public/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8" />
+            <title>API Docs</title>
+            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+          </head>
+          <body>
+            <div id="swagger-ui"></div>
+            <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+            <script>
+              SwaggerUIBundle({
+                url: './swagger.json',
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+              });
+            </script>
+          </body>
+          </html>
+          EOF
+
+      # =========================
+      # Deploy ke GitHub Pages
+      # =========================
+      - name: Deploy Swagger to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+
+      # =========================
+      # Versioning
+      # =========================
       - name: Get latest tag
         id: tag
         run: |
           latest=$(git tag --sort=-v:refname | head -n 1)
-
           if [ -z "$latest" ]; then
             latest="v1.0.0"
           fi
-
           echo "LATEST=$latest" >> $GITHUB_OUTPUT
 
       - name: Bump patch version
@@ -34,23 +91,21 @@ jobs:
         run: |
           tag=${{ steps.tag.outputs.LATEST }}
           version=${tag#v}
-
           IFS='.' read -r major minor patch <<< "$version"
-
           patch=$((patch + 1))
-
           new="v$major.$minor.$patch"
-
           echo "NEW_TAG=$new" >> $GITHUB_OUTPUT
 
       - name: Create Tag
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
-
           git tag ${{ steps.version.outputs.NEW_TAG }}
           git push origin ${{ steps.version.outputs.NEW_TAG }}
 
+      # =========================
+      # Docker
+      # =========================
       - name: Login Docker Hub
         uses: docker/login-action@v3
         with:
