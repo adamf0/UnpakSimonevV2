@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -60,9 +61,24 @@ func DefaultBlacklistedHeaderNames() map[string]bool {
 }
 
 func DefaultHeaderSecurityConfig() *HeaderSecurityConfig {
+	raw := os.Getenv("ALLOWED_ORIGINS")
+	origins := []string{}
+	if raw == "" {
+		origins = []string{}
+	}
+
+	// split by comma
+	origins = strings.Split(raw, ",")
+
+	// optional: trim space
+	for i, v := range origins {
+		origins[i] = strings.TrimSpace(v)
+	}
+	// []string{"simonev.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com"}
+
 	return &HeaderSecurityConfig{
 		BlacklistedHeaderNames: DefaultBlacklistedHeaderNames(),
-		AllowDomains:           []string{"simonev.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com"},
+		AllowDomains:           origins,
 		MaxHeaderLen:           8192,
 		ResolveAndCheck:        false,
 		LookupTimeout:          1 * time.Second,

@@ -185,8 +185,10 @@ func main() {
 	app.Use(recover.New())
 
 	// app.Use(recover())
+	origins := os.Getenv("ALLOWED_ORIGINS")
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://127.0.0.1:3000, http://localhost:4000",
+		AllowOrigins:     origins,
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowCredentials: true,
