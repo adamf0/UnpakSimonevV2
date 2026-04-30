@@ -61,7 +61,7 @@ func DefaultBlacklistedHeaderNames() map[string]bool {
 }
 
 func DefaultHeaderSecurityConfig() *HeaderSecurityConfig {
-	raw := os.Getenv("ALLOWED_ORIGINS")
+	raw := os.Getenv("ALLOWED_HOSTS")
 	origins := []string{}
 	if raw == "" {
 		origins = []string{}
