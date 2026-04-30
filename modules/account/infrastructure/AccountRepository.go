@@ -133,7 +133,7 @@ WITH dosen_cte AS (
 		) AS Prodi 
     FROM m_dosen d
     LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
-    LEFT JOIN r_prodi p ON p.kode_prodi = d.kode_prodi
+    LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
 ),
 mahasiswa_cte AS (
     SELECT
@@ -157,7 +157,7 @@ mahasiswa_cte AS (
 		) AS Prodi 
     FROM m_mahasiswa m
     LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
-    LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
+    LEFT JOIN m_program_studi p ON p.kode_prodi = m.kode_prodi
 )
 SELECT
 	u.userid AS ID,
@@ -294,7 +294,7 @@ WITH dosen_cte AS (
 		) AS Prodi 
     FROM m_dosen d
     LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
-    LEFT JOIN r_prodi p ON p.kode_prodi = d.kode_prodi
+    LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
 ) 
 SELECT
 	u.userid as ID,
@@ -356,7 +356,7 @@ WITH mahasiswa_cte AS (
 		) AS Prodi 
     FROM m_mahasiswa m
     LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
-    LEFT JOIN r_prodi p ON p.kode_prodi = m.kode_prodi
+    LEFT JOIN m_program_studi p ON p.kode_prodi = m.kode_prodi
 )
 SELECT
 	u.userid as ID,
