@@ -302,10 +302,14 @@ func (r *TemplatePertanyaanRepository) GetAll(
 	var rows = make([]domaintemplatepertanyaan.TemplatePertanyaanDefault, 0)
 	var total int64
 
+	//[pr] belum join dengan fakultas & prodi untuk pencarian datatable filter
 	db := r.db.Debug().WithContext(ctx).
 		Table("template_pertanyaanv2 a").
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 		a.id as ID,
 		a.uuid as UUID,
@@ -321,7 +325,27 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		k.full_text as FullPath,
 		a.status as Status,
 		a.required as Required,
+		a.fakultas as Fakultas,
+		a.prodi as Prodi,
+		a.unit as Unit,
 		a.created_at as CreatedAt,
+		CASE
+			WHEN u.prodi IS NOT NULL OR u.prodi != '' THEN CONCAT(
+				p.nama_prodi,
+				CASE p.kode_jenjang
+					WHEN 'J' THEN ' (Profesi)'
+					WHEN 'E' THEN ' (D3)'
+					WHEN 'D' THEN ' (D4)'
+					WHEN 'A' THEN ' (S3)'
+					WHEN 'B' THEN ' (S2)'
+					WHEN 'C' THEN ' (S1)'
+					ELSE ''
+				END
+			)
+			WHEN u.fakultas IS NOT NULL OR u.fakultas != '' THEN CONCAT("FAKULTAS ",f.nama_fakultas)
+			ELSE 'admin'
+		END as CreatedBy,
+		a.createdByRef as CreatedByRef,
 		a.updated_at as UpdatedAt,
 		a.deleted_at as DeletedAt
 	`)

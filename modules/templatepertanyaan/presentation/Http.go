@@ -17,7 +17,7 @@ import (
 	CreateTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/CreateTemplatePertanyaan"
 	DeleteTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/DeleteTemplatePertanyaan"
 	GetAllTemplatePertanyaans "UnpakSiamida/modules/templatepertanyaan/application/GetAllTemplatePertanyaans"
-	GetTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaan"
+	GetTemplatePertanyaanDefault "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaanDefault"
 	GetTemplate "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaanWithAnswareDefault"
 	RestoreTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/RestoreTemplatePertanyaan"
 	SetupUuidTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/application/SetupUuidTemplatePertanyaan"
@@ -321,11 +321,11 @@ func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error {
 	uuid := c.Params("uuid")
 
-	query := GetTemplatePertanyaan.GetTemplatePertanyaanByUuidQuery{Uuid: uuid}
+	query := GetTemplatePertanyaanDefault.GetTemplatePertanyaanDefaultByUuidQuery{Uuid: uuid}
 
 	TemplatePertanyaan, err := mediatr.Send[
-		GetTemplatePertanyaan.GetTemplatePertanyaanByUuidQuery,
-		*TemplatePertanyaandomain.TemplatePertanyaan,
+		GetTemplatePertanyaanDefault.GetTemplatePertanyaanDefaultByUuidQuery,
+		*TemplatePertanyaandomain.TemplatePertanyaanDefault,
 	](context.Background(), query)
 
 	if err != nil {

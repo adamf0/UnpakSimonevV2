@@ -1,12 +1,14 @@
 package presentation
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"strings"
 
 	commondomain "UnpakSiamida/common/domain"
 
+	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
 )
@@ -70,25 +72,86 @@ func (a *SSEAdapter[T]) Send(
 	c *fiber.Ctx,
 	data commondomain.Paged[T],
 ) error {
+
+	// =========================
+	// SSE HEADERS (TETAP SAMA)
+	// =========================
 	c.Set("Content-Type", "text/event-stream")
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
 
+	// =========================
+	// BUFFER WRITER (OPTIMASI UTAMA)
+	// =========================
+	w := bufio.NewWriterSize(c.Response().BodyWriter(), 256*1024)
+
 	totalCount := len(data.Data)
-	c.Context().Write([]byte(fmt.Sprintf("total: %d\n\n", totalCount)))
 
-	// start event
-	c.Context().Write([]byte("data: start\n\n"))
+	// =========================
+	// total event (SAMA PERSIS)
+	// =========================
+	fmt.Fprintf(w, "total: %d\n\n", totalCount)
+	w.Flush()
 
-	for _, u := range data.Data {
-		b, _ := json.Marshal(u)
-		c.Context().Write([]byte("data: " + string(b) + "\n\n"))
+	// =========================
+	// start event (SAMA PERSIS)
+	// =========================
+	w.WriteString("data: start\n\n")
+	w.Flush()
+
+	// =========================
+	// STREAM DATA (OPTIMIZED)
+	// =========================
+	var json = sonic.ConfigFastest
+	enc := json.NewEncoder(w)
+
+	for i, u := range data.Data {
+
+		w.WriteString("data: ")
+
+		// replace json.Marshal (NO ALLOC HEAVY)
+		_ = enc.Encode(u)
+
+		w.WriteByte('\n')
+
+		// flush strategy (biar tidak full buffer)
+		if i%500 == 0 {
+			w.Flush()
+		}
 	}
 
-	// done event
-	c.Context().Write([]byte("data: done\n\n"))
+	// =========================
+	// done event (SAMA PERSIS)
+	// =========================
+	w.WriteString("data: done\n\n")
+	w.Flush()
+
 	return nil
 }
+
+// func (a *SSEAdapter[T]) Send(
+// 	c *fiber.Ctx,
+// 	data commondomain.Paged[T],
+// ) error {
+// 	c.Set("Content-Type", "text/event-stream")
+// 	c.Set("Cache-Control", "no-cache")
+// 	c.Set("Connection", "keep-alive")
+
+// 	totalCount := len(data.Data)
+// 	c.Context().Write([]byte(fmt.Sprintf("total: %d\n\n", totalCount)))
+
+// 	// start event
+// 	c.Context().Write([]byte("data: start\n\n"))
+
+// 	for _, u := range data.Data {
+// 		b, _ := json.Marshal(u)
+// 		c.Context().Write([]byte("data: " + string(b) + "\n\n"))
+// 	}
+
+// 	// done event
+// 	c.Context().Write([]byte("data: done\n\n"))
+// 	return nil
+// }
 
 // =================
 // WebSocket Adapter

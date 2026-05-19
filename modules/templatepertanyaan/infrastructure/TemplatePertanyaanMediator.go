@@ -8,6 +8,7 @@ import (
 	delete "UnpakSiamida/modules/templatepertanyaan/application/DeleteTemplatePertanyaan"
 	getAll "UnpakSiamida/modules/templatepertanyaan/application/GetAllTemplatePertanyaans"
 	get "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaan"
+	getDefault "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaanDefault"
 	getTemplate "UnpakSiamida/modules/templatepertanyaan/application/GetTemplatePertanyaanWithAnswareDefault"
 	restore "UnpakSiamida/modules/templatepertanyaan/application/RestoreTemplatePertanyaan"
 	setupUuid "UnpakSiamida/modules/templatepertanyaan/application/SetupUuidTemplatePertanyaan"
@@ -95,6 +96,13 @@ func RegisterModuleTemplatePertanyaan(db *gorm.DB) error {
 		get.GetTemplatePertanyaanByUuidQuery,
 		*domainTemplatePertanyaan.TemplatePertanyaan,
 	](&get.GetTemplatePertanyaanByUuidQueryHandler{
+		Repo: repoTemplatePertanyaan,
+	})
+
+	mediatr.RegisterRequestHandler[
+		getDefault.GetTemplatePertanyaanDefaultByUuidQuery,
+		*domainTemplatePertanyaan.TemplatePertanyaanDefault,
+	](&getDefault.GetTemplatePertanyaanDefaultByUuidQueryHandler{
 		Repo: repoTemplatePertanyaan,
 	})
 

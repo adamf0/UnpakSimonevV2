@@ -95,6 +95,7 @@ func (r *KuesionerRepository) buildWhere(
 	JudulBankSoal *string,
 	Semester *string,
 	Is4Year bool,
+	partition_key string,
 ) (*gorm.DB, error) {
 
 	// =====================================================
@@ -112,7 +113,14 @@ func (r *KuesionerRepository) buildWhere(
 		startStr := start.Format("2006-01-02")
 		endStr := end.Format("2006-01-02")
 
-		db = db.Where("k.tanggal BETWEEN ? AND ?", startStr, endStr)
+		db = db.Where("k.tanggal BETWEEN ? AND ?", startStr, endStr).Where("partition_key = ?", partition_key)
+		// if partition_key == "UNIT" {
+		// 	db = db.Where("k.tanggal BETWEEN ? AND ?", startStr, endStr).
+		// 		Where("k.unit = ?", partition_key)
+		// } else {
+		// 	db = db.Where("k.tanggal BETWEEN ? AND ?", startStr, endStr).
+		// 		Where("k.kode_fakultas = ?", partition_key)
+		// }
 
 		return db, nil
 	}
@@ -127,15 +135,17 @@ func (r *KuesionerRepository) buildWhere(
 	val := helper.EscapeLike(helper.NullableString(JudulBankSoal))
 
 	db = db.Where(clause.Like{
-		Column: "b.judul",
+		Column: "k.judul",
 		Value:  "%" + val + "%",
 	})
+
+	db = db.Where("partition_key = ?", partition_key)
 
 	// =====================================================
 	// SEMESTER (OPSIONAL)
 	// =====================================================
 	if helper.NullableString(Semester) != "" {
-		db = db.Where("b.semester = ?", helper.NullableString(Semester))
+		db = db.Where("k.semester = ?", helper.NullableString(Semester))
 	}
 
 	return db, nil
@@ -146,6 +156,7 @@ func (r *KuesionerRepository) GetAllKuesionerResult(
 	JudulBankSoal *string,
 	Semester *string,
 	Is4Year bool,
+	PartitionKey string,
 ) ([]domainkuesioner.KuesionerResult, error) {
 
 	result := make([]domainkuesioner.KuesionerResult, 0)
@@ -154,45 +165,60 @@ func (r *KuesionerRepository) GetAllKuesionerResult(
 	// BASE QUERY (JANGAN HILANG)
 	// =========================
 	db := r.db.WithContext(ctx).
-		Debug().
-		Table("bank_soalv2 b").
-		Select(`
-			k.id as ID,
-			k.uuid as UUID,
-			k.nidn as NIDN,
-			k.nama_dosen as NamaDosen,
-			k.nip as NIP,
-			k.nama_tendik as NamaTendik,
-			k.npm as NPM,
-			k.nama_mahasiswa as NamaMahasiswa,
-			k.kode_fakultas as KodeFakultas,
-			k.fakultas as Fakultas,
-			k.kode_prodi as KodeProdi,
-			k.prodi as Prodi,
-			k.unit as Unit,
-			b.judul as Judul,
-			b.semester as Semester,
-			tp.pertanyaan as Pertanyaan,
-			tj.jawaban as Jawaban,
-			kj.freeText as FreeText,
-			tp.jenis_pilihan as JenisPilihan,
-			ka.nama_kategori as Kategori,
-			ka.full_text as FullPath
-		`).
-		Joins("STRAIGHT_JOIN kuesionerv2 k FORCE INDEX (idx_bank) ON k.id_bank_soal = b.id").
-		Joins("STRAIGHT_JOIN kuesioner_jawabanv2 kj FORCE INDEX (idx_kuesioner) ON kj.id_kuesioner = k.id").
-		Joins("LEFT JOIN template_pertanyaanv2 tp ON tp.id = kj.id_template_pertanyaan").
-		Joins("LEFT JOIN kategoriv2 ka ON tp.id_kategori = ka.id").
-		Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban").
-		Joins("LEFT JOIN m_dosen md ON md.NIDN = k.nidn").
-		Joins("LEFT JOIN users us1 ON us1.id = k.npm").
-		Joins("LEFT JOIN users us2 ON us2.id = k.nip").
-		Order("b.semester DESC, tp.pertanyaan ASC, tj.jawaban ASC")
+		Table("kuesioner_materialized k")
+	// 	Table("kuesionerv2 k").
+	// 	Select(`
+	// 	k.id,
+	// 	k.uuid,
+	// 	k.tanggal,
+
+	// 	k.nidn,
+	// 	k.nama_dosen,
+	// 	k.nip,
+	// 	k.nama_tendik,
+
+	// 	k.npm,
+	// 	k.nama_mahasiswa,
+
+	// 	k.kode_fakultas,
+	// 	k.fakultas,
+
+	// 	k.kode_prodi,
+	// 	k.prodi,
+	// 	k.unit,
+
+	// 	b.judul,
+	// 	b.semester,
+
+	// 	tp.pertanyaan,
+	// 	tj.jawaban,
+	// 	kj.freeText,
+
+	// 	tp.jenis_pilihan,
+	// 	ka.nama_kategori,
+	// 	ka.full_text,
+
+	// 	CASE
+	// 		WHEN k.unit IS NOT NULL AND k.unit != '' THEN 'unit'
+	// 		WHEN k.kode_fakultas IS NOT NULL AND k.kode_fakultas != '' THEN k.kode_fakultas
+	// 		ELSE 'UNKNOWN'
+	// 	END AS partition_key
+	// `).
+	// 	Joins("JOIN bank_soalv2 b ON b.id = k.id_bank_soal").
+	// 	Joins("JOIN kuesioner_jawabanv2 kj ON kj.id_kuesioner = k.id").
+	// 	Joins("LEFT JOIN template_pertanyaanv2 tp ON tp.id = kj.id_template_pertanyaan").
+	// 	Joins("LEFT JOIN kategoriv2 ka ON ka.id = tp.id_kategori").
+	// 	Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban")
+
+	// Joins("LEFT JOIN m_dosen md ON md.NIDN = k.nidn").
+	// Joins("LEFT JOIN users us1 ON us1.id = k.npm").
+	// Joins("LEFT JOIN users us2 ON us2.id = k.nip").
+	// Order("b.semester DESC, tp.pertanyaan ASC, tj.jawaban ASC")
 
 	// =========================
 	// APPLY WHERE (FIXED)
 	// =========================
-	db, err := r.buildWhere(ctx, db, JudulBankSoal, Semester, Is4Year)
+	db, err := r.buildWhere(ctx, db, JudulBankSoal, Semester, Is4Year, PartitionKey)
 	if err != nil {
 		return nil, err
 	}

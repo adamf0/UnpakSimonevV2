@@ -13,6 +13,7 @@ type IKuesionerRepository interface {
 		JudulBankSoal *string,
 		Semester *string,
 		Is4Year bool,
+		PartitionKey string,
 	) ([]KuesionerResult, error)
 	GetByUuid(ctx context.Context, uid uuid.UUID) (*Kuesioner, error)
 	GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*KuesionerDefault, error)
