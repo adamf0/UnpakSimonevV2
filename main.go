@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/joho/godotenv"
 	"github.com/mehdihadeli/go-mediatr"
 
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -249,12 +248,12 @@ func main() {
 
 	mediatr.RegisterRequestPipelineBehaviors(NewValidationBehavior())
 
-	mustStart("ENV", func() error {
-		if err := godotenv.Load(); err != nil {
-			return errors.New("tidak ada env")
-		}
-		return nil
-	})
+	// mustStart("ENV", func() error {
+	// 	if err := godotenv.Load(); err != nil {
+	// 		return errors.New("tidak ada env")
+	// 	}
+	// 	return nil
+	// })
 
 	var db *gorm.DB
 	var dbSimak *gorm.DB
