@@ -1276,13 +1276,6 @@
                     },
                     {
                         "type": "string",
-                        "description": "semster",
-                        "name": "semester",
-                        "in": "formData",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "is4year",
                         "name": "is4year",
                         "in": "formData",
