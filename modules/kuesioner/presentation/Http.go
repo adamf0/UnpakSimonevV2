@@ -303,20 +303,19 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error {
 // @Summary Get all Kuesioners For Report
 // @Tags Kuesioner
 // @param judul formData string true "Judul"
-// @param semester formData string true "semster"
 // @param is4year formData string true "is4year"
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
 // @Router /kuesioners [post]
 func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error { //langsung sse
 	judul := c.FormValue("judul")
-	semester := c.FormValue("semester")
+	// semester := c.FormValue("semester")
 	is4year := c.FormValue("is4year") == "1"
 
 	query := GetAllKuesionerReport.GetAllKuesionersReportQuery{
 		JudulBankSoal: helper.StrPtr(judul),
-		Semester:      helper.StrPtr(semester),
-		Is4Year:       is4year,
+		// Semester:      helper.StrPtr(semester),
+		Is4Year: is4year,
 	}
 
 	result, err := mediatr.Send[

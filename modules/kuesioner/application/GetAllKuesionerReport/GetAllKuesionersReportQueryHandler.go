@@ -46,7 +46,7 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
 			rows, err := h.Repo.GetAllKuesionerResult(
 				ctxg,
 				q.JudulBankSoal,
-				q.Semester,
+				// q.Semester,
 				q.Is4Year,
 				pk,
 			)

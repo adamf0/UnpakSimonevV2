@@ -22,20 +22,20 @@ func GetAllKuesionersReportQueryValidation(q GetAllKuesionersReportQuery) error 
 			),
 		),
 
-		validation.Field(&q.Semester,
-			validation.By(func(value interface{}) error {
-				v, _ := value.(*string)
+		// validation.Field(&q.Semester,
+		// 	validation.By(func(value interface{}) error {
+		// 		v, _ := value.(*string)
 
-				if v == nil || *v == "" {
-					return nil
-				}
+		// 		if v == nil || *v == "" {
+		// 			return nil
+		// 		}
 
-				if len(*v) > 6 {
-					return validation.NewError("length", "Semester tidak valid")
-				}
+		// 		if len(*v) > 6 {
+		// 			return validation.NewError("length", "Semester tidak valid")
+		// 		}
 
-				return nil
-			}),
-		),
+		// 		return nil
+		// 	}),
+		// ),
 	)
 }

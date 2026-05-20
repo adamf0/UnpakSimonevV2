@@ -93,7 +93,7 @@ func (r *KuesionerRepository) buildWhere(
 	ctx context.Context,
 	db *gorm.DB,
 	JudulBankSoal *string,
-	Semester *string,
+	// Semester *string,
 	Is4Year bool,
 	partition_key string,
 ) (*gorm.DB, error) {
@@ -134,19 +134,23 @@ func (r *KuesionerRepository) buildWhere(
 
 	val := helper.EscapeLike(helper.NullableString(JudulBankSoal))
 
-	db = db.Where(clause.Like{
-		Column: "k.judul",
-		Value:  "%" + val + "%",
-	})
+	// db = db.Where(clause.Like{
+	// 	Column: "concat(k.judul, ' (', k.semester, ')')",
+	// 	Value:  "%" + val + "%",
+	// })
+	db = db.Where(
+		"concat(k.judul, ' (', k.semester, ')') LIKE ?",
+		"%"+val+"%",
+	)
 
 	db = db.Where("partition_key = ?", partition_key)
 
 	// =====================================================
 	// SEMESTER (OPSIONAL)
 	// =====================================================
-	if helper.NullableString(Semester) != "" {
-		db = db.Where("k.semester = ?", helper.NullableString(Semester))
-	}
+	// if helper.NullableString(Semester) != "" {
+	// 	db = db.Where("k.semester = ?", helper.NullableString(Semester))
+	// }
 
 	return db, nil
 }
@@ -154,7 +158,7 @@ func (r *KuesionerRepository) buildWhere(
 func (r *KuesionerRepository) GetAllKuesionerResult(
 	ctx context.Context,
 	JudulBankSoal *string,
-	Semester *string,
+	// Semester *string,
 	Is4Year bool,
 	PartitionKey string,
 ) ([]domainkuesioner.KuesionerResult, error) {
@@ -218,7 +222,7 @@ func (r *KuesionerRepository) GetAllKuesionerResult(
 	// =========================
 	// APPLY WHERE (FIXED)
 	// =========================
-	db, err := r.buildWhere(ctx, db, JudulBankSoal, Semester, Is4Year, PartitionKey)
+	db, err := r.buildWhere(ctx, db, JudulBankSoal, Is4Year, PartitionKey)
 	if err != nil {
 		return nil, err
 	}

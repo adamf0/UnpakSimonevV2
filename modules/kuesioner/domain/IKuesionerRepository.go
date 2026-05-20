@@ -11,7 +11,7 @@ type IKuesionerRepository interface {
 	GetAllKuesionerResult(
 		ctx context.Context,
 		JudulBankSoal *string,
-		Semester *string,
+		// Semester *string,
 		Is4Year bool,
 		PartitionKey string,
 	) ([]KuesionerResult, error)
