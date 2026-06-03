@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 
+	copyjawaban "UnpakSiamida/modules/templatejawaban/application/CopyTemplateJawaban"
 	domaintemplatepertanyaan "UnpakSiamida/modules/templatepertanyaan/domain"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mehdihadeli/go-mediatr"
 	"gorm.io/gorm"
 )
 
@@ -56,8 +58,48 @@ func (h *CopyTemplatePertanyaanCommandHandler) Handle(
 		return "", result.Error
 	}
 
+	tx, err := h.Repo.BeginTx(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	commit := false
+
+	defer func() {
+		if !commit {
+			_ = tx.Rollback()
+		}
+	}()
+
+	repo := h.Repo.WithTx(tx)
+
 	createTemplatePertanyaan := result.Value
-	if err := h.Repo.Create(ctx, createTemplatePertanyaan); err != nil {
+	if err := repo.Create(ctx, createTemplatePertanyaan); err != nil {
+		return "", err
+	}
+
+	cmdJawaban := copyjawaban.CopyTemplateJawabanCommand{
+		Tx:                         tx,
+		SourceTemplatePertanyaanID: existingTemplatePertanyaan.ID,
+		TargetTemplatePertanyaanID: createTemplatePertanyaan.ID,
+	}
+
+	_, err = mediatr.Send[
+		copyjawaban.CopyTemplateJawabanCommand,
+		string,
+	](
+		ctx,
+		cmdJawaban,
+	)
+
+	if err := tx.Commit().Error; err != nil {
 		return "", err
 	}
 

@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type ITemplatePertanyaanRepository interface {
@@ -20,8 +21,19 @@ type ITemplatePertanyaanRepository interface {
 		page, limit *int,
 		deleted bool,
 	) ([]TemplatePertanyaanDefault, int64, error)
+	CopyByBankSoal(
+		ctx context.Context,
+		tx *gorm.DB,
+		sourceBankSoalID uint,
+		targetBankSoalID uint,
+		resource string,
+		sid string,
+	) (map[uint]uint, error)
 	Create(ctx context.Context, aktivitasproker *TemplatePertanyaan) error
 	Update(ctx context.Context, aktivitasproker *TemplatePertanyaan) error
 	Delete(ctx context.Context, uid uuid.UUID) error
 	SetupUuid(ctx context.Context) error
+
+	WithTx(tx any) ITemplatePertanyaanRepository
+	BeginTx(ctx context.Context) (*gorm.DB, error)
 }

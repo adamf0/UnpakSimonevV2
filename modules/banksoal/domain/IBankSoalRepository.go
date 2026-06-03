@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type IBankSoalRepository interface {
@@ -31,4 +32,7 @@ type IBankSoalRepository interface {
 
 	CreateExt(ctx context.Context, banksoalext *BankSoalExt) error
 	DeleteExt(ctx context.Context, uid uuid.UUID, idbanksoal uint) error
+
+	WithTx(tx any) IBankSoalRepository
+	BeginTx(ctx context.Context) (*gorm.DB, error)
 }

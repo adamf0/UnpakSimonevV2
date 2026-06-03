@@ -3,6 +3,7 @@ package infrastructure
 import (
 	commondomain "UnpakSiamida/common/domain"
 	commoninfra "UnpakSiamida/common/infrastructure"
+	copy "UnpakSiamida/modules/templatejawaban/application/CopyTemplateJawaban"
 	create "UnpakSiamida/modules/templatejawaban/application/CreateTemplateJawaban"
 	delete "UnpakSiamida/modules/templatejawaban/application/DeleteTemplateJawaban"
 	getAll "UnpakSiamida/modules/templatejawaban/application/GetAllTemplateJawabans"
@@ -88,6 +89,13 @@ func RegisterModuleTemplateJawaban(db *gorm.DB) error {
 		setupUuid.SetupUuidTemplateJawabanCommand,
 		string,
 	](&setupUuid.SetupUuidTemplateJawabanCommandHandler{
+		Repo: repoTemplateJawaban,
+	})
+
+	mediatr.RegisterRequestHandler[
+		copy.CopyTemplateJawabanCommand,
+		string,
+	](&copy.CopyTemplateJawabanCommandHandler{
 		Repo: repoTemplateJawaban,
 	})
 

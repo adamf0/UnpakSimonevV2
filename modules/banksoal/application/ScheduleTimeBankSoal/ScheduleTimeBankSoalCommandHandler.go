@@ -62,7 +62,6 @@ func (h *ScheduleTimeBankSoalCommandHandler) Handle(
 		return "", err
 	}
 
-	//[pr] validasi hanya local, simak, simpeg
 	if helper.NullableString(existingBankSoal.CreatedByRef) == cmd.SID && helper.NullableString(existingBankSoal.CreatedBy) == cmd.Resource {
 		result := domainbanksoal.UpdateTimeBankSoal(
 			prev,

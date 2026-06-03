@@ -153,6 +153,7 @@ func CopyTemplatePertanyaan(
 
 	aktivitasproker := &TemplatePertanyaan{
 		UUID:         uuid.New(),
+		IdBankSoal:   prev.IdBankSoal,
 		Pertanyaan:   pertanyaan,
 		JenisPilihan: prev.JenisPilihan,
 		Bobot:        prev.Bobot,

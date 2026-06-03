@@ -84,18 +84,54 @@ func (h *UpdateKategoriCommandHandler) Handle(
 	// -------------------------
 	// SAVE TO REPOSITORY
 	// -------------------------
-	err = h.Repo.WithTx(ctx, func(repo domainkategori.IKategoriRepository) error {
+	// err = h.Repo.WithTx(ctx, func(repo domainkategori.IKategoriRepository) error {
 
-		if err := repo.Update(ctx, updatedKategori); err != nil {
-			return err
+	// 	if err := repo.Update(ctx, updatedKategori); err != nil {
+	// 		return err
+	// 	}
+
+	// 	if err := repo.RebuildFullText(ctx); err != nil {
+	// 		return err
+	// 	}
+
+	// 	return nil
+	// })
+
+	tx, err := h.Repo.BeginTx(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
 		}
+	}()
 
-		if err := repo.RebuildFullText(ctx); err != nil {
-			return err
+	commit := false
+
+	defer func() {
+		if !commit {
+			_ = tx.Rollback()
 		}
+	}()
 
-		return nil
-	})
+	repo := h.Repo.WithTx(tx)
+
+	if err := repo.Create(ctx, updatedKategori); err != nil {
+		return "", err
+	}
+
+	if err := repo.RebuildFullText(ctx); err != nil {
+		return "", err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return "", err
+	}
+
+	commit = true
 
 	return updatedKategori.UUID.String(), nil
 }

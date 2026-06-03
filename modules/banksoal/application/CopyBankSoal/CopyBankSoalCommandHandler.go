@@ -5,9 +5,13 @@ import (
 	"errors"
 
 	domainbanksoal "UnpakSiamida/modules/banksoal/domain"
+	copyJawaban "UnpakSiamida/modules/templatejawaban/application/CopyTemplateJawaban"
+	copy "UnpakSiamida/modules/templatepertanyaan/application/CopyTemplatePertanyaan"
+
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/mehdihadeli/go-mediatr"
 	"gorm.io/gorm"
 )
 
@@ -56,10 +60,82 @@ func (h *CopyBankSoalCommandHandler) Handle(
 		return "", result.Error
 	}
 
-	createBankSoal := result.Value
-	if err := h.Repo.Create(ctx, createBankSoal); err != nil {
+	tx, err := h.Repo.BeginTx(ctx)
+	if err != nil {
 		return "", err
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	commit := false
+
+	defer func() {
+		if !commit {
+			_ = tx.Rollback()
+		}
+	}()
+
+	repo := h.Repo.WithTx(tx)
+	// repoPertanyaan := h.RepoPertanyaan.WithTx(tx)
+	// repoJawaban := h.RepoJawaban.WithTx(tx)
+
+	createBankSoal := result.Value
+	if err := repo.Create(ctx, createBankSoal); err != nil {
+		return "", err
+	}
+
+	// -------------------------
+	// COPY PERTANYAAN
+	// -------------------------
+
+	mapping, err := mediatr.Send[
+		copy.CopyTemplatePertanyaanResultCommand,
+		map[uint]uint,
+	](ctx, copy.CopyTemplatePertanyaanResultCommand{
+		Tx:               tx,
+		SourceBankSoalID: existingBankSoal.ID,
+		TargetBankSoalID: createBankSoal.ID,
+		Resource:         cmd.Resource,
+		Sid:              cmd.SID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	// -------------------------
+	// COPY JAWABAN
+	// -------------------------
+	for oldPertanyaanID, newPertanyaanID := range mapping {
+
+		cmdJawaban := copyJawaban.CopyTemplateJawabanCommand{
+			Tx:                         tx,
+			SourceTemplatePertanyaanID: oldPertanyaanID,
+			TargetTemplatePertanyaanID: newPertanyaanID,
+		}
+
+		_, err = mediatr.Send[
+			copyJawaban.CopyTemplateJawabanCommand,
+			string,
+		](
+			ctx,
+			cmdJawaban,
+		)
+
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return "", err
+	}
+
+	commit = true
 
 	return result.Value.UUID.String(), nil
 }

@@ -86,6 +86,13 @@ func RegisterModuleTemplatePertanyaan(db *gorm.DB) error {
 	})
 
 	mediatr.RegisterRequestHandler[
+		copy.CopyTemplatePertanyaanResultCommand,
+		map[uint]uint,
+	](&copy.CopyTemplatePertanyaanResultCommandHandler{
+		Repo: repoTemplatePertanyaan,
+	})
+
+	mediatr.RegisterRequestHandler[
 		delete.DeleteTemplatePertanyaanCommand,
 		string,
 	](&delete.DeleteTemplatePertanyaanCommandHandler{

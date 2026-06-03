@@ -545,3 +545,58 @@ func (r *TemplatePertanyaanRepository) CountCopy(ctx context.Context, judul stri
 
 	return int(count), err
 }
+
+func (r *TemplatePertanyaanRepository) CopyByBankSoal(
+	ctx context.Context,
+	tx *gorm.DB,
+	sourceBankSoalID uint,
+	targetBankSoalID uint,
+	resource string,
+	sid string,
+) (map[uint]uint, error) {
+
+	var rows []domaintemplatepertanyaan.TemplatePertanyaan
+
+	if err := tx.WithContext(ctx).
+		Where("id_bank_soal = ?", sourceBankSoalID).
+		Find(&rows).Error; err != nil {
+		return nil, err
+	}
+
+	if len(rows) == 0 {
+		return map[uint]uint{}, nil
+	}
+
+	mapping := make(map[uint]uint)
+
+	for _, row := range rows {
+
+		oldID := row.ID
+
+		row.ID = 0
+		row.UUID = uuid.New()
+
+		row.IdBankSoal = targetBankSoalID
+		row.CreatedBy = helper.StrPtr(resource)
+		row.CreatedByRef = helper.StrPtr(sid)
+
+		if err := r.db.WithContext(ctx).
+			Create(&row).Error; err != nil {
+			return nil, err
+		}
+
+		mapping[oldID] = row.ID
+	}
+
+	return mapping, nil
+}
+
+func (r *TemplatePertanyaanRepository) WithTx(tx any) domaintemplatepertanyaan.ITemplatePertanyaanRepository {
+	return &TemplatePertanyaanRepository{
+		db: tx.(*gorm.DB),
+	}
+}
+
+func (r *TemplatePertanyaanRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
+	return r.db.WithContext(ctx).Begin(), nil
+}

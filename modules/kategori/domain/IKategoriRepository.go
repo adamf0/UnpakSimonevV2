@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type IKategoriRepository interface {
@@ -25,5 +26,6 @@ type IKategoriRepository interface {
 	Delete(ctx context.Context, uid uuid.UUID) error
 	SetupUuid(ctx context.Context) error
 
-	WithTx(ctx context.Context, fn func(repo IKategoriRepository) error) error
+	WithTx(tx any) IKategoriRepository
+	BeginTx(ctx context.Context) (*gorm.DB, error)
 }

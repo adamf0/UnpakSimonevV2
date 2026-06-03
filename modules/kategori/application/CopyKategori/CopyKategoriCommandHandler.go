@@ -58,18 +58,54 @@ func (h *CopyKategoriCommandHandler) Handle(
 
 	createKategori := result.Value
 
-	err = h.Repo.WithTx(ctx, func(repo domainkategori.IKategoriRepository) error {
+	// err = h.Repo.WithTx(ctx, func(repo domainkategori.IKategoriRepository) error {
 
-		if err := repo.Create(ctx, createKategori); err != nil {
-			return err
+	// 	if err := repo.Create(ctx, createKategori); err != nil {
+	// 		return err
+	// 	}
+
+	// 	if err := repo.RebuildFullText(ctx); err != nil {
+	// 		return err
+	// 	}
+
+	// 	return nil
+	// })
+
+	tx, err := h.Repo.BeginTx(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
 		}
+	}()
 
-		if err := repo.RebuildFullText(ctx); err != nil {
-			return err
+	commit := false
+
+	defer func() {
+		if !commit {
+			_ = tx.Rollback()
 		}
+	}()
 
-		return nil
-	})
+	repo := h.Repo.WithTx(tx)
+
+	if err := repo.Create(ctx, createKategori); err != nil {
+		return "", err
+	}
+
+	if err := repo.RebuildFullText(ctx); err != nil {
+		return "", err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		return "", err
+	}
+
+	commit = true
 
 	return result.Value.UUID.String(), nil
 }

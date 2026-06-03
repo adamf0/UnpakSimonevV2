@@ -5,6 +5,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type ITemplateJawabanRepository interface {
@@ -22,5 +23,14 @@ type ITemplateJawabanRepository interface {
 	Create(ctx context.Context, aktivitasproker *TemplateJawaban) error
 	Update(ctx context.Context, aktivitasproker *TemplateJawaban) error
 	Delete(ctx context.Context, uid uuid.UUID) error
+	CopyByTemplatePertanyaan(
+		ctx context.Context,
+		tx *gorm.DB,
+		sourceTemplatePertanyaanID uint,
+		targetTemplatePertanyaanID uint,
+	) error
 	SetupUuid(ctx context.Context) error
+
+	WithTx(tx any) ITemplateJawabanRepository
+	BeginTx(ctx context.Context) (*gorm.DB, error)
 }

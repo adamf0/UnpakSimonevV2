@@ -318,6 +318,42 @@ func (r *TemplateJawabanRepository) Delete(ctx context.Context, uid uuid.UUID) e
 		Delete(&domaintemplatejawaban.TemplateJawaban{}).Error
 }
 
+func (r *TemplateJawabanRepository) CopyByTemplatePertanyaan(
+	ctx context.Context,
+	tx *gorm.DB,
+	sourceTemplatePertanyaanID uint,
+	targetTemplatePertanyaanID uint,
+) error {
+
+	var jawaban []domaintemplatejawaban.TemplateJawaban
+
+	if err := tx.WithContext(ctx).Debug().
+		Where("id_template_pertanyaan = ?", sourceTemplatePertanyaanID).
+		Find(&jawaban).Error; err != nil {
+		return err
+	}
+
+	if len(jawaban) == 0 {
+		return nil
+	}
+
+	copied := make([]domaintemplatejawaban.TemplateJawaban, 0, len(jawaban))
+
+	for _, j := range jawaban {
+
+		j.ID = 0
+		j.UUID = uuid.New()
+
+		j.IdTemplatePertanyaan = targetTemplatePertanyaanID
+
+		copied = append(copied, j)
+	}
+
+	return r.db.WithContext(ctx).Debug().
+		CreateInBatches(copied, 100).
+		Error
+}
+
 func (r *TemplateJawabanRepository) SetupUuid(ctx context.Context) error {
 	const chunkSize = 500
 
@@ -365,4 +401,14 @@ func (r *TemplateJawabanRepository) SetupUuid(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (r *TemplateJawabanRepository) WithTx(tx any) domaintemplatejawaban.ITemplateJawabanRepository {
+	return &TemplateJawabanRepository{
+		db: tx.(*gorm.DB),
+	}
+}
+
+func (r *TemplateJawabanRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
+	return r.db.WithContext(ctx).Begin(), nil
 }

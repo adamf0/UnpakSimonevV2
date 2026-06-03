@@ -525,17 +525,12 @@ func (r *KategoriRepository) buildNodeFast(
 	return nil
 }
 
-func (r *KategoriRepository) WithTx(
-	ctx context.Context,
-	fn func(repo domainkategori.IKategoriRepository) error,
-) error {
+func (r *KategoriRepository) WithTx(tx any) domainkategori.IKategoriRepository {
+	return &KategoriRepository{
+		db: tx.(*gorm.DB),
+	}
+}
 
-	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-
-		txRepo := &KategoriRepository{
-			db: tx,
-		}
-
-		return fn(txRepo)
-	})
+func (r *KategoriRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
+	return r.db.WithContext(ctx).Begin(), nil
 }

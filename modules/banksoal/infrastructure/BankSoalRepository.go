@@ -907,3 +907,13 @@ func (r *BankSoalRepository) DeleteExt(ctx context.Context, uid uuid.UUID, idban
 		Where("uuid = ?", uid).
 		Delete(&domainbanksoal.BankSoalExt{}).Error
 }
+
+func (r *BankSoalRepository) WithTx(tx any) domainbanksoal.IBankSoalRepository {
+	return &BankSoalRepository{
+		db: tx.(*gorm.DB),
+	}
+}
+
+func (r *BankSoalRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
+	return r.db.WithContext(ctx).Begin(), nil
+}
