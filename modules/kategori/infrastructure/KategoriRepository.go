@@ -547,16 +547,18 @@ func (r *KategoriRepository) UpdateParentBatch(
 	subKategoriCase := "CASE id "
 	fullTextCase := "CASE id "
 
-	args := make([]any, 0)
+	subArgs := make([]any, 0, len(rows)*2)
+	fullArgs := make([]any, 0, len(rows)*2)
+
 	ids := make([]uint, 0, len(rows))
 
 	for _, row := range rows {
 
 		subKategoriCase += "WHEN ? THEN ? "
-		args = append(args, row.ID, row.SubKategori)
+		subArgs = append(subArgs, row.ID, row.SubKategori)
 
 		fullTextCase += "WHEN ? THEN ? "
-		args = append(args, row.ID, row.FullText)
+		fullArgs = append(fullArgs, row.ID, row.FullText)
 
 		ids = append(ids, row.ID)
 	}
@@ -564,6 +566,9 @@ func (r *KategoriRepository) UpdateParentBatch(
 	subKategoriCase += "END"
 	fullTextCase += "END"
 
+	args := make([]any, 0, len(subArgs)+len(fullArgs)+1)
+	args = append(args, subArgs...)
+	args = append(args, fullArgs...)
 	args = append(args, ids)
 
 	query := `
@@ -574,6 +579,9 @@ func (r *KategoriRepository) UpdateParentBatch(
 		WHERE id IN ?
 	`
 
-	return r.db.WithContext(ctx).
-		Exec(query, args...).Error
+	return r.db.
+		WithContext(ctx).
+		Debug().
+		Exec(query, args...).
+		Error
 }

@@ -119,7 +119,7 @@ func (h *UpdateKategoriCommandHandler) Handle(
 
 	repo := h.Repo.WithTx(tx)
 
-	if err := repo.Create(ctx, updatedKategori); err != nil {
+	if err := repo.Update(ctx, updatedKategori); err != nil {
 		return "", err
 	}
 

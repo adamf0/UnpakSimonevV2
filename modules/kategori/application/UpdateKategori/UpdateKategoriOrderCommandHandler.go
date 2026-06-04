@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/bytedance/sonic"
+	"github.com/goforj/godump"
 )
 
 type UpdateKategoriOrderCommandHandler struct {
@@ -95,6 +96,7 @@ func (h *UpdateKategoriOrderCommandHandler) Handle(
 		})
 	}
 
+	godump.Dump(updates)
 	err = h.Repo.UpdateParentBatch(ctx, updates)
 	if err != nil {
 
