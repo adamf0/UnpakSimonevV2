@@ -1,6 +1,8 @@
 package application
 
 import (
+	"regexp"
+
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -17,6 +19,8 @@ func CreateBankSoalCommandValidation(cmd CreateBankSoalCommand) error {
 		// ),
 		validation.Field(&cmd.Semester,
 			validation.Required.Error("Semester cannot be blank"),
+			validation.Match(regexp.MustCompile(`^\d{4}(01|02)$`)).
+				Error("Semester invalid format"),
 		),
 		validation.Field(&cmd.SID,
 			validation.Required.Error("SID cannot be blank"),
