@@ -534,3 +534,46 @@ func (r *KategoriRepository) WithTx(tx any) domainkategori.IKategoriRepository {
 func (r *KategoriRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
 	return r.db.WithContext(ctx).Begin(), nil
 }
+
+func (r *KategoriRepository) UpdateParentBatch(
+	ctx context.Context,
+	rows []domainkategori.UpdateRow,
+) error {
+
+	if len(rows) == 0 {
+		return nil
+	}
+
+	subKategoriCase := "CASE id "
+	fullTextCase := "CASE id "
+
+	args := make([]any, 0)
+	ids := make([]uint, 0, len(rows))
+
+	for _, row := range rows {
+
+		subKategoriCase += "WHEN ? THEN ? "
+		args = append(args, row.ID, row.SubKategori)
+
+		fullTextCase += "WHEN ? THEN ? "
+		args = append(args, row.ID, row.FullText)
+
+		ids = append(ids, row.ID)
+	}
+
+	subKategoriCase += "END"
+	fullTextCase += "END"
+
+	args = append(args, ids)
+
+	query := `
+		UPDATE kategoriv2
+		SET
+			sub_kategori = ` + subKategoriCase + `,
+			full_text = ` + fullTextCase + `
+		WHERE id IN ?
+	`
+
+	return r.db.WithContext(ctx).
+		Exec(query, args...).Error
+}

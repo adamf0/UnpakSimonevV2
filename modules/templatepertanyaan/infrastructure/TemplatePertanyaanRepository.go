@@ -302,7 +302,6 @@ func (r *TemplatePertanyaanRepository) GetAll(
 	var rows = make([]domaintemplatepertanyaan.TemplatePertanyaanDefault, 0)
 	var total int64
 
-	//[pr] belum join dengan fakultas & prodi untuk pencarian datatable filter
 	db := r.db.Debug().WithContext(ctx).
 		Table("template_pertanyaanv2 a").
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").

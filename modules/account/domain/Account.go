@@ -12,7 +12,7 @@ type Account struct {
 	ID          uint       `gorm:"primaryKey;autoIncrement" json:"-"`
 	UUID        uuid.UUID  `json:"UUID"`
 	Username    *string    `json:"Username"`
-	Password    *string    `json:"-"`
+	Password    *string    `gorm:"column:password_plain" json:"-"`
 	Level       *string    `json:"Level"`
 	Name        *string    `json:"Name"`
 	Email       *string    `json:"Email"`

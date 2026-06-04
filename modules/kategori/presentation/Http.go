@@ -63,6 +63,38 @@ func CreateKategoriHandlerfunc(c *fiber.Ctx) error {
 }
 
 // =======================================================
+// PUT /kategori
+// =======================================================
+
+// UpdateKategoriHandler godoc
+// @Summary Update existing Kategori
+// @Tags Kategori
+// @param payload formData string true "payload"
+// @Produce json
+// @Success 200 {object} map[string]string "uuid of updated Kategori"
+// @Failure 400 {object} commoninfra.ResponseError
+// @Failure 404 {object} commoninfra.ResponseError
+// @Failure 409 {object} commoninfra.ResponseError
+// @Failure 500 {object} commoninfra.ResponseError
+// @Router /kategori [put]
+func UpdateKategoriOrderHandlerfunc(c *fiber.Ctx) error {
+
+	Payload := c.FormValue("payload")
+	// godump.Dd(Payload)
+
+	cmd := UpdateKategori.UpdateKategoriOrderCommand{
+		Payload: Payload,
+	}
+
+	updatedID, err := mediatr.Send[UpdateKategori.UpdateKategoriOrderCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return c.JSON(fiber.Map{"uuid": updatedID})
+}
+
+// =======================================================
 // PUT /kategori/{uuid}
 // =======================================================
 
@@ -372,6 +404,7 @@ func ModuleKategori(app *fiber.App) {
 	app.Get("/api/v2/kategori/setupuuid", SetupUuidKategorisHandlerfunc)
 
 	app.Post("/api/v2/kategori", commonpresentation.JWTMiddleware(), CreateKategoriHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
+	app.Put("/api/v2/kategori", commonpresentation.JWTMiddleware(), UpdateKategoriOrderHandlerfunc)
 	app.Put("/api/v2/kategori/:uuid", commonpresentation.JWTMiddleware(), UpdateKategoriHandlerfunc)
 
 	app.Delete("/api/v2/kategori/:uuid", commonpresentation.JWTMiddleware(), DeleteKategoriHandlerfunc)            //soft delete

@@ -15,6 +15,7 @@ type LoginCommandHandler struct {
 	Repo domainaccount.IAccountRepository
 }
 
+// [pr] belum dipisah antara login admin/fakultas/prodi dengan user (dosen, tendik & dosen)
 func (h *LoginCommandHandler) Handle(
 	ctx context.Context,
 	cmd LoginCommand,

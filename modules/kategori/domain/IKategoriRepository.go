@@ -28,4 +28,8 @@ type IKategoriRepository interface {
 
 	WithTx(tx any) IKategoriRepository
 	BeginTx(ctx context.Context) (*gorm.DB, error)
+	UpdateParentBatch(
+		ctx context.Context,
+		rows []UpdateRow,
+	) error
 }

@@ -53,6 +53,13 @@ func RegisterModuleKategori(db *gorm.DB) error {
 	})
 
 	mediatr.RegisterRequestHandler[
+		update.UpdateKategoriOrderCommand,
+		string,
+	](&update.UpdateKategoriOrderCommandHandler{
+		Repo: repoKategori,
+	})
+
+	mediatr.RegisterRequestHandler[
 		restore.RestoreKategoriCommand,
 		string,
 	](&restore.RestoreKategoriCommandHandler{
