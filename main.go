@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -184,37 +185,37 @@ func main() {
 	})
 	app.Use(recover.New())
 
-	// isCors := os.Getenv("ALLOW_CORS")
-	// // app.Use(recover())
-	// origins := os.Getenv("ALLOWED_ORIGINS")
+	isCors := os.Getenv("ALLOW_CORS")
+	// app.Use(recover())
+	origins := os.Getenv("ALLOWED_ORIGINS")
 
-	// if isCors == "0" {
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:4000",
-		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-		AllowCredentials: true,
-	}))
-	// } else {
-	// 	app.Use(cors.New(cors.Config{
-	// 		AllowOriginsFunc: func(origin string) bool {
-	// 			if origin == "" {
-	// 				return true // curl / internal
-	// 			}
+	if isCors == "0" {
+		app.Use(cors.New(cors.Config{
+			AllowOrigins:     "http://localhost:4000",
+			AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
+			AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+			AllowCredentials: true,
+		}))
+	} else {
+		app.Use(cors.New(cors.Config{
+			AllowOriginsFunc: func(origin string) bool {
+				if origin == "" {
+					return true // curl / internal
+				}
 
-	// 			allowed := strings.Split(origins, ",")
-	// 			for _, o := range allowed {
-	// 				if strings.TrimSpace(o) == origin {
-	// 					return true
-	// 				}
-	// 			}
-	// 			return false
-	// 		},
-	// 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
-	// 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-	// 		AllowCredentials: true,
-	// 	}))
-	// }
+				allowed := strings.Split(origins, ",")
+				for _, o := range allowed {
+					if strings.TrimSpace(o) == origin {
+						return true
+					}
+				}
+				return false
+			},
+			AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
+			AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+			AllowCredentials: true,
+		}))
+	}
 
 	app.Use(helmet.New(helmet.Config{
 		XSSProtection:             "1; mode=block",
