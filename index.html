@@ -1,19 +1,30 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>API Docs</title>
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+  <meta charset="UTF-8">
+  <title>Documentation Portal</title>
+
+  <style>
+    body{
+      font-family:Arial;
+      max-width:900px;
+      margin:auto;
+      padding:40px;
+    }
+
+    a{
+      display:block;
+      margin:10px 0;
+      font-size:18px;
+    }
+  </style>
 </head>
 <body>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
-  <script>
-    SwaggerUIBundle({
-      url: './swagger.json',
-      dom_id: '#swagger-ui',
-      deepLinking: true,
-    });
-  </script>
+
+  <h1>Unpak Simonev V2</h1>
+
+  <a href="./swagger/">📘 Swagger Documentation</a>
+  <a href="./coverage/">🧪 Test Coverage</a>
+
 </body>
 </html>
