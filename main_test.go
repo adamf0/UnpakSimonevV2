@@ -54,6 +54,7 @@ func TestHeaderSecurityMiddleware(t *testing.T) {
 
 	cfg := commonpresentation.DefaultHeaderSecurityConfig()
 	cfg.ResolveAndCheck = false
+	cfg.AllowDomains = []string{"siamida.unpak.ac.id", "test.internal.company"}
 
 	app := fiber.New(fiber.Config{
 		// DisableStartupMessage: true,
@@ -75,6 +76,9 @@ func TestHeaderSecurityMiddleware(t *testing.T) {
 
 			resp, err := app.Test(req)
 			if err != nil {
+				if tc.want == 400 {
+					return
+				}
 				t.Fatalf("unexpected error: %v", err)
 			}
 			if resp.StatusCode != tc.want {

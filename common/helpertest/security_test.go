@@ -147,3 +147,25 @@ func loadCorpus(t *testing.T) []string {
 // 		}
 // 	}
 // }
+
+func TestEscapeLike(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"normal text", "normal text"},
+		{"text with % percent", `text with \% percent`},
+		{"text with _ underscore", `text with \_ underscore`},
+		{"text with \\ backslash", `text with \\ backslash`},
+		{"mixed %_\\ chars", `mixed \%\_\\ chars`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			got := helper.EscapeLike(tt.input)
+			if got != tt.expected {
+				t.Fatalf("expected %q got %q", tt.expected, got)
+			}
+		})
+	}
+}

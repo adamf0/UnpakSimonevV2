@@ -29,6 +29,30 @@ jobs:
         with:
           go-version: 1.22
 
+      # =========================
+      # Run Tests
+      # =========================
+      - name: Run Unit Tests
+        run: |
+          go test ./... \
+            -covermode=atomic \
+            -coverprofile=coverage.out
+
+      # =========================
+      # Generate Coverage HTML
+      # =========================
+      - name: Generate Coverage Report
+        run: |
+          mkdir -p coverage
+
+          go tool cover \
+            -html=coverage.out \
+            -o coverage/index.html
+
+          go tool cover \
+            -func=coverage.out \
+            > coverage/summary.txt
+
       - name: Install swag
         run: go install github.com/swaggo/swag/cmd/swag@latest
 
@@ -36,31 +60,87 @@ jobs:
         run: swag init
 
       # =========================
-      # Prepare Swagger UI (INI YANG KAMU MAKSUD)
+      # Doc
       # =========================
-      - name: Prepare Swagger UI
+      - name: Prepare GitHub Pages
         run: |
+          rm -rf public
           mkdir -p public
-          cp docs/swagger.json public/swagger.json
+          mkdir -p public/swagger
+          mkdir -p public/coverage
 
-          cat <<EOF > public/index.html
+          # =========================
+          # Coverage
+          # =========================
+          cp coverage/index.html public/coverage/index.html
+          cp coverage/summary.txt public/coverage/summary.txt
+
+          # =========================
+          # Swagger JSON
+          # =========================
+          cp docs/swagger.json public/swagger/swagger.json
+
+          # =========================
+          # Swagger UI
+          # =========================
+          cat <<EOF > public/swagger/index.html
           <!DOCTYPE html>
           <html>
           <head>
             <meta charset="UTF-8" />
-            <title>API Docs</title>
-            <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
+            <title>Swagger API</title>
+
+            <link rel="stylesheet"
+              href="https://unpkg.com/swagger-ui-dist/swagger-ui.css" />
           </head>
           <body>
             <div id="swagger-ui"></div>
+
             <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+
             <script>
               SwaggerUIBundle({
                 url: './swagger.json',
                 dom_id: '#swagger-ui',
-                deepLinking: true,
+                deepLinking: true
               });
             </script>
+          </body>
+          </html>
+          EOF
+
+          # =========================
+          # Home Page
+          # =========================
+          cat <<EOF > public/index.html
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Documentation Portal</title>
+
+            <style>
+              body{
+                font-family:Arial;
+                max-width:900px;
+                margin:auto;
+                padding:40px;
+              }
+
+              a{
+                display:block;
+                margin:10px 0;
+                font-size:18px;
+              }
+            </style>
+          </head>
+          <body>
+
+            <h1>Unpak Simonev V2</h1>
+
+            <a href="./swagger/">📘 Swagger Documentation</a>
+            <a href="./coverage/">🧪 Test Coverage</a>
+
           </body>
           </html>
           EOF

@@ -12,7 +12,7 @@ func DeleteBankSoalCommandValidation(cmd DeleteBankSoalCommand) error {
 			validation.Required.Error("UUID cannot be blank"),
 			validation.By(helper.ValidateUUIDv4),
 		),
-		validation.Field(&cmd.Uuid,
+		validation.Field(&cmd.Mode,
 			validation.Required.Error("mode cannot be blank"),
 		),
 	)

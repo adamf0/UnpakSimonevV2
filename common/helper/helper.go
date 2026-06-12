@@ -194,8 +194,16 @@ func ValidateUnpakEmail(value interface{}) error {
 }
 
 func ValidateUUIDv4(value interface{}) error {
-	s, ok := value.(string)
-	if !ok {
+	var s string
+	switch v := value.(type) {
+	case string:
+		s = v
+	case *string:
+		if v == nil {
+			return fmt.Errorf("UUID is nil")
+		}
+		s = *v
+	default:
 		return fmt.Errorf("UUID invalid type")
 	}
 
