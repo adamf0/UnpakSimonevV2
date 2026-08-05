@@ -21,7 +21,7 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
 	ctx context.Context,
 	q GetAllKuesionersReportQuery,
 ) ([]domainKuesioner.KuesionerResult, error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
 	defer cancel()
 
 	partitionKeys := []string{
