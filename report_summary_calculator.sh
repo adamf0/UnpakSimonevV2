@@ -124,6 +124,13 @@ ddls = [
 for ddl in ddls:
     run_sql(ddl)
 
+# Truncate tables before population
+run_sql("TRUNCATE TABLE report_summary_overview")
+run_sql("TRUNCATE TABLE report_distribusi_fakultas")
+run_sql("TRUNCATE TABLE report_top_questions")
+run_sql("TRUNCATE TABLE report_kategori_summary")
+run_sql("TRUNCATE TABLE report_year")
+
 # 1. Populate report_summary_overview
 run_sql("""
 INSERT INTO report_summary_overview (judul, semester, total_responden, total_jawaban, rata_rata_rating)
