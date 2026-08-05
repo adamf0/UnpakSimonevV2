@@ -271,43 +271,43 @@
 				
 				<option value="file107">UnpakSiamida/modules/kategori/presentation/Http.go (0.0%)</option>
 				
-				<option value="file108">UnpakSiamida/modules/kuesioner/application/ActiveKuesioner/ActiveKuesionerQueryHandler.go (98.2%)</option>
+				<option value="file108">UnpakSiamida/modules/kuesioner/application/ActiveKuesioner/ActiveKuesionerQueryHandler.go (0.0%)</option>
 				
-				<option value="file109">UnpakSiamida/modules/kuesioner/application/ActiveKuesionerSingle/ActiveKuesionerSingleQueryHandler.go (96.0%)</option>
+				<option value="file109">UnpakSiamida/modules/kuesioner/application/ActiveKuesionerSingle/ActiveKuesionerSingleQueryHandler.go (0.0%)</option>
 				
-				<option value="file110">UnpakSiamida/modules/kuesioner/application/CreateKuesioner/CreateKuesionerCommandHandler.go (100.0%)</option>
+				<option value="file110">UnpakSiamida/modules/kuesioner/application/CreateKuesioner/CreateKuesionerCommandHandler.go (0.0%)</option>
 				
 				<option value="file111">UnpakSiamida/modules/kuesioner/application/CreateKuesioner/CreateKuesionerCommandValidation.go (100.0%)</option>
 				
-				<option value="file112">UnpakSiamida/modules/kuesioner/application/DeleteKuesioner/DeleteKuesionerCommandHandler.go (100.0%)</option>
+				<option value="file112">UnpakSiamida/modules/kuesioner/application/DeleteKuesioner/DeleteKuesionerCommandHandler.go (0.0%)</option>
 				
 				<option value="file113">UnpakSiamida/modules/kuesioner/application/DeleteKuesioner/DeleteKuesionerCommandValidation.go (100.0%)</option>
 				
-				<option value="file114">UnpakSiamida/modules/kuesioner/application/GetAllKuesionerReport/GetAllKuesionersReportQueryHandler.go (100.0%)</option>
+				<option value="file114">UnpakSiamida/modules/kuesioner/application/GetAllKuesionerReport/GetAllKuesionersReportQueryHandler.go (0.0%)</option>
 				
 				<option value="file115">UnpakSiamida/modules/kuesioner/application/GetAllKuesionerReport/GetAllKuesionersReportQueryValidation.go (80.0%)</option>
 				
-				<option value="file116">UnpakSiamida/modules/kuesioner/application/GetAllKuesioners/GetAllKuesionersQueryHandler.go (100.0%)</option>
+				<option value="file116">UnpakSiamida/modules/kuesioner/application/GetAllKuesioners/GetAllKuesionersQueryHandler.go (0.0%)</option>
 				
-				<option value="file117">UnpakSiamida/modules/kuesioner/application/GetKuesioner/GetKuesionerByUuidQueryHandler.go (100.0%)</option>
+				<option value="file117">UnpakSiamida/modules/kuesioner/application/GetKuesioner/GetKuesionerByUuidQueryHandler.go (0.0%)</option>
 				
-				<option value="file118">UnpakSiamida/modules/kuesioner/application/GetKuesionerDefault/GetKuesionerDefaultByUuidQueryHandler.go (100.0%)</option>
+				<option value="file118">UnpakSiamida/modules/kuesioner/application/GetKuesionerDefault/GetKuesionerDefaultByUuidQueryHandler.go (0.0%)</option>
 				
-				<option value="file119">UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban/GetKuesionerJawabanByUuidQueryHandler.go (100.0%)</option>
+				<option value="file119">UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban/GetKuesionerJawabanByUuidQueryHandler.go (0.0%)</option>
 				
-				<option value="file120">UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban/SaveKuesionerJawabanCommandHandler.go (84.5%)</option>
+				<option value="file120">UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban/SaveKuesionerJawabanCommandHandler.go (0.0%)</option>
 				
 				<option value="file121">UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban/SaveKuesionerJawabanCommandValidation.go (100.0%)</option>
 				
-				<option value="file122">UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner/SetupUuidKuesionerCommandHandler.go (100.0%)</option>
+				<option value="file122">UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner/SetupUuidKuesionerCommandHandler.go (0.0%)</option>
 				
-				<option value="file123">UnpakSiamida/modules/kuesioner/application/mock/kuesioner_repository.go (0.0%)</option>
+				<option value="file123">UnpakSiamida/modules/kuesioner/domain/Kuesioner.go (0.0%)</option>
 				
-				<option value="file124">UnpakSiamida/modules/kuesioner/domain/Kuesioner.go (0.0%)</option>
+				<option value="file124">UnpakSiamida/modules/kuesioner/domain/KuesionerErrors.go (0.0%)</option>
 				
-				<option value="file125">UnpakSiamida/modules/kuesioner/domain/KuesionerErrors.go (0.0%)</option>
+				<option value="file125">UnpakSiamida/modules/kuesioner/domain/KuesionerJawaban.go (0.0%)</option>
 				
-				<option value="file126">UnpakSiamida/modules/kuesioner/domain/KuesionerJawaban.go (0.0%)</option>
+				<option value="file126">UnpakSiamida/modules/kuesioner/domain/ReportSummary.go (0.0%)</option>
 				
 				<option value="file127">UnpakSiamida/modules/kuesioner/infrastructure/KuesionerJawabanRepository.go (0.0%)</option>
 				
@@ -4009,37 +4009,31 @@ func main() <span class="cov0" title="0">{
         })
         app.Use(recover.New())
 
-        isCors := os.Getenv("ALLOW_CORS")
-        // app.Use(recover())
         origins := os.Getenv("ALLOWED_ORIGINS")
 
-        if isCors == "0" </span><span class="cov0" title="0">{
-                app.Use(cors.New(cors.Config{
-                        AllowOrigins:     "http://localhost:4000",
-                        AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
-                        AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-                        AllowCredentials: true,
-                }))
-        }</span> else<span class="cov0" title="0"> {
-                app.Use(cors.New(cors.Config{
-                        AllowOriginsFunc: func(origin string) bool </span><span class="cov0" title="0">{
-                                if origin == "" </span><span class="cov0" title="0">{
-                                        return true // curl / internal
-                                }</span>
+        app.Use(cors.New(cors.Config{
+                AllowOriginsFunc: func(origin string) bool </span><span class="cov0" title="0">{
+                        if origin == "" </span><span class="cov0" title="0">{
+                                return true // curl / postman / internal
+                        }</span>
 
-                                <span class="cov0" title="0">allowed := strings.Split(origins, ",")
-                                for _, o := range allowed </span><span class="cov0" title="0">{
-                                        if strings.TrimSpace(o) == origin </span><span class="cov0" title="0">{
-                                                return true
-                                        }</span>
-                                }
-                                <span class="cov0" title="0">return false</span>
-                        },
-                        AllowMethods:     "GET,POST,PUT,PATCH,DELETE",
-                        AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-                        AllowCredentials: true,
-                }))
-        }
+                        // Allow all localhost / 127.0.0.1 ports for local dev
+                        <span class="cov0" title="0">if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") </span><span class="cov0" title="0">{
+                                return true
+                        }</span>
+
+                        <span class="cov0" title="0">allowed := strings.Split(origins, ",")
+                        for _, o := range allowed </span><span class="cov0" title="0">{
+                                if strings.TrimSpace(o) == origin </span><span class="cov0" title="0">{
+                                        return true
+                                }</span>
+                        }
+                        <span class="cov0" title="0">return false</span>
+                },
+                AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+                AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+                AllowCredentials: true,
+        }))
 
         <span class="cov0" title="0">app.Use(helmet.New(helmet.Config{
                 XSSProtection:             "1; mode=block",
@@ -12462,16 +12456,16 @@ type ActiveKuesionerQueryHandler struct {
 func (h *ActiveKuesionerQueryHandler) Handle(
         ctx context.Context,
         q ActiveKuesionerQuery,
-) ([]domainBankSoal.BankSoalDefault, error) <span class="cov10" title="6">{
+) ([]domainBankSoal.BankSoalDefault, error) <span class="cov0" title="0">{
 
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
-        if q.NIDN == nil &amp;&amp; q.NIP == nil &amp;&amp; q.NPM == nil </span><span class="cov1" title="1">{
+        if q.NIDN == nil &amp;&amp; q.NIP == nil &amp;&amp; q.NPM == nil </span><span class="cov0" title="0">{
                 return []domainBankSoal.BankSoalDefault{}, domainBankSoal.OnlyStudentLecturerStaff()
         }</span>
 
-        <span class="cov9" title="5">kuesionerActive, total, err := h.RepoBankSoal.GetAll(
+        <span class="cov0" title="0">kuesionerActive, total, err := h.RepoBankSoal.GetAll(
                 ctx,
                 "",
                 []commonDomain.SearchFilter{},
@@ -12484,18 +12478,18 @@ func (h *ActiveKuesionerQueryHandler) Handle(
                 false,
                 true,
         )
-        if err != nil || total == 0 </span><span class="cov4" title="2">{
+        if err != nil || total == 0 </span><span class="cov0" title="0">{
                 return []domainBankSoal.BankSoalDefault{}, err
         }</span>
 
         // =========================
         // Collect BankSoal IDs
         // =========================
-        <span class="cov6" title="3">seen := make(map[uint]struct{})
+        <span class="cov0" title="0">seen := make(map[uint]struct{})
         bankSoalKeys := make([]uint, 0, len(kuesionerActive))
 
-        for _, k := range kuesionerActive </span><span class="cov6" title="3">{
-                if _, ok := seen[k.Id]; !ok </span><span class="cov6" title="3">{
+        for _, k := range kuesionerActive </span><span class="cov0" title="0">{
+                if _, ok := seen[k.Id]; !ok </span><span class="cov0" title="0">{
                         seen[k.Id] = struct{}{}
                         bankSoalKeys = append(bankSoalKeys, k.Id)
                 }</span>
@@ -12504,27 +12498,27 @@ func (h *ActiveKuesionerQueryHandler) Handle(
         // =========================
         // Get Kuesioner Forms
         // =========================
-        <span class="cov6" title="3">kuesionerForms, err := h.Repo.GetAllFormFromActiveBankSoal(
+        <span class="cov0" title="0">kuesionerForms, err := h.Repo.GetAllFormFromActiveBankSoal(
                 ctx,
                 helper.NullableString(q.NIDN),
                 helper.NullableString(q.NIP),
                 helper.NullableString(q.NPM),
                 bankSoalKeys,
         )
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return []domainBankSoal.BankSoalDefault{}, err
         }</span>
 
-        <span class="cov4" title="2">formMap := make(map[uint]domainKuesioner.KuesionerDefault)
+        <span class="cov0" title="0">formMap := make(map[uint]domainKuesioner.KuesionerDefault)
         uuidList := make([]string, 0, len(kuesionerForms))
         idList := make([]uint, 0, len(kuesionerForms))
 
-        for _, f := range kuesionerForms </span><span class="cov4" title="2">{
+        for _, f := range kuesionerForms </span><span class="cov0" title="0">{
                 idBankSoal, err := helper.ParseUint(f.IdBankSoal)
                 if err != nil </span><span class="cov0" title="0">{
                         continue</span>
                 }
-                <span class="cov4" title="2">formMap[idBankSoal] = f
+                <span class="cov0" title="0">formMap[idBankSoal] = f
                 uuidList = append(uuidList, f.UUID.String())
                 idList = append(idList, f.Id)</span>
         }
@@ -12532,11 +12526,11 @@ func (h *ActiveKuesionerQueryHandler) Handle(
         // =========================
         // Get Total Input (bulk)
         // =========================
-        <span class="cov4" title="2">totalInputMap := make(map[string]uint)
+        <span class="cov0" title="0">totalInputMap := make(map[string]uint)
 
-        if len(idList) &gt; 0 </span><span class="cov4" title="2">{
+        if len(idList) &gt; 0 </span><span class="cov0" title="0">{
                 totalInputMap, err = h.RepoJawaban.GetTotalInputByKuesionerIDs(ctx, idList)
-                if err != nil </span><span class="cov1" title="1">{
+                if err != nil </span><span class="cov0" title="0">{
                         return []domainBankSoal.BankSoalDefault{}, err
                 }</span>
         }
@@ -12544,7 +12538,7 @@ func (h *ActiveKuesionerQueryHandler) Handle(
         // =========================
         // PARALLEL MERGE
         // =========================
-        <span class="cov1" title="1">type result struct {
+        <span class="cov0" title="0">type result struct {
                 index int
                 data  domainBankSoal.BankSoalDefault
         }
@@ -12555,23 +12549,23 @@ func (h *ActiveKuesionerQueryHandler) Handle(
 
         var wg sync.WaitGroup
 
-        for w := 0; w &lt; worker; w++ </span><span class="cov7" title="4">{
+        for w := 0; w &lt; worker; w++ </span><span class="cov0" title="0">{
                 wg.Add(1)
 
-                go func() </span><span class="cov7" title="4">{
+                go func() </span><span class="cov0" title="0">{
                         defer wg.Done()
 
-                        for i := range jobs </span><span class="cov1" title="1">{
+                        for i := range jobs </span><span class="cov0" title="0">{
                                 item := kuesionerActive[i]
 
-                                if f, ok := formMap[item.Id]; ok </span><span class="cov1" title="1">{
+                                if f, ok := formMap[item.Id]; ok </span><span class="cov0" title="0">{
                                         item.UUIDKuesioner = f.UUID
-                                        if total, ok := totalInputMap[f.UUID.String()]; ok </span><span class="cov1" title="1">{
+                                        if total, ok := totalInputMap[f.UUID.String()]; ok </span><span class="cov0" title="0">{
                                                 item.TotalInput = total
                                         }</span>
                                 }
 
-                                <span class="cov1" title="1">results &lt;- result{
+                                <span class="cov0" title="0">results &lt;- result{
                                         index: i,
                                         data:  item,
                                 }</span>
@@ -12579,23 +12573,23 @@ func (h *ActiveKuesionerQueryHandler) Handle(
                 }()
         }
 
-        <span class="cov1" title="1">for i := range kuesionerActive </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">for i := range kuesionerActive </span><span class="cov0" title="0">{
                 jobs &lt;- i
         }</span>
-        <span class="cov1" title="1">close(jobs)
+        <span class="cov0" title="0">close(jobs)
 
-        go func() </span><span class="cov1" title="1">{
+        go func() </span><span class="cov0" title="0">{
                 wg.Wait()
                 close(results)
         }</span>()
 
-        <span class="cov1" title="1">final := make([]domainBankSoal.BankSoalDefault, len(kuesionerActive))
+        <span class="cov0" title="0">final := make([]domainBankSoal.BankSoalDefault, len(kuesionerActive))
 
-        for res := range results </span><span class="cov1" title="1">{
+        for res := range results </span><span class="cov0" title="0">{
                 final[res.index] = res.data
         }</span>
 
-        <span class="cov1" title="1">return final, nil</span>
+        <span class="cov0" title="0">return final, nil</span>
 }
 </pre>
 		
@@ -12620,43 +12614,43 @@ type ActiveKuesionerSingleQueryHandler struct {
 func (h *ActiveKuesionerSingleQueryHandler) Handle(
         ctx context.Context,
         q ActiveKuesionerSingleQuery,
-) (*domainBankSoal.BankSoalDefault, error) <span class="cov10" title="7">{
+) (*domainBankSoal.BankSoalDefault, error) <span class="cov0" title="0">{
 
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
-        if q.NIDN == nil &amp;&amp; q.NIP == nil &amp;&amp; q.NPM == nil </span><span class="cov1" title="1">{
+        if q.NIDN == nil &amp;&amp; q.NIP == nil &amp;&amp; q.NPM == nil </span><span class="cov0" title="0">{
                 return nil, domainBankSoal.OnlyStudentLecturerStaff()
         }</span>
 
-        <span class="cov9" title="6">uid, err := uuid.Parse(q.UUID)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">uid, err := uuid.Parse(q.UUID)
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, domainBankSoal.InvalidUuid()
         }</span>
 
-        <span class="cov8" title="5">kuesionerActive, err := h.Repo.GetDefaultByUuid(ctx, uid)
-        if err != nil </span><span class="cov1" title="1">{
-                return nil, err
-        }</span>
-
-        <span class="cov7" title="4">if helper.NullableString(q.NIDN) != helper.NullableString(kuesionerActive.NIDN) ||
-                helper.NullableString(q.NIP) != helper.NullableString(kuesionerActive.NIP) ||
-                helper.NullableString(q.NPM) != helper.NullableString(kuesionerActive.NPM) </span><span class="cov1" title="1">{
-                return nil, domainBankSoal.InvalidData(helper.StrPtr(helper.RandomQuote()))
-        }</span>
-
-        <span class="cov6" title="3">bankUUID, err := uuid.Parse(kuesionerActive.UUID.String())
+        <span class="cov0" title="0">kuesionerActive, err := h.Repo.GetDefaultByUuid(ctx, uid)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov6" title="3">bankSoal, err := h.RepoBankSoal.GetDefaultByKuesioner(ctx, bankUUID)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if helper.NullableString(q.NIDN) != helper.NullableString(kuesionerActive.NIDN) ||
+                helper.NullableString(q.NIP) != helper.NullableString(kuesionerActive.NIP) ||
+                helper.NullableString(q.NPM) != helper.NullableString(kuesionerActive.NPM) </span><span class="cov0" title="0">{
+                return nil, domainBankSoal.InvalidData(helper.StrPtr(helper.RandomQuote()))
+        }</span>
+
+        <span class="cov0" title="0">bankUUID, err := uuid.Parse(kuesionerActive.UUID.String())
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">bankSoal, err := h.RepoBankSoal.GetDefaultByKuesioner(ctx, bankUUID)
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
         // inject uuid kuesioner
-        <span class="cov4" title="2">bankSoal.UUIDKuesioner = kuesionerActive.UUID
+        <span class="cov0" title="0">bankSoal.UUIDKuesioner = kuesionerActive.UUID
 
         // =========================
         // TOTAL INPUT
@@ -12665,15 +12659,15 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
                 ctx,
                 []uint{kuesionerActive.Id},
         )
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov1" title="1">if total, ok := totalMap[kuesionerActive.UUID.String()]; ok </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if total, ok := totalMap[kuesionerActive.UUID.String()]; ok </span><span class="cov0" title="0">{
                 bankSoal.TotalInput = total
         }</span>
 
-        <span class="cov1" title="1">return bankSoal, nil</span>
+        <span class="cov0" title="0">return bankSoal, nil</span>
 }
 </pre>
 		
@@ -12703,7 +12697,7 @@ type CreateKuesionerCommandHandler struct {
 func (h *CreateKuesionerCommandHandler) Handle(
         ctx context.Context,
         cmd CreateKuesionerCommand,
-) (string, error) <span class="cov10" title="12">{
+) (string, error) <span class="cov0" title="0">{
 
         ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
         defer cancel()
@@ -12712,38 +12706,38 @@ func (h *CreateKuesionerCommandHandler) Handle(
         // VALIDATE BANK SOAL
         // -------------------------
         bankUUID, err := uuid.Parse(cmd.UuidBankSoal)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return "", domainkuesioner.InvalidBankSoal()
         }</span>
 
-        <span class="cov9" title="11">bankSoal, err := h.RepoBankSoal.GetByUuid(ctx, bankUUID)
-        if err != nil </span><span class="cov3" title="2">{
-                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">bankSoal, err := h.RepoBankSoal.GetByUuid(ctx, bankUUID)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
                         return "", domainkuesioner.NotFoundBankSoal()
                 }</span>
-                <span class="cov1" title="1">return "", err</span>
+                <span class="cov0" title="0">return "", err</span>
         }
 
         // -------------------------
         // RESOLVE ACCOUNT
         // -------------------------
-        <span class="cov8" title="9">identifier, err := ResolveAccountIdentifier(cmd)
-        if err != nil </span><span class="cov3" title="2">{
+        <span class="cov0" title="0">identifier, err := ResolveAccountIdentifier(cmd)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov8" title="7">account, err := h.RepoAccount.Get(ctx, identifier)
-        if err != nil </span><span class="cov3" title="2">{
-                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">account, err := h.RepoAccount.Get(ctx, identifier)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
                         return "", domainkuesioner.NotFoundBankSoal()
                 }</span>
-                <span class="cov1" title="1">return "", err</span>
+                <span class="cov0" title="0">return "", err</span>
         }
 
         // -------------------------
         // MAP ACCOUNT -&gt; KUESIONER
         // -------------------------
-        <span class="cov6" title="5">k := MapAccountToKuesioner(account, cmd)
+        <span class="cov0" title="0">k := MapAccountToKuesioner(account, cmd)
 
         // -------------------------
         // CREATE DOMAIN ENTITY
@@ -12766,49 +12760,49 @@ func (h *CreateKuesionerCommandHandler) Handle(
                 cmd.SID,
         )
 
-        if !result.IsSuccess </span><span class="cov1" title="1">{
+        if !result.IsSuccess </span><span class="cov0" title="0">{
                 return "", result.Error
         }</span>
 
-        <span class="cov6" title="4">if err := h.Repo.Create(ctx, result.Value); err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if err := h.Repo.Create(ctx, result.Value); err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov4" title="3">return result.Value.UUID.String(), nil</span>
+        <span class="cov0" title="0">return result.Value.UUID.String(), nil</span>
 }
 
 func ResolveAccountIdentifier(
         cmd CreateKuesionerCommand,
-) (domainaccount.AccountIdentifier, error) <span class="cov8" title="9">{
+) (domainaccount.AccountIdentifier, error) <span class="cov0" title="0">{
 
         switch cmd.Resource </span>{
 
-        case "simak":<span class="cov3" title="2">
+        case "simak":<span class="cov0" title="0">
 
                 switch cmd.CodeCtx </span>{
 
-                case domainaccount.CtxDosen:<span class="cov1" title="1">
+                case domainaccount.CtxDosen:<span class="cov0" title="0">
                         return domainaccount.AccountIdentifier{
                                 NIDN: &amp;cmd.SID,
                         }, nil</span>
 
-                case domainaccount.CtxMahasiswa:<span class="cov1" title="1">
+                case domainaccount.CtxMahasiswa:<span class="cov0" title="0">
                         return domainaccount.AccountIdentifier{
                                 NIM: &amp;cmd.SID,
                         }, nil</span>
                 }
 
-        case "simpeg":<span class="cov6" title="5">
+        case "simpeg":<span class="cov0" title="0">
 
                 return domainaccount.AccountIdentifier{
                         NIP: &amp;cmd.SID,
                 }, nil</span>
 
-        case "local":<span class="cov1" title="1">
+        case "local":<span class="cov0" title="0">
                 return domainaccount.AccountIdentifier{}, domainkuesioner.RespondentOnly()</span>
         }
 
-        <span class="cov1" title="1">return domainaccount.AccountIdentifier{}, domainkuesioner.NotFoundResource()</span>
+        <span class="cov0" title="0">return domainaccount.AccountIdentifier{}, domainkuesioner.NotFoundResource()</span>
 }
 
 type KuesionerAccountData struct {
@@ -12828,7 +12822,7 @@ type KuesionerAccountData struct {
 func MapAccountToKuesioner(
         acc *domainaccount.AccountDefault,
         cmd CreateKuesionerCommand,
-) KuesionerAccountData <span class="cov6" title="5">{
+) KuesionerAccountData <span class="cov0" title="0">{
 
         data := KuesionerAccountData{
                 Fakultas: helper.StrPtr(helper.StringValue(acc.Fakultas)),
@@ -12836,9 +12830,9 @@ func MapAccountToKuesioner(
 
         switch cmd.Resource </span>{
 
-        case "simak":<span class="cov3" title="2">
+        case "simak":<span class="cov0" title="0">
 
-                if cmd.CodeCtx == domainaccount.CtxDosen </span><span class="cov1" title="1">{
+                if cmd.CodeCtx == domainaccount.CtxDosen </span><span class="cov0" title="0">{
 
                         data.NIDN = &amp;acc.ID
                         data.NamaDosen = acc.Name
@@ -12846,7 +12840,7 @@ func MapAccountToKuesioner(
                         data.KodeFakultas = acc.RefFakultas
                         data.KodeProdi = acc.RefProdi
 
-                }</span> else<span class="cov1" title="1"> {
+                }</span> else<span class="cov0" title="0"> {
 
                         data.NPM = &amp;acc.ID
                         data.NamaMahasiswa = acc.Name
@@ -12855,14 +12849,14 @@ func MapAccountToKuesioner(
                         data.KodeProdi = acc.RefProdi
                 }</span>
 
-        case "simpeg":<span class="cov4" title="3">
+        case "simpeg":<span class="cov0" title="0">
 
                 data.NIP = &amp;acc.ID
                 data.NamaTendik = acc.Name
                 data.Unit = acc.Unit</span>
         }
 
-        <span class="cov6" title="5">return data</span>
+        <span class="cov0" title="0">return data</span>
 }
 </pre>
 		
@@ -12911,22 +12905,22 @@ type DeleteKuesionerCommandHandler struct {
 func (h *DeleteKuesionerCommandHandler) Handle(
         ctx context.Context,
         cmd DeleteKuesionerCommand,
-) (string, error) <span class="cov10" title="3">{
+) (string, error) <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
         defer cancel()
 
         // Validate UUID
         uuidKuesioner, err := uuid.Parse(cmd.Uuid)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return "", domainkuesioner.InvalidUuid()
         }</span>
 
         // Delete by UUID
-        <span class="cov6" title="2">if err := h.Repo.Delete(ctx, uuidKuesioner); err != nil </span><span class="cov1" title="1">{ // FIXED
+        <span class="cov0" title="0">if err := h.Repo.Delete(ctx, uuidKuesioner); err != nil </span><span class="cov0" title="0">{ // FIXED
                 return "", err
         }</span>
 
-        <span class="cov1" title="1">return cmd.Uuid, nil</span>
+        <span class="cov0" title="0">return cmd.Uuid, nil</span>
 }
 </pre>
 		
@@ -12970,7 +12964,7 @@ type GetAllKuesionersReportQueryHandler struct {
 func (h *GetAllKuesionersReportQueryHandler) Handle(
         ctx context.Context,
         q GetAllKuesionersReportQuery,
-) ([]domainKuesioner.KuesionerResult, error) <span class="cov3" title="2">{
+) ([]domainKuesioner.KuesionerResult, error) <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
         defer cancel()
 
@@ -12992,12 +12986,12 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
         ch := make(chan partitionResult, len(partitionKeys))
         sem := make(chan struct{}, 3) // limit max 3 concurrent queries for 1 vCPU
 
-        for _, pk := range partitionKeys </span><span class="cov10" title="20">{
+        for _, pk := range partitionKeys </span><span class="cov0" title="0">{
                 pk := pk
                 sem &lt;- struct{}{}
-                g.Go(func() error </span><span class="cov10" title="20">{
-                        defer func() </span><span class="cov10" title="20">{ &lt;-sem }</span>()
-                        <span class="cov10" title="20">rows, err := h.Repo.GetAllKuesionerResult(
+                g.Go(func() error </span><span class="cov0" title="0">{
+                        defer func() </span><span class="cov0" title="0">{ &lt;-sem }</span>()
+                        <span class="cov0" title="0">rows, err := h.Repo.GetAllKuesionerResult(
                                 ctxg,
                                 q.JudulBankSoal,
                                 // q.Semester,
@@ -13014,21 +13008,21 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
                 })
         }
 
-        <span class="cov3" title="2">go func() </span><span class="cov3" title="2">{
+        <span class="cov0" title="0">go func() </span><span class="cov0" title="0">{
                 g.Wait()
                 close(ch)
         }</span>()
 
-        <span class="cov3" title="2">var result []domainKuesioner.KuesionerResult
+        <span class="cov0" title="0">var result []domainKuesioner.KuesionerResult
 
-        for res := range ch </span><span class="cov8" title="12">{
-                if res.err != nil </span><span class="cov1" title="1">{
+        for res := range ch </span><span class="cov0" title="0">{
+                if res.err != nil </span><span class="cov0" title="0">{
                         return nil, res.err
                 }</span>
-                <span class="cov8" title="11">result = append(result, res.data...)</span>
+                <span class="cov0" title="0">result = append(result, res.data...)</span>
         }
 
-        <span class="cov1" title="1">return result, nil</span>
+        <span class="cov0" title="0">return result, nil</span>
 }
 </pre>
 		
@@ -13091,7 +13085,7 @@ type GetAllKuesionersQueryHandler struct {
 func (h *GetAllKuesionersQueryHandler) Handle(
         ctx context.Context,
         q GetAllKuesionersQuery,
-) (commondomain.Paged[domainKuesioner.KuesionerDefault], error) <span class="cov10" title="3">{
+) (commondomain.Paged[domainKuesioner.KuesionerDefault], error) <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
@@ -13103,21 +13097,21 @@ func (h *GetAllKuesionersQueryHandler) Handle(
                 q.Limit,
                 q.Deleted,
         )
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return commondomain.Paged[domainKuesioner.KuesionerDefault]{}, err
         }</span>
 
-        <span class="cov6" title="2">currentPage := 1
+        <span class="cov0" title="0">currentPage := 1
         totalPages := 1
 
-        if q.Page != nil </span><span class="cov1" title="1">{
+        if q.Page != nil </span><span class="cov0" title="0">{
                 currentPage = *q.Page
         }</span>
-        <span class="cov6" title="2">if q.Limit != nil &amp;&amp; *q.Limit &gt; 0 </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if q.Limit != nil &amp;&amp; *q.Limit &gt; 0 </span><span class="cov0" title="0">{
                 totalPages = int((total + int64(*q.Limit) - 1) / int64(*q.Limit))
         }</span>
 
-        <span class="cov6" title="2">return commondomain.Paged[domainKuesioner.KuesionerDefault]{
+        <span class="cov0" title="0">return commondomain.Paged[domainKuesioner.KuesionerDefault]{
                 Data:        Kuesioners,
                 Total:       total,
                 CurrentPage: currentPage,
@@ -13146,24 +13140,24 @@ type GetKuesionerByUuidQueryHandler struct {
 func (h *GetKuesionerByUuidQueryHandler) Handle(
         ctx context.Context,
         q GetKuesionerByUuidQuery,
-) (*domainKuesioner.Kuesioner, error) <span class="cov10" title="4">{
+) (*domainKuesioner.Kuesioner, error) <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
         defer cancel()
 
         parsed, err := uuid.Parse(q.Uuid)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, domainKuesioner.NotFound(q.Uuid)
         }</span>
 
-        <span class="cov8" title="3">inKuesioner, err := h.Repo.GetByUuid(ctx, parsed)
-        if err != nil </span><span class="cov5" title="2">{
-                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">inKuesioner, err := h.Repo.GetByUuid(ctx, parsed)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
                         return nil, domainKuesioner.NotFound(q.Uuid)
                 }</span>
-                <span class="cov1" title="1">return nil, err</span>
+                <span class="cov0" title="0">return nil, err</span>
         }
 
-        <span class="cov1" title="1">return inKuesioner, nil</span>
+        <span class="cov0" title="0">return inKuesioner, nil</span>
 }
 </pre>
 		
@@ -13187,24 +13181,24 @@ type GetKuesionerDefaultByUuidQueryHandler struct {
 func (h *GetKuesionerDefaultByUuidQueryHandler) Handle(
         ctx context.Context,
         q GetKuesionerDefaultByUuidQuery,
-) (*domainKuesioner.KuesionerDefault, error) <span class="cov10" title="4">{
+) (*domainKuesioner.KuesionerDefault, error) <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
         defer cancel()
 
         parsed, err := uuid.Parse(q.Uuid)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return nil, domainKuesioner.NotFound(q.Uuid)
         }</span>
 
-        <span class="cov8" title="3">Kuesioner, err := h.Repo.GetDefaultByUuid(ctx, parsed)
-        if err != nil </span><span class="cov5" title="2">{
-                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">Kuesioner, err := h.Repo.GetDefaultByUuid(ctx, parsed)
+        if err != nil </span><span class="cov0" title="0">{
+                if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
                         return nil, domainKuesioner.NotFound(q.Uuid)
                 }</span>
-                <span class="cov1" title="1">return nil, err</span>
+                <span class="cov0" title="0">return nil, err</span>
         }
 
-        <span class="cov1" title="1">return Kuesioner, nil</span>
+        <span class="cov0" title="0">return Kuesioner, nil</span>
 }
 </pre>
 		
@@ -13223,7 +13217,7 @@ type GetKuesionerJawabanByUuidQueryQueryHandler struct {
 func (h *GetKuesionerJawabanByUuidQueryQueryHandler) Handle(
         ctx context.Context,
         q GetKuesionerJawabanByUuidQuery,
-) ([]domainKuesioner.KuesionerJawabanDefault, error) <span class="cov10" title="2">{
+) ([]domainKuesioner.KuesionerJawabanDefault, error) <span class="cov0" title="0">{
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
@@ -13231,11 +13225,11 @@ func (h *GetKuesionerJawabanByUuidQueryQueryHandler) Handle(
                 ctx,
                 q.Uuid,
         )
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return []domainKuesioner.KuesionerJawabanDefault{}, err
         }</span>
 
-        <span class="cov1" title="1">return Kuesioners, err</span>
+        <span class="cov0" title="0">return Kuesioners, err</span>
 }
 </pre>
 		
@@ -13270,7 +13264,7 @@ type SaveKuesionerJawabanCommandHandler struct {
 func (h *SaveKuesionerJawabanCommandHandler) Handle(
         ctx context.Context,
         cmd SaveKuesionerJawabanCommand,
-) (string, error) <span class="cov10" title="14">{
+) (string, error) <span class="cov0" title="0">{
 
         ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
         defer cancel()
@@ -13279,20 +13273,20 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // TRANSACTION
         // ===============================
         tx, err := h.RepoJawabanKuesioner.BeginTx(ctx)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov9" title="13">defer func() </span><span class="cov9" title="13">{
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
                 if r := recover(); r != nil </span><span class="cov0" title="0">{
                         _ = tx.Rollback()
                         panic(r)</span>
                 }
         }()
 
-        <span class="cov9" title="13">commit := false
-        defer func() </span><span class="cov9" title="13">{
-                if !commit </span><span class="cov9" title="12">{
+        <span class="cov0" title="0">commit := false
+        defer func() </span><span class="cov0" title="0">{
+                if !commit </span><span class="cov0" title="0">{
                         _ = tx.Rollback()
                 }</span>
         }()
@@ -13300,48 +13294,48 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // ===============================
         // VALIDASI UUID
         // ===============================
-        <span class="cov9" title="13">kuesionerUUID, err := uuid.Parse(cmd.UuidKuesioner)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">kuesionerUUID, err := uuid.Parse(cmd.UuidKuesioner)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", domainkuesioner.InvalidUuid()
         }</span>
 
-        <span class="cov9" title="12">pertanyaanUUID, err := uuid.Parse(cmd.UuidPertanyaan)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">pertanyaanUUID, err := uuid.Parse(cmd.UuidPertanyaan)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", domainkuesioner.InvalidPertanyaan()
         }</span>
 
-        <span class="cov9" title="11">kuesioner, err := h.Repo.GetByUuid(ctx, kuesionerUUID)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">kuesioner, err := h.Repo.GetByUuid(ctx, kuesionerUUID)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov8" title="10">pertanyaan, err := h.RepoPertanyaan.GetByUuid(ctx, pertanyaanUUID)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">pertanyaan, err := h.RepoPertanyaan.GetByUuid(ctx, pertanyaanUUID)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
         // ===============================
         // PARSE JSON
         // ===============================
-        <span class="cov8" title="9">var raw []JawabanPayload
-        if err := json.Unmarshal([]byte(cmd.Jawaban), &amp;raw); err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">var raw []JawabanPayload
+        if err := json.Unmarshal([]byte(cmd.Jawaban), &amp;raw); err != nil </span><span class="cov0" title="0">{
                 return "", domainkuesioner.InvalidJawaban()
         }</span>
 
-        <span class="cov8" title="8">var selectedUUIDs []string
+        <span class="cov0" title="0">var selectedUUIDs []string
         var freeTexts []string
         freeTextMap := map[string]string{}
 
-        for _, item := range raw </span><span class="cov8" title="9">{
+        for _, item := range raw </span><span class="cov0" title="0">{
 
-                if item.UUID != "" </span><span class="cov7" title="7">{
-                        if _, err := uuid.Parse(item.UUID); err != nil </span><span class="cov1" title="1">{
+                if item.UUID != "" </span><span class="cov0" title="0">{
+                        if _, err := uuid.Parse(item.UUID); err != nil </span><span class="cov0" title="0">{
                                 return "", errors.New("uuid jawaban tidak valid")
                         }</span>
-                        <span class="cov7" title="6">selectedUUIDs = append(selectedUUIDs, item.UUID)</span>
+                        <span class="cov0" title="0">selectedUUIDs = append(selectedUUIDs, item.UUID)</span>
                 }
 
-                <span class="cov8" title="8">if item.FreeText != "" </span><span class="cov3" title="2">{
+                <span class="cov0" title="0">if item.FreeText != "" </span><span class="cov0" title="0">{
                         freeTexts = append(freeTexts, item.FreeText)
 
                         if item.UUID != "" </span><span class="cov0" title="0">{
@@ -13353,43 +13347,43 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // ===============================
         // MAP UUID → ID
         // ===============================
-        <span class="cov7" title="7">jawabanList, err := h.RepoJawaban.GetByUUIDs(ctx, selectedUUIDs)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">jawabanList, err := h.RepoJawaban.GetByUUIDs(ctx, selectedUUIDs)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov7" title="6">selectedMap := map[uint]bool{}
-        for _, j := range jawabanList </span><span class="cov6" title="5">{
+        <span class="cov0" title="0">selectedMap := map[uint]bool{}
+        for _, j := range jawabanList </span><span class="cov0" title="0">{
                 selectedMap[j.ID] = true
         }</span>
 
         // ===============================
         // FREE TEXT TEMPLATE
         // ===============================
-        <span class="cov7" title="6">freeTemplate, err := h.RepoJawaban.GetFreeTextByPertanyaan(ctx, pertanyaan.ID)
-        if err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">freeTemplate, err := h.RepoJawaban.GetFreeTextByPertanyaan(ctx, pertanyaan.ID)
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
         // ===============================
         // EXISTING DATA (FIX HERE)
         // ===============================
-        <span class="cov6" title="5">existing, err := h.RepoJawabanKuesioner.
+        <span class="cov0" title="0">existing, err := h.RepoJawabanKuesioner.
                 WithTx(tx).
                 GetByPertanyaanAndUser(ctx, pertanyaan.ID, cmd.SID, cmd.Resource)
 
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov5" title="4">existingMap := map[uint]domainkuesioner.KuesionerJawaban{}
+        <span class="cov0" title="0">existingMap := map[uint]domainkuesioner.KuesionerJawaban{}
         var existingFree []domainkuesioner.KuesionerJawaban
 
-        for _, v := range existing </span><span class="cov4" title="3">{
-                if v.IdTemplateJawaban != nil </span><span class="cov4" title="3">{
-                        if freeTemplate != nil &amp;&amp; *v.IdTemplateJawaban == freeTemplate.ID </span><span class="cov1" title="1">{
+        for _, v := range existing </span><span class="cov0" title="0">{
+                if v.IdTemplateJawaban != nil </span><span class="cov0" title="0">{
+                        if freeTemplate != nil &amp;&amp; *v.IdTemplateJawaban == freeTemplate.ID </span><span class="cov0" title="0">{
                                 existingFree = append(existingFree, v)
-                        }</span> else<span class="cov3" title="2"> {
+                        }</span> else<span class="cov0" title="0"> {
                                 existingMap[*v.IdTemplateJawaban] = v
                         }</span>
                 }
@@ -13398,9 +13392,9 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // ===============================
         // DELETE
         // ===============================
-        <span class="cov5" title="4">for id, data := range existingMap </span><span class="cov3" title="2">{
-                if !selectedMap[id] </span><span class="cov3" title="2">{
-                        if err := h.RepoJawabanKuesioner.WithTx(tx).Delete(ctx, data.ID); err != nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">for id, data := range existingMap </span><span class="cov0" title="0">{
+                if !selectedMap[id] </span><span class="cov0" title="0">{
+                        if err := h.RepoJawabanKuesioner.WithTx(tx).Delete(ctx, data.ID); err != nil </span><span class="cov0" title="0">{
                                 return "", err
                         }</span>
                 }
@@ -13409,15 +13403,15 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // ===============================
         // INSERT JAWABAN PILIHAN
         // ===============================
-        <span class="cov4" title="3">for _, j := range jawabanList </span><span class="cov3" title="2">{
-                if _, exist := existingMap[j.ID]; !exist </span><span class="cov3" title="2">{
+        <span class="cov0" title="0">for _, j := range jawabanList </span><span class="cov0" title="0">{
+                if _, exist := existingMap[j.ID]; !exist </span><span class="cov0" title="0">{
 
                         var freeText *string
                         if val, ok := freeTextMap[j.UUID.String()]; ok </span><span class="cov0" title="0">{
                                 freeText = &amp;val
                         }</span>
 
-                        <span class="cov3" title="2">newData := domainkuesioner.KuesionerJawaban{
+                        <span class="cov0" title="0">newData := domainkuesioner.KuesionerJawaban{
                                 UUID:                 helper.StrPtr(uuid.New().String()),
                                 IdKuesioner:          kuesioner.ID,
                                 IdTemplatePertanyaan: pertanyaan.ID,
@@ -13427,7 +13421,7 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
                                 CreatedByRef:         &amp;cmd.SID,
                         }
 
-                        if err := h.RepoJawabanKuesioner.WithTx(tx).Create(ctx, &amp;newData); err != nil </span><span class="cov1" title="1">{
+                        if err := h.RepoJawabanKuesioner.WithTx(tx).Create(ctx, &amp;newData); err != nil </span><span class="cov0" title="0">{
                                 return "", err
                         }</span>
                 }
@@ -13436,11 +13430,11 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // ===============================
         // FREE TEXT VALIDATION
         // ===============================
-        <span class="cov3" title="2">if len(freeTexts) &gt; 0 &amp;&amp; freeTemplate == nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if len(freeTexts) &gt; 0 &amp;&amp; freeTemplate == nil </span><span class="cov0" title="0">{
                 return "", errors.New("pertanyaan ini tidak mendukung free text")
         }</span>
 
-        <span class="cov1" title="1">existingCount := len(existingFree)
+        <span class="cov0" title="0">existingCount := len(existingFree)
         inputCount := len(freeTexts)
 
         min := existingCount
@@ -13449,7 +13443,7 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         }</span>
 
         // update existing
-        <span class="cov1" title="1">for i := 0; i &lt; min; i++ </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">for i := 0; i &lt; min; i++ </span><span class="cov0" title="0">{
                 text := freeTexts[i]
                 existingFree[i].FreeText = &amp;text
 
@@ -13459,7 +13453,7 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         }
 
         // insert new
-        <span class="cov1" title="1">if inputCount &gt; existingCount </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if inputCount &gt; existingCount </span><span class="cov0" title="0">{
                 for i := existingCount; i &lt; inputCount; i++ </span><span class="cov0" title="0">{
 
                         text := freeTexts[i]
@@ -13481,7 +13475,7 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         }
 
         // delete excess
-        <span class="cov1" title="1">if existingCount &gt; inputCount </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if existingCount &gt; inputCount </span><span class="cov0" title="0">{
                 for i := inputCount; i &lt; existingCount; i++ </span><span class="cov0" title="0">{
                         if err := h.RepoJawabanKuesioner.WithTx(tx).Delete(ctx, existingFree[i].ID); err != nil </span><span class="cov0" title="0">{
                                 return "", err
@@ -13492,11 +13486,11 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         // ===============================
         // COMMIT
         // ===============================
-        <span class="cov1" title="1">if err := tx.Commit().Error; err != nil </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if err := tx.Commit().Error; err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov1" title="1">commit = true
+        <span class="cov0" title="0">commit = true
 
         return kuesioner.UUID.String(), nil</span>
 }
@@ -13548,176 +13542,18 @@ type SetupUuidKuesionerCommandHandler struct {
 func (h *SetupUuidKuesionerCommandHandler) Handle(
         ctx context.Context,
         cmd SetupUuidKuesionerCommand,
-) (string, error) <span class="cov10" title="2">{
+) (string, error) <span class="cov0" title="0">{
 
         err := h.Repo.SetupUuid(ctx)
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return "", err
         }</span>
 
-        <span class="cov1" title="1">return "berhasil setup uuid pada data", nil</span>
+        <span class="cov0" title="0">return "berhasil setup uuid pada data", nil</span>
 }
 </pre>
 		
-		<pre class="file" id="file123" style="display: none">package mock
-
-import (
-        commonDomain "UnpakSiamida/common/domain"
-        "UnpakSiamida/modules/kuesioner/domain"
-        "context"
-
-        "github.com/google/uuid"
-        "gorm.io/gorm"
-        "gorm.io/gorm/utils/tests"
-)
-
-type MockKuesionerRepository struct {
-        GetAllKuesionerResultFunc        func(ctx context.Context, JudulBankSoal *string, Is4Year bool, PartitionKey string) ([]domain.KuesionerResult, error)
-        GetByUuidFunc                    func(ctx context.Context, uid uuid.UUID) (*domain.Kuesioner, error)
-        GetDefaultByUuidFunc             func(ctx context.Context, uid uuid.UUID) (*domain.KuesionerDefault, error)
-        GetAllFormFromActiveBankSoalFunc func(ctx context.Context, nidn string, nip string, npm string, banksoal []uint) ([]domain.KuesionerDefault, error)
-        GetAllFunc                       func(ctx context.Context, search string, searchFilters []commonDomain.SearchFilter, page, limit *int, deleted bool) ([]domain.KuesionerDefault, int64, error)
-        CreateFunc                       func(ctx context.Context, kuesioner *domain.Kuesioner) error
-        DeleteFunc                       func(ctx context.Context, uid uuid.UUID) error
-        SetupUuidFunc                    func(ctx context.Context) error
-}
-
-var _ domain.IKuesionerRepository = (*MockKuesionerRepository)(nil)
-
-func (m *MockKuesionerRepository) GetAllKuesionerResult(ctx context.Context, JudulBankSoal *string, Is4Year bool, PartitionKey string) ([]domain.KuesionerResult, error) <span class="cov0" title="0">{
-        if m.GetAllKuesionerResultFunc != nil </span><span class="cov0" title="0">{
-                return m.GetAllKuesionerResultFunc(ctx, JudulBankSoal, Is4Year, PartitionKey)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerRepository) GetByUuid(ctx context.Context, uid uuid.UUID) (*domain.Kuesioner, error) <span class="cov0" title="0">{
-        if m.GetByUuidFunc != nil </span><span class="cov0" title="0">{
-                return m.GetByUuidFunc(ctx, uid)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerRepository) GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*domain.KuesionerDefault, error) <span class="cov0" title="0">{
-        if m.GetDefaultByUuidFunc != nil </span><span class="cov0" title="0">{
-                return m.GetDefaultByUuidFunc(ctx, uid)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerRepository) GetAllFormFromActiveBankSoal(ctx context.Context, nidn string, nip string, npm string, banksoal []uint) ([]domain.KuesionerDefault, error) <span class="cov0" title="0">{
-        if m.GetAllFormFromActiveBankSoalFunc != nil </span><span class="cov0" title="0">{
-                return m.GetAllFormFromActiveBankSoalFunc(ctx, nidn, nip, npm, banksoal)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerRepository) GetAll(ctx context.Context, search string, searchFilters []commonDomain.SearchFilter, page, limit *int, deleted bool) ([]domain.KuesionerDefault, int64, error) <span class="cov0" title="0">{
-        if m.GetAllFunc != nil </span><span class="cov0" title="0">{
-                return m.GetAllFunc(ctx, search, searchFilters, page, limit, deleted)
-        }</span>
-        <span class="cov0" title="0">return nil, 0, nil</span>
-}
-
-func (m *MockKuesionerRepository) Create(ctx context.Context, kuesioner *domain.Kuesioner) error <span class="cov0" title="0">{
-        if m.CreateFunc != nil </span><span class="cov0" title="0">{
-                return m.CreateFunc(ctx, kuesioner)
-        }</span>
-        <span class="cov0" title="0">return nil</span>
-}
-
-func (m *MockKuesionerRepository) Delete(ctx context.Context, uid uuid.UUID) error <span class="cov0" title="0">{
-        if m.DeleteFunc != nil </span><span class="cov0" title="0">{
-                return m.DeleteFunc(ctx, uid)
-        }</span>
-        <span class="cov0" title="0">return nil</span>
-}
-
-func (m *MockKuesionerRepository) SetupUuid(ctx context.Context) error <span class="cov0" title="0">{
-        if m.SetupUuidFunc != nil </span><span class="cov0" title="0">{
-                return m.SetupUuidFunc(ctx)
-        }</span>
-        <span class="cov0" title="0">return nil</span>
-}
-
-type MockKuesionerJawabanRepository struct {
-        GetByPertanyaanAndUserFunc      func(ctx context.Context, pertanyaanID uint, sid string, resource string) ([]domain.KuesionerJawaban, error)
-        GetTotalInputByKuesionerIDsFunc func(ctx context.Context, ids []uint) (map[string]uint, error)
-        GetAllByKuesionerFunc           func(ctx context.Context, uuidkuesioner string) ([]domain.KuesionerJawabanDefault, error)
-        CreateFunc                      func(ctx context.Context, data *domain.KuesionerJawaban) error
-        DeleteFunc                      func(ctx context.Context, id uint) error
-        WithTxFunc                      func(tx any) domain.IKuesionerJawabanRepository
-        BeginTxFunc                     func(ctx context.Context) (*gorm.DB, error)
-}
-
-var _ domain.IKuesionerJawabanRepository = (*MockKuesionerJawabanRepository)(nil)
-
-func (m *MockKuesionerJawabanRepository) GetByPertanyaanAndUser(ctx context.Context, pertanyaanID uint, sid string, resource string) ([]domain.KuesionerJawaban, error) <span class="cov0" title="0">{
-        if m.GetByPertanyaanAndUserFunc != nil </span><span class="cov0" title="0">{
-                return m.GetByPertanyaanAndUserFunc(ctx, pertanyaanID, sid, resource)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerJawabanRepository) GetTotalInputByKuesionerIDs(ctx context.Context, ids []uint) (map[string]uint, error) <span class="cov0" title="0">{
-        if m.GetTotalInputByKuesionerIDsFunc != nil </span><span class="cov0" title="0">{
-                return m.GetTotalInputByKuesionerIDsFunc(ctx, ids)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerJawabanRepository) GetAllByKuesioner(ctx context.Context, uuidkuesioner string) ([]domain.KuesionerJawabanDefault, error) <span class="cov0" title="0">{
-        if m.GetAllByKuesionerFunc != nil </span><span class="cov0" title="0">{
-                return m.GetAllByKuesionerFunc(ctx, uuidkuesioner)
-        }</span>
-        <span class="cov0" title="0">return nil, nil</span>
-}
-
-func (m *MockKuesionerJawabanRepository) Create(ctx context.Context, data *domain.KuesionerJawaban) error <span class="cov0" title="0">{
-        if m.CreateFunc != nil </span><span class="cov0" title="0">{
-                return m.CreateFunc(ctx, data)
-        }</span>
-        <span class="cov0" title="0">return nil</span>
-}
-
-func (m *MockKuesionerJawabanRepository) Delete(ctx context.Context, id uint) error <span class="cov0" title="0">{
-        if m.DeleteFunc != nil </span><span class="cov0" title="0">{
-                return m.DeleteFunc(ctx, id)
-        }</span>
-        <span class="cov0" title="0">return nil</span>
-}
-
-func (m *MockKuesionerJawabanRepository) WithTx(tx any) domain.IKuesionerJawabanRepository <span class="cov0" title="0">{
-        if m.WithTxFunc != nil </span><span class="cov0" title="0">{
-                return m.WithTxFunc(tx)
-        }</span>
-        <span class="cov0" title="0">return m</span>
-}
-
-type dummyTxConn struct {
-        gorm.ConnPool
-}
-
-func (dummyTxConn) Commit() error <span class="cov0" title="0">{
-        return nil
-}</span>
-
-func (dummyTxConn) Rollback() error <span class="cov0" title="0">{
-        return nil
-}</span>
-
-func (m *MockKuesionerJawabanRepository) BeginTx(ctx context.Context) (*gorm.DB, error) <span class="cov0" title="0">{
-        if m.BeginTxFunc != nil </span><span class="cov0" title="0">{
-                return m.BeginTxFunc(ctx)
-        }</span>
-        <span class="cov0" title="0">db, _ := gorm.Open(tests.DummyDialector{}, &amp;gorm.Config{DryRun: true})
-        tx := db.Session(&amp;gorm.Session{})
-        tx.Statement.ConnPool = &amp;dummyTxConn{ConnPool: db.Statement.ConnPool}
-        return tx, nil</span>
-}
-</pre>
-		
-		<pre class="file" id="file124" style="display: none">package domain
+		<pre class="file" id="file123" style="display: none">package domain
 
 import (
         "time"
@@ -13803,7 +13639,7 @@ func NewKuesioner(
 }
 </pre>
 		
-		<pre class="file" id="file125" style="display: none">package domain
+		<pre class="file" id="file124" style="display: none">package domain
 
 import (
         "UnpakSiamida/common/domain"
@@ -13871,7 +13707,7 @@ func Expired() domain.Error <span class="cov0" title="0">{
 }</span>
 </pre>
 		
-		<pre class="file" id="file126" style="display: none">package domain
+		<pre class="file" id="file125" style="display: none">package domain
 
 import (
         "time"
@@ -13923,6 +13759,90 @@ func NewKuesionerJawaban(
 
         return common.SuccessValue(kuesioner)
 }</span>
+</pre>
+		
+		<pre class="file" id="file126" style="display: none">package domain
+
+type ReportSummaryOverview struct {
+        ID             uint    `gorm:"primaryKey;column:id" json:"id"`
+        Judul          string  `gorm:"column:judul" json:"judul"`
+        Semester       string  `gorm:"column:semester" json:"semester"`
+        TotalResponden int     `gorm:"column:total_responden" json:"total_responden"`
+        TotalJawaban   int     `gorm:"column:total_jawaban" json:"total_jawaban"`
+        RataRataRating float64 `gorm:"column:rata_rata_rating" json:"rata_rata_rating"`
+}
+
+func (ReportSummaryOverview) TableName() string <span class="cov0" title="0">{
+        return "report_summary_overview"
+}</span>
+
+type ReportDistribusiFakultas struct {
+        ID                uint    `gorm:"primaryKey;column:id" json:"id"`
+        Judul             string  `gorm:"column:judul" json:"judul"`
+        Semester          string  `gorm:"column:semester" json:"semester"`
+        KodeFakultas      string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+        NamaFakultas      string  `gorm:"column:nama_fakultas" json:"nama_fakultas"`
+        TotalResponden    int     `gorm:"column:total_responden" json:"total_responden"`
+        Persentase        float64 `gorm:"column:persentase" json:"persentase"`
+        ProdiDistribution string  `gorm:"column:prodi_distribution;type:json" json:"prodi_distribution"`
+}
+
+func (ReportDistribusiFakultas) TableName() string <span class="cov0" title="0">{
+        return "report_distribusi_fakultas"
+}</span>
+
+type ReportTopQuestion struct {
+        ID             uint    `gorm:"primaryKey;column:id" json:"id"`
+        Judul          string  `gorm:"column:judul" json:"judul"`
+        Semester       string  `gorm:"column:semester" json:"semester"`
+        Pertanyaan     string  `gorm:"column:pertanyaan" json:"pertanyaan"`
+        NamaKategori   string  `gorm:"column:nama_kategori" json:"nama_kategori"`
+        TotalResponden int     `gorm:"column:total_responden" json:"total_responden"`
+        RataRataSkor   float64 `gorm:"column:rata_rata_skor" json:"rata_rata_skor"`
+        Peringkat      int     `gorm:"column:peringkat" json:"peringkat"`
+}
+
+func (ReportTopQuestion) TableName() string <span class="cov0" title="0">{
+        return "report_top_questions"
+}</span>
+
+type ReportKategoriSummary struct {
+        ID                uint    `gorm:"primaryKey;column:id" json:"id"`
+        Judul             string  `gorm:"column:judul" json:"judul"`
+        Semester          string  `gorm:"column:semester" json:"semester"`
+        NamaKategori      string  `gorm:"column:nama_kategori" json:"nama_kategori"`
+        FullText          string  `gorm:"column:full_text" json:"full_text"`
+        TotalPertanyaan   int     `gorm:"column:total_pertanyaan" json:"total_pertanyaan"`
+        TotalResponden    int     `gorm:"column:total_responden" json:"total_responden"`
+        RataRataSkor      float64 `gorm:"column:rata_rata_skor" json:"rata_rata_skor"`
+        ChartDistribution string  `gorm:"column:chart_distribution;type:json" json:"chart_distribution"`
+        QuestionsJson     string  `gorm:"column:questions_json;type:json" json:"questions_json"`
+}
+
+func (ReportKategoriSummary) TableName() string <span class="cov0" title="0">{
+        return "report_kategori_summary"
+}</span>
+
+type ReportYear struct {
+        ID             uint   `gorm:"primaryKey;column:id" json:"id"`
+        Tahun          string `gorm:"column:tahun" json:"tahun"`
+        TotalKuesioner int    `gorm:"column:total_kuesioner" json:"total_kuesioner"`
+        TotalMahasiswa int    `gorm:"column:total_mahasiswa" json:"total_mahasiswa"`
+        TotalDosen     int    `gorm:"column:total_dosen" json:"total_dosen"`
+        TotalTendik    int    `gorm:"column:total_tendik" json:"total_tendik"`
+}
+
+func (ReportYear) TableName() string <span class="cov0" title="0">{
+        return "report_year"
+}</span>
+
+type ReportSummaryResponse struct {
+        Overview           *ReportSummaryOverview     `json:"overview"`
+        DistribusiFakultas []ReportDistribusiFakultas `json:"distribusi_fakultas"`
+        TopQuestions       []ReportTopQuestion        `json:"top_questions"`
+        KategoriSummary    []ReportKategoriSummary    `json:"kategori_summary"`
+        ReportYear         []ReportYear               `json:"report_year"`
+}
 </pre>
 		
 		<pre class="file" id="file127" style="display: none">package infrastructure
@@ -14134,6 +14054,8 @@ import (
         // "fmt"
 )
 
+var GlobalKuesionerRepo domainKuesioner.IKuesionerRepository
+
 func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) error <span class="cov0" title="0">{
         // dsn := "root:@tcp(127.0.0.1:3306)/unpak_sijamu_server?charset=utf8mb4&amp;parseTime=true&amp;loc=Local"
 
@@ -14144,6 +14066,7 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
         // }
 
         repoKuesioner := NewKuesionerRepository(db)
+        GlobalKuesionerRepo = repoKuesioner
         repoKuesionerJawaban := NewKuesionerJawabanRepository(db)
         repoBankSoal := infraBankSoal.NewBankSoalRepository(db)
         repoAccount := infraAccount.NewAccountRepository(db, dbSimak, dbSimpeg)
@@ -14803,6 +14726,81 @@ func (r *KuesionerRepository) SetupUuid(ctx context.Context) error <span class="
 
         <span class="cov0" title="0">return nil</span>
 }
+
+func applySummaryFilter(db *gorm.DB, rawJudul string) *gorm.DB <span class="cov0" title="0">{
+        rawStr := strings.TrimSpace(rawJudul)
+        var judul, semester string
+        lastOpen := strings.LastIndex(rawStr, " (")
+        lastClose := strings.LastIndex(rawStr, ")")
+        if lastOpen != -1 &amp;&amp; lastClose &gt; lastOpen </span><span class="cov0" title="0">{
+                judul = strings.TrimSpace(rawStr[:lastOpen])
+                semester = strings.TrimSpace(rawStr[lastOpen+2 : lastClose])
+        }</span> else<span class="cov0" title="0"> {
+                judul = rawStr
+        }</span>
+
+        <span class="cov0" title="0">cleanJudul := strings.TrimSpace(
+                strings.ReplaceAll(
+                        strings.ReplaceAll(judul, " - Semester Ganjil", ""),
+                        " - Semester Genap", "",
+                ),
+        )
+
+        if semester != "" </span><span class="cov0" title="0">{
+                return db.Where("(judul LIKE ? OR judul LIKE ?) AND semester = ?", "%"+judul+"%", "%"+cleanJudul+"%", semester)
+        }</span>
+        <span class="cov0" title="0">return db.Where("judul LIKE ?", "%"+cleanJudul+"%")</span>
+}
+
+func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryOverview, error) <span class="cov0" title="0">{
+        var overview domainkuesioner.ReportSummaryOverview
+        qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul)
+        err := qOverview.First(&amp;overview).Error
+        return &amp;overview, err
+}</span>
+
+func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportDistribusiFakultas, error) <span class="cov0" title="0">{
+        var fakultas []domainkuesioner.ReportDistribusiFakultas
+        qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul)
+        err := qFakultas.Order("total_responden DESC").Find(&amp;fakultas).Error
+        return fakultas, err
+}</span>
+
+func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportTopQuestion, error) <span class="cov0" title="0">{
+        var topQuestions []domainkuesioner.ReportTopQuestion
+        qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul)
+        err := qTop.Order("peringkat ASC").Limit(10).Find(&amp;topQuestions).Error
+        return topQuestions, err
+}</span>
+
+func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportKategoriSummary, error) <span class="cov0" title="0">{
+        var kategoriSummary []domainkuesioner.ReportKategoriSummary
+        qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul)
+        err := qKat.Order("nama_kategori ASC").Find(&amp;kategoriSummary).Error
+        return kategoriSummary, err
+}</span>
+
+func (r *KuesionerRepository) GetReportYear(ctx context.Context) ([]domainkuesioner.ReportYear, error) <span class="cov0" title="0">{
+        var list []domainkuesioner.ReportYear
+        err := r.db.WithContext(ctx).Table("report_year").Order("tahun ASC").Find(&amp;list).Error
+        return list, err
+}</span>
+
+func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryResponse, error) <span class="cov0" title="0">{
+        overview, _ := r.GetReportSummaryOverview(ctx, rawJudul)
+        fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul)
+        topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul)
+        kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul)
+        reportYear, _ := r.GetReportYear(ctx)
+
+        return &amp;domainkuesioner.ReportSummaryResponse{
+                Overview:           overview,
+                DistribusiFakultas: fakultas,
+                TopQuestions:       topQuestions,
+                KategoriSummary:    kategoriSummary,
+                ReportYear:         reportYear,
+        }, nil
+}</span>
 </pre>
 		
 		<pre class="file" id="file130" style="display: none">package presentation
@@ -14832,6 +14830,7 @@ import (
         GetKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
         SaveKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban"
         SetupUuidKuesioner "UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner"
+        kuesionerInfrastructure "UnpakSiamida/modules/kuesioner/infrastructure"
 )
 
 // =======================================================
@@ -15143,6 +15142,86 @@ func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error <span class="cov0" ti
         return adapter.Send(c, paged)</span>
 }
 
+func GetKuesionerReportSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        judul := c.FormValue("judul")
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">summary, err := repo.GetReportSummary(c.Context(), judul)
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{
+                "code": 200,
+                "data": summary,
+        })</span>
+}
+
+func GetReportSummaryOverviewHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        judul := c.FormValue("judul")
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetReportSummaryOverview(c.Context(), judul)
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
+func GetReportDistribusiFakultasHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        judul := c.FormValue("judul")
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetReportDistribusiFakultas(c.Context(), judul)
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
+func GetReportTopQuestionsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        judul := c.FormValue("judul")
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetReportTopQuestions(c.Context(), judul)
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
+func GetReportKategoriSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        judul := c.FormValue("judul")
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetReportKategoriSummary(c.Context(), judul)
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
+func GetReportYearHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetReportYear(c.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
 // =======================================================
 // GET /kuesioners/Active
 // =======================================================
@@ -15275,6 +15354,12 @@ func ModuleKuesioner(app *fiber.App) <span class="cov0" title="0">{
         app.Get("/api/v2/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
         app.Get("/api/v2/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
         app.Post("/api/v2/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
+        app.Post("/api/v2/kuesioners/report-summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerReportSummaryHandlerfunc)
+        app.Post("/api/v2/kuesioners/report_summary_overview", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportSummaryOverviewHandlerfunc)
+        app.Post("/api/v2/kuesioners/report_distribusi_fakultas", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportDistribusiFakultasHandlerfunc)
+        app.Post("/api/v2/kuesioners/report_top_questions", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportTopQuestionsHandlerfunc)
+        app.Post("/api/v2/kuesioners/report_kategori_summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportKategoriSummaryHandlerfunc)
+        app.Post("/api/v2/kuesioners/report_year", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportYearHandlerfunc)
         app.Get("/api/v2/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
         app.Get("/api/v2/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }</span>
