@@ -12990,10 +12990,14 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
         g, ctxg := errgroup.WithContext(ctx)
 
         ch := make(chan partitionResult, len(partitionKeys))
+        sem := make(chan struct{}, 3) // limit max 3 concurrent queries for 1 vCPU
 
         for _, pk := range partitionKeys </span><span class="cov10" title="20">{
-                g.Go(func() error </span><span class="cov8" title="14">{
-                        rows, err := h.Repo.GetAllKuesionerResult(
+                pk := pk
+                sem &lt;- struct{}{}
+                g.Go(func() error </span><span class="cov10" title="20">{
+                        defer func() </span><span class="cov10" title="20">{ &lt;-sem }</span>()
+                        <span class="cov10" title="20">rows, err := h.Repo.GetAllKuesionerResult(
                                 ctxg,
                                 q.JudulBankSoal,
                                 // q.Semester,
@@ -13006,8 +13010,8 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
                                 err:  err,
                         }
 
-                        return err
-                }</span>)
+                        return err</span>
+                })
         }
 
         <span class="cov3" title="2">go func() </span><span class="cov3" title="2">{
@@ -13017,11 +13021,11 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
 
         <span class="cov3" title="2">var result []domainKuesioner.KuesionerResult
 
-        for res := range ch </span><span class="cov8" title="14">{
+        for res := range ch </span><span class="cov8" title="12">{
                 if res.err != nil </span><span class="cov1" title="1">{
                         return nil, res.err
                 }</span>
-                <span class="cov8" title="13">result = append(result, res.data...)</span>
+                <span class="cov8" title="11">result = append(result, res.data...)</span>
         }
 
         <span class="cov1" title="1">return result, nil</span>
@@ -14371,31 +14375,26 @@ func (r *KuesionerRepository) buildWhere(
         // =====================================================
         // MODE NORMAL (WAJIB JUDUL)
         // =====================================================
-        <span class="cov0" title="0">if helper.NullableString(JudulBankSoal) == "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">rawStr := strings.TrimSpace(helper.NullableString(JudulBankSoal))
+        if rawStr == "" </span><span class="cov0" title="0">{
                 return nil, errors.New("judul bank soal wajib diisi")
         }</span>
 
-        <span class="cov0" title="0">val := helper.EscapeLike(helper.NullableString(JudulBankSoal))
-
-        // db = db.Where(clause.Like{
-        //         Column: "concat(k.judul, ' (', k.semester, ')')",
-        //         Value:  "%" + val + "%",
-        // })
-        db = db.Where(
-                "concat(k.judul, ' (', k.semester, ')') LIKE ?",
-                "%"+val+"%",
-        )
+        // Parsing string "Judul (Semester)" contoh "Monev ... (202501)"
+        <span class="cov0" title="0">lastOpen := strings.LastIndex(rawStr, " (")
+        lastClose := strings.LastIndex(rawStr, ")")
 
         db = db.Where("partition_key = ?", partition_key)
 
-        // =====================================================
-        // SEMESTER (OPSIONAL)
-        // =====================================================
-        // if helper.NullableString(Semester) != "" {
-        //         db = db.Where("k.semester = ?", helper.NullableString(Semester))
-        // }
+        if lastOpen != -1 &amp;&amp; lastClose &gt; lastOpen </span><span class="cov0" title="0">{
+                judul := strings.TrimSpace(rawStr[:lastOpen])
+                semester := strings.TrimSpace(rawStr[lastOpen+2 : lastClose])
+                db = db.Where("k.judul = ? AND k.semester = ?", judul, semester)
+        }</span> else<span class="cov0" title="0"> {
+                db = db.Where("k.judul = ?", rawStr)
+        }</span>
 
-        return db, nil</span>
+        <span class="cov0" title="0">return db, nil</span>
 }
 
 func (r *KuesionerRepository) GetAllKuesionerResult(
