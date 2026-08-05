@@ -80,3 +80,11 @@ type ReportSummaryResponse struct {
 	KategoriSummary    []ReportKategoriSummary    `json:"kategori_summary"`
 	ReportYear         []ReportYear               `json:"report_year"`
 }
+
+type DashboardStats struct {
+	TotalResponden int     `json:"total_responden"`
+	ActiveSurveys  int     `json:"active_surveys"`
+	TotalProdi     int     `json:"total_prodi"`
+	TotalFakultas  int     `json:"total_fakultas"`
+	RataRataRating float64 `json:"rata_rata_rating"`
+}

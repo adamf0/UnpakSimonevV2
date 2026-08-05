@@ -13,6 +13,7 @@ type IKuesionerRepository interface {
 	GetReportTopQuestions(ctx context.Context, rawJudul string) ([]ReportTopQuestion, error)
 	GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]ReportKategoriSummary, error)
 	GetReportYear(ctx context.Context) ([]ReportYear, error)
+	GetDashboardStats(ctx context.Context) (*DashboardStats, error)
 	GetReportSummary(ctx context.Context, rawJudul string) (*ReportSummaryResponse, error)
 	GetAllKuesionerResult(
 		ctx context.Context,

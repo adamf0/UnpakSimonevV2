@@ -616,6 +616,19 @@ func (r *KuesionerRepository) GetReportYear(ctx context.Context) ([]domainkuesio
 	return list, err
 }
 
+func (r *KuesionerRepository) GetDashboardStats(ctx context.Context) (*domainkuesioner.DashboardStats, error) {
+	var stats domainkuesioner.DashboardStats
+	err := r.db.WithContext(ctx).Raw(`
+		SELECT 
+			(SELECT COALESCE(SUM(total_responden), 0) FROM report_summary_overview) AS total_responden,
+			(SELECT COUNT(*) FROM bank_soalv2 WHERE deleted_at IS NULL) AS active_surveys,
+			(SELECT COUNT(DISTINCT kode_prodi) FROM m_program_studi) AS total_prodi,
+			(SELECT COUNT(DISTINCT kode_fakultas) FROM m_fakultas) AS total_fakultas,
+			(SELECT COALESCE(ROUND(AVG(rata_rata_rating), 2), 0.00) FROM report_summary_overview WHERE rata_rata_rating > 0) AS rata_rata_rating
+	`).Scan(&stats).Error
+	return &stats, err
+}
+
 func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryResponse, error) {
 	overview, _ := r.GetReportSummaryOverview(ctx, rawJudul)
 	fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul)
