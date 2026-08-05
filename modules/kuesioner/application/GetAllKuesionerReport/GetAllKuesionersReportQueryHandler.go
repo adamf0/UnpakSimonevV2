@@ -40,9 +40,13 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
 	g, ctxg := errgroup.WithContext(ctx)
 
 	ch := make(chan partitionResult, len(partitionKeys))
+	sem := make(chan struct{}, 3) // limit max 3 concurrent queries for 1 vCPU
 
 	for _, pk := range partitionKeys {
+		pk := pk
+		sem <- struct{}{}
 		g.Go(func() error {
+			defer func() { <-sem }()
 			rows, err := h.Repo.GetAllKuesionerResult(
 				ctxg,
 				q.JudulBankSoal,

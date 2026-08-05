@@ -128,29 +128,24 @@ func (r *KuesionerRepository) buildWhere(
 	// =====================================================
 	// MODE NORMAL (WAJIB JUDUL)
 	// =====================================================
-	if helper.NullableString(JudulBankSoal) == "" {
+	rawStr := strings.TrimSpace(helper.NullableString(JudulBankSoal))
+	if rawStr == "" {
 		return nil, errors.New("judul bank soal wajib diisi")
 	}
 
-	val := helper.EscapeLike(helper.NullableString(JudulBankSoal))
-
-	// db = db.Where(clause.Like{
-	// 	Column: "concat(k.judul, ' (', k.semester, ')')",
-	// 	Value:  "%" + val + "%",
-	// })
-	db = db.Where(
-		"concat(k.judul, ' (', k.semester, ')') LIKE ?",
-		"%"+val+"%",
-	)
+	// Parsing string "Judul (Semester)" contoh "Monev ... (202501)"
+	lastOpen := strings.LastIndex(rawStr, " (")
+	lastClose := strings.LastIndex(rawStr, ")")
 
 	db = db.Where("partition_key = ?", partition_key)
 
-	// =====================================================
-	// SEMESTER (OPSIONAL)
-	// =====================================================
-	// if helper.NullableString(Semester) != "" {
-	// 	db = db.Where("k.semester = ?", helper.NullableString(Semester))
-	// }
+	if lastOpen != -1 && lastClose > lastOpen {
+		judul := strings.TrimSpace(rawStr[:lastOpen])
+		semester := strings.TrimSpace(rawStr[lastOpen+2 : lastClose])
+		db = db.Where("k.judul = ? AND k.semester = ?", judul, semester)
+	} else {
+		db = db.Where("k.judul = ?", rawStr)
+	}
 
 	return db, nil
 }
