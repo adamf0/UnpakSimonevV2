@@ -582,30 +582,34 @@ func applySummaryFilter(db *gorm.DB, rawJudul string) *gorm.DB {
 	return db.Where("judul LIKE ?", "%"+cleanJudul+"%")
 }
 
-func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryOverview, error) {
+func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*domainkuesioner.ReportSummaryOverview, error) {
 	var overview domainkuesioner.ReportSummaryOverview
-	qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul)
+	qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul).
+		Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
 	err := qOverview.First(&overview).Error
 	return &overview, err
 }
 
-func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportDistribusiFakultas, error) {
+func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportDistribusiFakultas, error) {
 	var fakultas []domainkuesioner.ReportDistribusiFakultas
-	qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul)
+	qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul).
+		Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
 	err := qFakultas.Order("total_responden DESC").Find(&fakultas).Error
 	return fakultas, err
 }
 
-func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportTopQuestion, error) {
+func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportTopQuestion, error) {
 	var topQuestions []domainkuesioner.ReportTopQuestion
-	qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul)
+	qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul).
+		Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
 	err := qTop.Order("peringkat ASC").Limit(10).Find(&topQuestions).Error
 	return topQuestions, err
 }
 
-func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportKategoriSummary, error) {
+func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportKategoriSummary, error) {
 	var kategoriSummary []domainkuesioner.ReportKategoriSummary
-	qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul)
+	qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul).
+		Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
 	err := qKat.Order("nama_kategori ASC").Find(&kategoriSummary).Error
 	return kategoriSummary, err
 }
@@ -629,11 +633,11 @@ func (r *KuesionerRepository) GetDashboardStats(ctx context.Context) (*domainkue
 	return &stats, err
 }
 
-func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryResponse, error) {
-	overview, _ := r.GetReportSummaryOverview(ctx, rawJudul)
-	fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul)
-	topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul)
-	kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul)
+func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*domainkuesioner.ReportSummaryResponse, error) {
+	overview, _ := r.GetReportSummaryOverview(ctx, rawJudul, kodeFakultas, kodeProdi)
+	fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul, kodeFakultas, kodeProdi)
+	topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul, kodeFakultas, kodeProdi)
+	kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul, kodeFakultas, kodeProdi)
 	reportYear, _ := r.GetReportYear(ctx)
 
 	return &domainkuesioner.ReportSummaryResponse{

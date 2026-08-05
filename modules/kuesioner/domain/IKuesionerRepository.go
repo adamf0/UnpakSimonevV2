@@ -8,13 +8,13 @@ import (
 )
 
 type IKuesionerRepository interface {
-	GetReportSummaryOverview(ctx context.Context, rawJudul string) (*ReportSummaryOverview, error)
-	GetReportDistribusiFakultas(ctx context.Context, rawJudul string) ([]ReportDistribusiFakultas, error)
-	GetReportTopQuestions(ctx context.Context, rawJudul string) ([]ReportTopQuestion, error)
-	GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]ReportKategoriSummary, error)
+	GetReportSummaryOverview(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*ReportSummaryOverview, error)
+	GetReportDistribusiFakultas(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]ReportDistribusiFakultas, error)
+	GetReportTopQuestions(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]ReportTopQuestion, error)
+	GetReportKategoriSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]ReportKategoriSummary, error)
 	GetReportYear(ctx context.Context) ([]ReportYear, error)
 	GetDashboardStats(ctx context.Context) (*DashboardStats, error)
-	GetReportSummary(ctx context.Context, rawJudul string) (*ReportSummaryResponse, error)
+	GetReportSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*ReportSummaryResponse, error)
 	GetAllKuesionerResult(
 		ctx context.Context,
 		JudulBankSoal *string,
