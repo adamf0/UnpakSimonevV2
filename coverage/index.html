@@ -14760,30 +14760,34 @@ func applySummaryFilter(db *gorm.DB, rawJudul string) *gorm.DB <span class="cov0
         <span class="cov0" title="0">return db.Where("judul LIKE ?", "%"+cleanJudul+"%")</span>
 }
 
-func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryOverview, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*domainkuesioner.ReportSummaryOverview, error) <span class="cov0" title="0">{
         var overview domainkuesioner.ReportSummaryOverview
-        qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul)
+        qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul).
+                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
         err := qOverview.First(&amp;overview).Error
         return &amp;overview, err
 }</span>
 
-func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportDistribusiFakultas, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportDistribusiFakultas, error) <span class="cov0" title="0">{
         var fakultas []domainkuesioner.ReportDistribusiFakultas
-        qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul)
+        qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul).
+                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
         err := qFakultas.Order("total_responden DESC").Find(&amp;fakultas).Error
         return fakultas, err
 }</span>
 
-func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportTopQuestion, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportTopQuestion, error) <span class="cov0" title="0">{
         var topQuestions []domainkuesioner.ReportTopQuestion
-        qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul)
+        qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul).
+                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
         err := qTop.Order("peringkat ASC").Limit(10).Find(&amp;topQuestions).Error
         return topQuestions, err
 }</span>
 
-func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportKategoriSummary, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportKategoriSummary, error) <span class="cov0" title="0">{
         var kategoriSummary []domainkuesioner.ReportKategoriSummary
-        qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul)
+        qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul).
+                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
         err := qKat.Order("nama_kategori ASC").Find(&amp;kategoriSummary).Error
         return kategoriSummary, err
 }</span>
@@ -14807,11 +14811,11 @@ func (r *KuesionerRepository) GetDashboardStats(ctx context.Context) (*domainkue
         return &amp;stats, err
 }</span>
 
-func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryResponse, error) <span class="cov0" title="0">{
-        overview, _ := r.GetReportSummaryOverview(ctx, rawJudul)
-        fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul)
-        topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul)
-        kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul)
+func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*domainkuesioner.ReportSummaryResponse, error) <span class="cov0" title="0">{
+        overview, _ := r.GetReportSummaryOverview(ctx, rawJudul, kodeFakultas, kodeProdi)
+        fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul, kodeFakultas, kodeProdi)
+        topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul, kodeFakultas, kodeProdi)
+        kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul, kodeFakultas, kodeProdi)
         reportYear, _ := r.GetReportYear(ctx)
 
         return &amp;domainkuesioner.ReportSummaryResponse{
@@ -15165,11 +15169,13 @@ func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error <span class="cov0" ti
 
 func GetKuesionerReportSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         judul := c.FormValue("judul")
+        kodeFakultas := c.FormValue("kode_fakultas")
+        kodeProdi := c.FormValue("kode_prodi")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">summary, err := repo.GetReportSummary(c.Context(), judul)
+        <span class="cov0" title="0">summary, err := repo.GetReportSummary(c.Context(), judul, kodeFakultas, kodeProdi)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15181,11 +15187,13 @@ func GetKuesionerReportSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0"
 
 func GetReportSummaryOverviewHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         judul := c.FormValue("judul")
+        kodeFakultas := c.FormValue("kode_fakultas")
+        kodeProdi := c.FormValue("kode_prodi")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportSummaryOverview(c.Context(), judul)
+        <span class="cov0" title="0">res, err := repo.GetReportSummaryOverview(c.Context(), judul, kodeFakultas, kodeProdi)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15194,11 +15202,13 @@ func GetReportSummaryOverviewHandlerfunc(c *fiber.Ctx) error <span class="cov0" 
 
 func GetReportDistribusiFakultasHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         judul := c.FormValue("judul")
+        kodeFakultas := c.FormValue("kode_fakultas")
+        kodeProdi := c.FormValue("kode_prodi")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportDistribusiFakultas(c.Context(), judul)
+        <span class="cov0" title="0">res, err := repo.GetReportDistribusiFakultas(c.Context(), judul, kodeFakultas, kodeProdi)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15207,11 +15217,13 @@ func GetReportDistribusiFakultasHandlerfunc(c *fiber.Ctx) error <span class="cov
 
 func GetReportTopQuestionsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         judul := c.FormValue("judul")
+        kodeFakultas := c.FormValue("kode_fakultas")
+        kodeProdi := c.FormValue("kode_prodi")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportTopQuestions(c.Context(), judul)
+        <span class="cov0" title="0">res, err := repo.GetReportTopQuestions(c.Context(), judul, kodeFakultas, kodeProdi)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15220,11 +15232,13 @@ func GetReportTopQuestionsHandlerfunc(c *fiber.Ctx) error <span class="cov0" tit
 
 func GetReportKategoriSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         judul := c.FormValue("judul")
+        kodeFakultas := c.FormValue("kode_fakultas")
+        kodeProdi := c.FormValue("kode_prodi")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportKategoriSummary(c.Context(), judul)
+        <span class="cov0" title="0">res, err := repo.GetReportKategoriSummary(c.Context(), judul, kodeFakultas, kodeProdi)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
