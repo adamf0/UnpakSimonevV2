@@ -25,6 +25,7 @@ import (
 	GetKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
 	SaveKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban"
 	SetupUuidKuesioner "UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner"
+	kuesionerInfrastructure "UnpakSiamida/modules/kuesioner/infrastructure"
 )
 
 // =======================================================
@@ -336,6 +337,86 @@ func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error { //langsung sse
 	return adapter.Send(c, paged)
 }
 
+func GetKuesionerReportSummaryHandlerfunc(c *fiber.Ctx) error {
+	judul := c.FormValue("judul")
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	summary, err := repo.GetReportSummary(c.Context(), judul)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{
+		"code": 200,
+		"data": summary,
+	})
+}
+
+func GetReportSummaryOverviewHandlerfunc(c *fiber.Ctx) error {
+	judul := c.FormValue("judul")
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	res, err := repo.GetReportSummaryOverview(c.Context(), judul)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{"code": 200, "data": res})
+}
+
+func GetReportDistribusiFakultasHandlerfunc(c *fiber.Ctx) error {
+	judul := c.FormValue("judul")
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	res, err := repo.GetReportDistribusiFakultas(c.Context(), judul)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{"code": 200, "data": res})
+}
+
+func GetReportTopQuestionsHandlerfunc(c *fiber.Ctx) error {
+	judul := c.FormValue("judul")
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	res, err := repo.GetReportTopQuestions(c.Context(), judul)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{"code": 200, "data": res})
+}
+
+func GetReportKategoriSummaryHandlerfunc(c *fiber.Ctx) error {
+	judul := c.FormValue("judul")
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	res, err := repo.GetReportKategoriSummary(c.Context(), judul)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{"code": 200, "data": res})
+}
+
+func GetReportYearHandlerfunc(c *fiber.Ctx) error {
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	res, err := repo.GetReportYear(c.Context())
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{"code": 200, "data": res})
+}
+
 // =======================================================
 // GET /kuesioners/Active
 // =======================================================
@@ -468,6 +549,12 @@ func ModuleKuesioner(app *fiber.App) {
 	app.Get("/api/v2/kuesioner/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerHandlerfunc)
 	app.Get("/api/v2/kuesioners", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersHandlerfunc)
 	app.Post("/api/v2/kuesioners/report", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllKuesionersReportHandlerfunc)
+	app.Post("/api/v2/kuesioners/report-summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetKuesionerReportSummaryHandlerfunc)
+	app.Post("/api/v2/kuesioners/report_summary_overview", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportSummaryOverviewHandlerfunc)
+	app.Post("/api/v2/kuesioners/report_distribusi_fakultas", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportDistribusiFakultasHandlerfunc)
+	app.Post("/api/v2/kuesioners/report_top_questions", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportTopQuestionsHandlerfunc)
+	app.Post("/api/v2/kuesioners/report_kategori_summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportKategoriSummaryHandlerfunc)
+	app.Post("/api/v2/kuesioners/report_year", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportYearHandlerfunc)
 	app.Get("/api/v2/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
 	app.Get("/api/v2/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }

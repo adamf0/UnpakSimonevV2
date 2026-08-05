@@ -556,3 +556,78 @@ func (r *KuesionerRepository) SetupUuid(ctx context.Context) error {
 
 	return nil
 }
+
+func applySummaryFilter(db *gorm.DB, rawJudul string) *gorm.DB {
+	rawStr := strings.TrimSpace(rawJudul)
+	var judul, semester string
+	lastOpen := strings.LastIndex(rawStr, " (")
+	lastClose := strings.LastIndex(rawStr, ")")
+	if lastOpen != -1 && lastClose > lastOpen {
+		judul = strings.TrimSpace(rawStr[:lastOpen])
+		semester = strings.TrimSpace(rawStr[lastOpen+2 : lastClose])
+	} else {
+		judul = rawStr
+	}
+
+	cleanJudul := strings.TrimSpace(
+		strings.ReplaceAll(
+			strings.ReplaceAll(judul, " - Semester Ganjil", ""),
+			" - Semester Genap", "",
+		),
+	)
+
+	if semester != "" {
+		return db.Where("(judul LIKE ? OR judul LIKE ?) AND semester = ?", "%"+judul+"%", "%"+cleanJudul+"%", semester)
+	}
+	return db.Where("judul LIKE ?", "%"+cleanJudul+"%")
+}
+
+func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryOverview, error) {
+	var overview domainkuesioner.ReportSummaryOverview
+	qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul)
+	err := qOverview.First(&overview).Error
+	return &overview, err
+}
+
+func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportDistribusiFakultas, error) {
+	var fakultas []domainkuesioner.ReportDistribusiFakultas
+	qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul)
+	err := qFakultas.Order("total_responden DESC").Find(&fakultas).Error
+	return fakultas, err
+}
+
+func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportTopQuestion, error) {
+	var topQuestions []domainkuesioner.ReportTopQuestion
+	qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul)
+	err := qTop.Order("peringkat ASC").Limit(10).Find(&topQuestions).Error
+	return topQuestions, err
+}
+
+func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]domainkuesioner.ReportKategoriSummary, error) {
+	var kategoriSummary []domainkuesioner.ReportKategoriSummary
+	qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul)
+	err := qKat.Order("nama_kategori ASC").Find(&kategoriSummary).Error
+	return kategoriSummary, err
+}
+
+func (r *KuesionerRepository) GetReportYear(ctx context.Context) ([]domainkuesioner.ReportYear, error) {
+	var list []domainkuesioner.ReportYear
+	err := r.db.WithContext(ctx).Table("report_year").Order("tahun ASC").Find(&list).Error
+	return list, err
+}
+
+func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryResponse, error) {
+	overview, _ := r.GetReportSummaryOverview(ctx, rawJudul)
+	fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul)
+	topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul)
+	kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul)
+	reportYear, _ := r.GetReportYear(ctx)
+
+	return &domainkuesioner.ReportSummaryResponse{
+		Overview:           overview,
+		DistribusiFakultas: fakultas,
+		TopQuestions:       topQuestions,
+		KategoriSummary:    kategoriSummary,
+		ReportYear:         reportYear,
+	}, nil
+}

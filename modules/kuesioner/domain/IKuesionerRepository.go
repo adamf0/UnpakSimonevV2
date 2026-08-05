@@ -8,6 +8,12 @@ import (
 )
 
 type IKuesionerRepository interface {
+	GetReportSummaryOverview(ctx context.Context, rawJudul string) (*ReportSummaryOverview, error)
+	GetReportDistribusiFakultas(ctx context.Context, rawJudul string) ([]ReportDistribusiFakultas, error)
+	GetReportTopQuestions(ctx context.Context, rawJudul string) ([]ReportTopQuestion, error)
+	GetReportKategoriSummary(ctx context.Context, rawJudul string) ([]ReportKategoriSummary, error)
+	GetReportYear(ctx context.Context) ([]ReportYear, error)
+	GetReportSummary(ctx context.Context, rawJudul string) (*ReportSummaryResponse, error)
 	GetAllKuesionerResult(
 		ctx context.Context,
 		JudulBankSoal *string,

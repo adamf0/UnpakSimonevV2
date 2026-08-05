@@ -28,6 +28,8 @@ import (
 	// "fmt"
 )
 
+var GlobalKuesionerRepo domainKuesioner.IKuesionerRepository
+
 func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) error {
 	// dsn := "root:@tcp(127.0.0.1:3306)/unpak_sijamu_server?charset=utf8mb4&parseTime=true&loc=Local"
 
@@ -38,6 +40,7 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 	// }
 
 	repoKuesioner := NewKuesionerRepository(db)
+	GlobalKuesionerRepo = repoKuesioner
 	repoKuesionerJawaban := NewKuesionerJawabanRepository(db)
 	repoBankSoal := infraBankSoal.NewBankSoalRepository(db)
 	repoAccount := infraAccount.NewAccountRepository(db, dbSimak, dbSimpeg)
