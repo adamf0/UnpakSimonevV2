@@ -13843,6 +13843,14 @@ type ReportSummaryResponse struct {
         KategoriSummary    []ReportKategoriSummary    `json:"kategori_summary"`
         ReportYear         []ReportYear               `json:"report_year"`
 }
+
+type DashboardStats struct {
+        TotalResponden int     `json:"total_responden"`
+        ActiveSurveys  int     `json:"active_surveys"`
+        TotalProdi     int     `json:"total_prodi"`
+        TotalFakultas  int     `json:"total_fakultas"`
+        RataRataRating float64 `json:"rata_rata_rating"`
+}
 </pre>
 		
 		<pre class="file" id="file127" style="display: none">package infrastructure
@@ -14786,6 +14794,19 @@ func (r *KuesionerRepository) GetReportYear(ctx context.Context) ([]domainkuesio
         return list, err
 }</span>
 
+func (r *KuesionerRepository) GetDashboardStats(ctx context.Context) (*domainkuesioner.DashboardStats, error) <span class="cov0" title="0">{
+        var stats domainkuesioner.DashboardStats
+        err := r.db.WithContext(ctx).Raw(`
+                SELECT 
+                        (SELECT COALESCE(SUM(total_responden), 0) FROM report_summary_overview) AS total_responden,
+                        (SELECT COUNT(*) FROM bank_soalv2 WHERE deleted_at IS NULL) AS active_surveys,
+                        (SELECT COUNT(DISTINCT kode_prodi) FROM m_program_studi) AS total_prodi,
+                        (SELECT COUNT(DISTINCT kode_fakultas) FROM m_fakultas) AS total_fakultas,
+                        (SELECT COALESCE(ROUND(AVG(rata_rata_rating), 2), 0.00) FROM report_summary_overview WHERE rata_rata_rating &gt; 0) AS rata_rata_rating
+        `).Scan(&amp;stats).Error
+        return &amp;stats, err
+}</span>
+
 func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul string) (*domainkuesioner.ReportSummaryResponse, error) <span class="cov0" title="0">{
         overview, _ := r.GetReportSummaryOverview(ctx, rawJudul)
         fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul)
@@ -15222,6 +15243,18 @@ func GetReportYearHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
 }
 
+func GetDashboardStatsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetDashboardStats(c.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
 // =======================================================
 // GET /kuesioners/Active
 // =======================================================
@@ -15360,6 +15393,8 @@ func ModuleKuesioner(app *fiber.App) <span class="cov0" title="0">{
         app.Post("/api/v2/kuesioners/report_top_questions", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportTopQuestionsHandlerfunc)
         app.Post("/api/v2/kuesioners/report_kategori_summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportKategoriSummaryHandlerfunc)
         app.Post("/api/v2/kuesioners/report_year", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportYearHandlerfunc)
+        app.Get("/api/v2/dashboard/stats", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetDashboardStatsHandlerfunc)
+        app.Post("/api/v2/dashboard/stats", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetDashboardStatsHandlerfunc)
         app.Get("/api/v2/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
         app.Get("/api/v2/kuesioners/active/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), GetKuesionersActiveByTargetHandler)
 }</span>
