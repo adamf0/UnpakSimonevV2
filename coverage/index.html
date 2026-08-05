@@ -3832,6 +3832,7 @@ import (
         "time"
 
         "github.com/gofiber/fiber/v2"
+        "github.com/joho/godotenv"
         "github.com/mehdihadeli/go-mediatr"
 
         "github.com/gofiber/fiber/v2/middleware/cors"
@@ -4058,14 +4059,14 @@ func main() <span class="cov0" title="0">{
 
         <span class="cov0" title="0">mediatr.RegisterRequestPipelineBehaviors(NewValidationBehavior())
 
-        // mustStart("ENV", func() error {
-        //         if err := godotenv.Load(); err != nil {
-        //                 return errors.New("tidak ada env")
-        //         }
-        //         return nil
-        // })
+        mustStart("ENV", func() error </span><span class="cov0" title="0">{
+                if err := godotenv.Load(); err != nil </span><span class="cov0" title="0">{
+                        return errors.New("tidak ada env")
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        })
 
-        var db *gorm.DB
+        <span class="cov0" title="0">var db *gorm.DB
         var dbSimak *gorm.DB
         var dbSimpeg *gorm.DB
         // var redis commondomain.IRedisStore
