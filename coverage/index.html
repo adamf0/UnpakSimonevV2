@@ -157,7 +157,7 @@
 				
 				<option value="file50">UnpakSiamida/modules/account/infrastructure/AccountRepository.go (0.0%)</option>
 				
-				<option value="file51">UnpakSiamida/modules/account/presentation/Http.go (71.2%)</option>
+				<option value="file51">UnpakSiamida/modules/account/presentation/Http.go (0.0%)</option>
 				
 				<option value="file52">UnpakSiamida/modules/banksoal/application/CopyBankSoal/CopyBankSoalCommandHandler.go (76.7%)</option>
 				
@@ -215,7 +215,7 @@
 				
 				<option value="file79">UnpakSiamida/modules/banksoal/infrastructure/BankSoalRepository.go (0.0%)</option>
 				
-				<option value="file80">UnpakSiamida/modules/banksoal/presentation/Http.go (79.1%)</option>
+				<option value="file80">UnpakSiamida/modules/banksoal/presentation/Http.go (0.0%)</option>
 				
 				<option value="file81">UnpakSiamida/modules/fakultas/application/GetAllFakultass/GetAllFakultassQueryHandler.go (100.0%)</option>
 				
@@ -227,7 +227,7 @@
 				
 				<option value="file85">UnpakSiamida/modules/fakultas/infrastructure/FakultasRepository.go (0.0%)</option>
 				
-				<option value="file86">UnpakSiamida/modules/fakultas/presentation/Http.go (51.5%)</option>
+				<option value="file86">UnpakSiamida/modules/fakultas/presentation/Http.go (0.0%)</option>
 				
 				<option value="file87">UnpakSiamida/modules/kategori/application/CopyKategori/CopyKategoriCommandHandler.go (81.1%)</option>
 				
@@ -269,7 +269,7 @@
 				
 				<option value="file106">UnpakSiamida/modules/kategori/infrastructure/KategoriRepository.go (0.0%)</option>
 				
-				<option value="file107">UnpakSiamida/modules/kategori/presentation/Http.go (75.5%)</option>
+				<option value="file107">UnpakSiamida/modules/kategori/presentation/Http.go (0.0%)</option>
 				
 				<option value="file108">UnpakSiamida/modules/kuesioner/application/ActiveKuesioner/ActiveKuesionerQueryHandler.go (98.2%)</option>
 				
@@ -315,7 +315,7 @@
 				
 				<option value="file129">UnpakSiamida/modules/kuesioner/infrastructure/KuesionerRepository.go (0.0%)</option>
 				
-				<option value="file130">UnpakSiamida/modules/kuesioner/presentation/Http.go (76.5%)</option>
+				<option value="file130">UnpakSiamida/modules/kuesioner/presentation/Http.go (0.0%)</option>
 				
 				<option value="file131">UnpakSiamida/modules/prodi/application/GetAllProdis/GetAllProdisQueryHandler.go (100.0%)</option>
 				
@@ -327,7 +327,7 @@
 				
 				<option value="file135">UnpakSiamida/modules/prodi/infrastructure/ProdiRepository.go (0.0%)</option>
 				
-				<option value="file136">UnpakSiamida/modules/prodi/presentation/Http.go (51.5%)</option>
+				<option value="file136">UnpakSiamida/modules/prodi/presentation/Http.go (0.0%)</option>
 				
 				<option value="file137">UnpakSiamida/modules/templatejawaban/application/CopyTemplateJawaban/CopyTemplateJawabanCommandHandler.go (0.0%)</option>
 				
@@ -365,7 +365,7 @@
 				
 				<option value="file154">UnpakSiamida/modules/templatejawaban/infrastructure/TemplateJawabanRepository.go (0.0%)</option>
 				
-				<option value="file155">UnpakSiamida/modules/templatejawaban/presentation/Http.go (74.5%)</option>
+				<option value="file155">UnpakSiamida/modules/templatejawaban/presentation/Http.go (0.0%)</option>
 				
 				<option value="file156">UnpakSiamida/modules/templatepertanyaan/application/CopyTemplatePertanyaan/CopyTemplatePertanyaanCommandHandler.go (77.8%)</option>
 				
@@ -415,7 +415,7 @@
 				
 				<option value="file179">UnpakSiamida/modules/templatepertanyaan/infrastructure/TemplatePertanyaanRepository.go (0.0%)</option>
 				
-				<option value="file180">UnpakSiamida/modules/templatepertanyaan/presentation/Http.go (76.9%)</option>
+				<option value="file180">UnpakSiamida/modules/templatepertanyaan/presentation/Http.go (0.0%)</option>
 				
 				</select>
 			</div>
@@ -5947,7 +5947,7 @@ import (
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /login [post]
-func LoginHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func LoginHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         username := c.FormValue("username")
         password := c.FormValue("password")
 
@@ -5961,14 +5961,14 @@ func LoginHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{
+        <span class="cov0" title="0">return c.JSON(fiber.Map{
                 // "user_id":       result.UserID,
                 "access_token":  result.AccessToken,
                 "refresh_token": result.RefreshToken,
         })</span>
 }
 
-func WhoAmIHandler(c *fiber.Ctx) error <span class="cov1" title="1">{
+func WhoAmIHandler(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         userID := c.FormValue("sid")
         resource := c.FormValue("resource")
@@ -5981,7 +5981,7 @@ func WhoAmIHandler(c *fiber.Ctx) error <span class="cov1" title="1">{
                 NPM  *string
         )
 
-        if codectx == domainaccount.CtxDosen &amp;&amp; helper.NullableString(&amp;resource) == "simak" </span><span class="cov1" title="1">{
+        if codectx == domainaccount.CtxDosen &amp;&amp; helper.NullableString(&amp;resource) == "simak" </span><span class="cov0" title="0">{
                 NIDN = helper.StrPtr(userID)
         }</span> else<span class="cov0" title="0"> if codectx == domainaccount.CtxMahasiswa &amp;&amp; helper.NullableString(&amp;resource) == "simak" </span><span class="cov0" title="0">{
                 NPM = helper.StrPtr(userID)
@@ -5991,7 +5991,7 @@ func WhoAmIHandler(c *fiber.Ctx) error <span class="cov1" title="1">{
                 SID = helper.StrPtr(userID)
         }</span>
 
-        <span class="cov1" title="1">cmd := who.WhoamiCommand{
+        <span class="cov0" title="0">cmd := who.WhoamiCommand{
                 SID:  SID,
                 NIM:  NPM,
                 NIDN: NIDN,
@@ -6002,7 +6002,7 @@ func WhoAmIHandler(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(result)</span>
+        <span class="cov0" title="0">return c.JSON(result)</span>
 }
 
 // =======================================================
@@ -6026,7 +6026,7 @@ func WhoAmIHandler(c *fiber.Ctx) error <span class="cov1" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /account [post]
-func CreateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func CreateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         username := c.FormValue("username")
         password := c.FormValue("password")
@@ -6041,15 +6041,15 @@ func CreateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 email = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">if v := c.FormValue("fakultas"); v != "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if v := c.FormValue("fakultas"); v != "" </span><span class="cov0" title="0">{
                 fakultas = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">if v := c.FormValue("prodi"); v != "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if v := c.FormValue("prodi"); v != "" </span><span class="cov0" title="0">{
                 prodi = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">cmd := CreateAccount.CreateAccountCommand{
+        <span class="cov0" title="0">cmd := CreateAccount.CreateAccountCommand{
                 Username: username,
                 Password: password,
                 Level:    level,
@@ -6068,7 +6068,7 @@ func CreateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -6093,7 +6093,7 @@ func CreateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /account/{uuid} [put]
-func UpdateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func UpdateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         username := c.FormValue("username")
@@ -6109,19 +6109,19 @@ func UpdateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 password = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">if v := c.FormValue("email"); v != "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if v := c.FormValue("email"); v != "" </span><span class="cov0" title="0">{
                 email = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">if v := c.FormValue("fakultas"); v != "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if v := c.FormValue("fakultas"); v != "" </span><span class="cov0" title="0">{
                 fakultas = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">if v := c.FormValue("prodi"); v != "" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if v := c.FormValue("prodi"); v != "" </span><span class="cov0" title="0">{
                 prodi = helper.StrPtr(v)
         }</span>
 
-        <span class="cov1" title="1">cmd := UpdateAccount.UpdateAccountCommand{
+        <span class="cov0" title="0">cmd := UpdateAccount.UpdateAccountCommand{
                 Uuid:     uuid,
                 Username: username,
                 Password: password,
@@ -6137,7 +6137,7 @@ func UpdateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -6155,7 +6155,7 @@ func UpdateAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /account/{uuid} [delete]
-func DeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func DeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -6169,7 +6169,7 @@ func DeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -6187,7 +6187,7 @@ func DeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /account/{uuid} [delete]
-func ForceDeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func ForceDeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -6201,7 +6201,7 @@ func ForceDeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -6219,7 +6219,7 @@ func ForceDeleteAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /account/{uuid} [delete]
-func RestoreAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func RestoreAccountHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -6232,7 +6232,7 @@ func RestoreAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -6250,7 +6250,7 @@ func RestoreAccountHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /account/{uuid} [get]
-func GetAccountHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="2">{
+func GetAccountHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetAccount.GetAccountQuery{Uuid: uuid}
@@ -6264,11 +6264,11 @@ func GetAccountHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="2">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov10" title="2">if Account == nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if Account == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "Account not found"})
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(Account)</span>
+        <span class="cov0" title="0">return c.JSON(Account)</span>
 }
 
 // =======================================================
@@ -6285,7 +6285,7 @@ func GetAccountHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="2">{
 // @Produce json
 // @Success 200 {object} commondomain.Paged[domainaccount.Account]
 // @Router /accounts [get]
-func GetAllAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func GetAllAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         flag := c.Query("flag", "none") //with deleted
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
@@ -6320,11 +6320,11 @@ func GetAllAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 }
         }
 
-        <span class="cov1" title="1">withDeleted := false
+        <span class="cov0" title="0">withDeleted := false
         if flag == "deleted" </span><span class="cov0" title="0">{
                 withDeleted = true
         }</span>
-        <span class="cov1" title="1">query := GetAllAccounts.GetAllAccountsQuery{
+        <span class="cov0" title="0">query := GetAllAccounts.GetAllAccountsQuery{
                 Search:        search,
                 SearchFilters: filters,
                 Deleted:       withDeleted,
@@ -6332,7 +6332,7 @@ func GetAllAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 
         var adapter commonpresentation.OutputAdapter[domainaccount.Account]
         switch mode </span>{
-        case "all":<span class="cov1" title="1">
+        case "all":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.AllAdapter[domainaccount.Account]{}</span>
         case "ndjson":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.NDJSONAdapter[domainaccount.Account]{}</span>
@@ -6344,7 +6344,7 @@ func GetAllAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 adapter = &amp;commonpresentation.PagingAdapter[domainaccount.Account]{}</span>
         }
 
-        <span class="cov1" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllAccounts.GetAllAccountsQuery,
                 commondomain.Paged[domainaccount.Account],
         ](context.Background(), query)
@@ -6353,10 +6353,10 @@ func GetAllAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func SetupUuidAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func SetupUuidAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         cmd := SetupUuidAccount.SetupUuidAccountCommand{}
 
         message, err := mediatr.Send[SetupUuidAccount.SetupUuidAccountCommand, string](context.Background(), cmd)
@@ -6364,10 +6364,10 @@ func SetupUuidAccountsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"message": message})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"message": message})</span>
 }
 
-func ModuleAccount(app *fiber.App) <span class="cov1" title="1">{
+func ModuleAccount(app *fiber.App) <span class="cov0" title="0">{
         app.Post("/api/v2/login", LoginHandlerfunc)
         app.Get("/api/v2/whoami", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), WhoAmIHandler)
 
@@ -9132,7 +9132,7 @@ import (
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal [post]
 
-func CreateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func CreateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         Judul := c.FormValue("judul")
         Content := c.FormValue("content")
@@ -9155,7 +9155,7 @@ func CreateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -9176,7 +9176,7 @@ func CreateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal [post]
 
-func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         UuidBankSoal := c.Params("uuid")
         TanggalMulai := c.FormValue("tanggal_mulai")
@@ -9197,7 +9197,7 @@ func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.SendStatus(fiber.StatusNoContent)</span>
+        <span class="cov0" title="0">return c.SendStatus(fiber.StatusNoContent)</span>
 }
 
 // =======================================================
@@ -9221,7 +9221,7 @@ func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid} [put]
-func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         Judul := c.FormValue("judul")
@@ -9246,7 +9246,7 @@ func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -9265,7 +9265,7 @@ func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid}/status [put]
-func StatusBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func StatusBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         status := c.FormValue("status")
@@ -9280,7 +9280,7 @@ func StatusBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -9298,7 +9298,7 @@ func StatusBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid} [delete]
-func DeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func DeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -9312,7 +9312,7 @@ func DeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -9330,7 +9330,7 @@ func DeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid}/time [delete]
-func DeleteTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func DeleteTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -9343,7 +9343,7 @@ func DeleteTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -9361,7 +9361,7 @@ func DeleteTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid}/timeext [delete]
-func DeleteTimeExtBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func DeleteTimeExtBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         uuidbanksoal := c.FormValue("banksoal")
@@ -9376,7 +9376,7 @@ func DeleteTimeExtBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -9394,7 +9394,7 @@ func DeleteTimeExtBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid} [delete]
-func ForceDeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func ForceDeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -9408,7 +9408,7 @@ func ForceDeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -9426,7 +9426,7 @@ func ForceDeleteBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid} [delete]
-func RestoreBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func RestoreBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -9439,7 +9439,7 @@ func RestoreBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -9457,7 +9457,7 @@ func RestoreBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid} [delete]
-func CopyBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func CopyBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         SID := c.FormValue("sid")
@@ -9474,7 +9474,7 @@ func CopyBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -9492,7 +9492,7 @@ func CopyBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /banksoal/{uuid} [get]
-func GetBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="2">{
+func GetBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetBankSoalDefault.GetBankSoalDefaultByUuidQuery{Uuid: uuid}
@@ -9506,11 +9506,11 @@ func GetBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="2">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov10" title="2">if BankSoal == nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if BankSoal == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "BankSoal not found"})
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(BankSoal)</span>
+        <span class="cov0" title="0">return c.JSON(BankSoal)</span>
 }
 
 // =======================================================
@@ -9527,7 +9527,7 @@ func GetBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="2">{
 // @Produce json
 // @Success 200 {object} commondomain.Paged[BankSoaldomain.BankSoalDefault]
 // @Router /banksoals [get]
-func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         flag := c.Query("flag", "none")
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
@@ -9562,12 +9562,12 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 }
         }
 
-        <span class="cov1" title="1">withDeleted := false
+        <span class="cov0" title="0">withDeleted := false
         if flag == "deleted" </span><span class="cov0" title="0">{
                 withDeleted = true
         }</span>
 
-        <span class="cov1" title="1">nidn := c.FormValue("nidn")
+        <span class="cov0" title="0">nidn := c.FormValue("nidn")
         nip := c.FormValue("nip")
         npm := c.FormValue("npm")
         fakultas := c.FormValue("fakultas")
@@ -9590,7 +9590,7 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
         var adapter commonpresentation.OutputAdapter[BankSoaldomain.BankSoalDefault]
 
         switch mode </span>{
-        case "all":<span class="cov1" title="1">
+        case "all":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.AllAdapter[BankSoaldomain.BankSoalDefault]{}</span>
         case "ndjson":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.NDJSONAdapter[BankSoaldomain.BankSoalDefault]{}</span>
@@ -9605,7 +9605,7 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
         // =====================================
         // 🔥 EXECUTE
         // =====================================
-        <span class="cov1" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllBankSoals.GetAllBankSoalsQuery,
                 commondomain.Paged[BankSoaldomain.BankSoalDefault],
         ](context.Background(), query)
@@ -9616,10 +9616,10 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func SetupUuidBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func SetupUuidBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         cmd := SetupUuidBankSoal.SetupUuidBankSoalCommand{}
 
         message, err := mediatr.Send[SetupUuidBankSoal.SetupUuidBankSoalCommand, string](context.Background(), cmd)
@@ -9627,10 +9627,10 @@ func SetupUuidBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"message": message})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"message": message})</span>
 }
 
-func ModuleBankSoal(app *fiber.App) <span class="cov1" title="1">{
+func ModuleBankSoal(app *fiber.App) <span class="cov0" title="0">{
         admin := []string{"admin"}
         whoamiURL := os.Getenv("WHOAMI_URL")
 
@@ -9953,7 +9953,7 @@ import (
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Fakultasdomain.FakultasDefault]
 // @Router /fakultass [get]
-func GetAllFakultassHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetAllFakultassHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
         limit := c.QueryInt("limit", 10)
@@ -9987,7 +9987,7 @@ func GetAllFakultassHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
                 }
         }
 
-        <span class="cov8" title="1">query := GetAllFakultass.GetAllFakultassQuery{
+        <span class="cov0" title="0">query := GetAllFakultass.GetAllFakultassQuery{
                 Search:        search,
                 SearchFilters: filters,
         }
@@ -10000,13 +10000,13 @@ func GetAllFakultassHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
                 adapter = &amp;commonpresentation.NDJSONAdapter[Fakultasdomain.FakultasDefault]{}</span>
         case "sse":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.SSEAdapter[Fakultasdomain.FakultasDefault]{}</span>
-        default:<span class="cov8" title="1">
+        default:<span class="cov0" title="0">
                 query.Page = &amp;page
                 query.Limit = &amp;limit
                 adapter = &amp;commonpresentation.PagingAdapter[Fakultasdomain.FakultasDefault]{}</span>
         }
 
-        <span class="cov8" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllFakultass.GetAllFakultassQuery,
                 commondomain.Paged[Fakultasdomain.FakultasDefault],
         ](context.Background(), query)
@@ -10015,10 +10015,10 @@ func GetAllFakultassHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func ModuleFakultas(app *fiber.App) <span class="cov8" title="1">{
+func ModuleFakultas(app *fiber.App) <span class="cov0" title="0">{
         // admin := []string{"admin"}
         // whoamiURL := os.Getenv("WHOAMI_URL")
 
@@ -12063,7 +12063,7 @@ import (
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori [post]
 
-func CreateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func CreateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         NamaKategori := c.FormValue("nama_kategori")
         SubKategori := c.FormValue("sub_kategori")
@@ -12082,7 +12082,7 @@ func CreateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -12100,7 +12100,7 @@ func CreateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori [put]
-func UpdateKategoriOrderHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func UpdateKategoriOrderHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         Payload := c.FormValue("payload")
         // godump.Dd(Payload)
@@ -12114,7 +12114,7 @@ func UpdateKategoriOrderHandlerfunc(c *fiber.Ctx) error <span class="cov1" title
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -12134,7 +12134,7 @@ func UpdateKategoriOrderHandlerfunc(c *fiber.Ctx) error <span class="cov1" title
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori/{uuid} [put]
-func UpdateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func UpdateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         NamaKategori := c.FormValue("nama_kategori")
@@ -12155,7 +12155,7 @@ func UpdateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -12173,7 +12173,7 @@ func UpdateKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori/{uuid} [delete]
-func DeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func DeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -12187,7 +12187,7 @@ func DeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -12205,7 +12205,7 @@ func DeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori/{uuid} [delete]
-func ForceDeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func ForceDeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -12219,7 +12219,7 @@ func ForceDeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -12237,7 +12237,7 @@ func ForceDeleteKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori/{uuid} [delete]
-func RestoreKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func RestoreKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -12250,7 +12250,7 @@ func RestoreKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -12268,7 +12268,7 @@ func RestoreKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori/{uuid} [delete]
-func CopyKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func CopyKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         SID := c.FormValue("sid")
@@ -12285,7 +12285,7 @@ func CopyKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -12303,7 +12303,7 @@ func CopyKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kategori/{uuid} [get]
-func GetKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="3">{
+func GetKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetKategori.GetKategoriByUuidQuery{Uuid: uuid}
@@ -12313,15 +12313,15 @@ func GetKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="3">{
                 *Kategoridomain.Kategori,
         ](context.Background(), query)
 
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov6" title="2">if Kategori == nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if Kategori == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "Kategori not found"})
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(Kategori)</span>
+        <span class="cov0" title="0">return c.JSON(Kategori)</span>
 }
 
 // =======================================================
@@ -12338,7 +12338,7 @@ func GetKategoriHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="3">{
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kategoridomain.KategoriDefault]
 // @Router /kategoris [get]
-func GetAllKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func GetAllKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         flag := c.Query("flag", "none") //with deleted
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
@@ -12373,11 +12373,11 @@ func GetAllKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 }
         }
 
-        <span class="cov1" title="1">withDeleted := false
+        <span class="cov0" title="0">withDeleted := false
         if flag == "deleted" </span><span class="cov0" title="0">{
                 withDeleted = true
         }</span>
-        <span class="cov1" title="1">query := GetAllKategoris.GetAllKategorisQuery{
+        <span class="cov0" title="0">query := GetAllKategoris.GetAllKategorisQuery{
                 Search:        search,
                 SearchFilters: filters,
                 Deleted:       withDeleted,
@@ -12385,7 +12385,7 @@ func GetAllKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
 
         var adapter commonpresentation.OutputAdapter[Kategoridomain.KategoriDefault]
         switch mode </span>{
-        case "all":<span class="cov1" title="1">
+        case "all":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.AllAdapter[Kategoridomain.KategoriDefault]{}</span>
         case "ndjson":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.NDJSONAdapter[Kategoridomain.KategoriDefault]{}</span>
@@ -12397,7 +12397,7 @@ func GetAllKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 adapter = &amp;commonpresentation.PagingAdapter[Kategoridomain.KategoriDefault]{}</span>
         }
 
-        <span class="cov1" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllKategoris.GetAllKategorisQuery,
                 commondomain.Paged[Kategoridomain.KategoriDefault],
         ](context.Background(), query)
@@ -12406,10 +12406,10 @@ func GetAllKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func SetupUuidKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func SetupUuidKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         cmd := SetupUuidKategori.SetupUuidKategoriCommand{}
 
         message, err := mediatr.Send[SetupUuidKategori.SetupUuidKategoriCommand, string](context.Background(), cmd)
@@ -12417,10 +12417,10 @@ func SetupUuidKategorisHandlerfunc(c *fiber.Ctx) error <span class="cov1" title=
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"message": message})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"message": message})</span>
 }
 
-func ModuleKategori(app *fiber.App) <span class="cov1" title="1">{
+func ModuleKategori(app *fiber.App) <span class="cov0" title="0">{
         // admin := []string{"admin"}
         // whoamiURL := os.Getenv("WHOAMI_URL")
 
@@ -12971,7 +12971,7 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
         ctx context.Context,
         q GetAllKuesionersReportQuery,
 ) ([]domainKuesioner.KuesionerResult, error) <span class="cov3" title="2">{
-        ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
+        ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
         defer cancel()
 
         partitionKeys := []string{
@@ -12992,7 +12992,7 @@ func (h *GetAllKuesionersReportQueryHandler) Handle(
         ch := make(chan partitionResult, len(partitionKeys))
 
         for _, pk := range partitionKeys </span><span class="cov10" title="20">{
-                g.Go(func() error </span><span class="cov10" title="20">{
+                g.Go(func() error </span><span class="cov8" title="14">{
                         rows, err := h.Repo.GetAllKuesionerResult(
                                 ctxg,
                                 q.JudulBankSoal,
@@ -14852,7 +14852,7 @@ import (
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kuesioner [post]
 
-func CreateKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func CreateKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         UuidBankSoal := c.FormValue("bank_soal")
         Tanggal := c.FormValue("tanggal")
@@ -14873,7 +14873,7 @@ func CreateKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -14892,7 +14892,7 @@ func CreateKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kuesioner [post]
-func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         UuidKuesioner := c.Params("uuid")
         UuidPertanyaan := c.FormValue("pertanyaan")
@@ -14916,7 +14916,7 @@ func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov8" titl
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -14934,7 +14934,7 @@ func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov8" titl
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /Kuesioner/{uuid} [get]
-func GetKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetKuesionerJawaban.GetKuesionerJawabanByUuidQuery{Uuid: uuid}
@@ -14948,7 +14948,7 @@ func GetKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(KuesionerJawaban)</span>
+        <span class="cov0" title="0">return c.JSON(KuesionerJawaban)</span>
 }
 
 // =======================================================
@@ -14966,7 +14966,7 @@ func GetKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kuesioner/{uuid} [delete]
-func DeleteKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func DeleteKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -14979,7 +14979,7 @@ func DeleteKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -14997,7 +14997,7 @@ func DeleteKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1"
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /Kuesioner/{uuid} [get]
-func GetKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetKuesioner.GetKuesionerByUuidQuery{Uuid: uuid}
@@ -15011,11 +15011,11 @@ func GetKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">if Kuesioner == nil </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if Kuesioner == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "Kuesioner not found"})
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(Kuesioner)</span>
+        <span class="cov0" title="0">return c.JSON(Kuesioner)</span>
 }
 
 // =======================================================
@@ -15032,7 +15032,7 @@ func GetKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
 // @Router /kuesioners [get]
-func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         flag := c.Query("flag", "none") //with deleted
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
@@ -15067,11 +15067,11 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
                 }
         }
 
-        <span class="cov8" title="1">withDeleted := false
+        <span class="cov0" title="0">withDeleted := false
         if flag == "deleted" </span><span class="cov0" title="0">{
                 withDeleted = true
         }</span>
-        <span class="cov8" title="1">query := GetAllKuesioners.GetAllKuesionersQuery{
+        <span class="cov0" title="0">query := GetAllKuesioners.GetAllKuesionersQuery{
                 Search:        search,
                 SearchFilters: filters,
                 Deleted:       withDeleted,
@@ -15079,7 +15079,7 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
 
         var adapter commonpresentation.OutputAdapter[Kuesionerdomain.KuesionerDefault]
         switch mode </span>{
-        case "all":<span class="cov8" title="1">
+        case "all":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.AllAdapter[Kuesionerdomain.KuesionerDefault]{}</span>
         case "ndjson":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.NDJSONAdapter[Kuesionerdomain.KuesionerDefault]{}</span>
@@ -15091,7 +15091,7 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
                 adapter = &amp;commonpresentation.PagingAdapter[Kuesionerdomain.KuesionerDefault]{}</span>
         }
 
-        <span class="cov8" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllKuesioners.GetAllKuesionersQuery,
                 commondomain.Paged[Kuesionerdomain.KuesionerDefault],
         ](context.Background(), query)
@@ -15100,7 +15100,7 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
 // =======================================================
@@ -15115,7 +15115,7 @@ func GetAllKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
 // @Router /kuesioners [post]
-func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{ //langsung sse
+func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{ //langsung sse
         judul := c.FormValue("judul")
         // semester := c.FormValue("semester")
         is4year := c.FormValue("is4year") == "1"
@@ -15135,7 +15135,7 @@ func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error <span class="cov8" ti
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">paged := commondomain.Paged[Kuesionerdomain.KuesionerResult]{
+        <span class="cov0" title="0">paged := commondomain.Paged[Kuesionerdomain.KuesionerResult]{
                 Data: result,
         }
 
@@ -15158,7 +15158,7 @@ func GetAllKuesionersReportHandlerfunc(c *fiber.Ctx) error <span class="cov8" ti
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
 // @Router /kuesioners [get]
-func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         // flag := c.Query("flag", "none") //with deleted
         nidn := c.FormValue("nidn")
         nip := c.FormValue("nip")
@@ -15169,7 +15169,7 @@ func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
         if strings.HasPrefix(strings.ToUpper(unit), "F.") || strings.HasPrefix(strings.ToUpper(unit), "F. ") </span><span class="cov0" title="0">{
                 unit = "Fakultas " + strings.TrimSpace(unit[2:])
         }</span>
-        <span class="cov8" title="1">unit = strings.ToLower(unit)
+        <span class="cov0" title="0">unit = strings.ToLower(unit)
 
         // withDeleted := false
         // if flag == "deleted" {
@@ -15193,7 +15193,7 @@ func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(result)</span>
+        <span class="cov0" title="0">return c.JSON(result)</span>
 }
 
 // =======================================================
@@ -15210,7 +15210,7 @@ func ActiveKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Kuesionerdomain.KuesionerDefault]
 // @Router /kuesioners [get]
-func GetKuesionersActiveByTargetHandler(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetKuesionersActiveByTargetHandler(c *fiber.Ctx) error <span class="cov0" title="0">{
         // flag := c.Query("flag", "none") //with deleted
         uuid := c.Params("uuid")
         nidn := c.FormValue("nidn")
@@ -15222,7 +15222,7 @@ func GetKuesionersActiveByTargetHandler(c *fiber.Ctx) error <span class="cov8" t
         if strings.HasPrefix(strings.ToUpper(unit), "F.") || strings.HasPrefix(strings.ToUpper(unit), "F. ") </span><span class="cov0" title="0">{
                 unit = "Fakultas " + strings.TrimSpace(unit[2:])
         }</span>
-        <span class="cov8" title="1">unit = strings.ToLower(unit)
+        <span class="cov0" title="0">unit = strings.ToLower(unit)
 
         // withDeleted := false
         // if flag == "deleted" {
@@ -15247,10 +15247,10 @@ func GetKuesionersActiveByTargetHandler(c *fiber.Ctx) error <span class="cov8" t
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(result)</span>
+        <span class="cov0" title="0">return c.JSON(result)</span>
 }
 
-func SetupUuidKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func SetupUuidKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         cmd := SetupUuidKuesioner.SetupUuidKuesionerCommand{}
 
         message, err := mediatr.Send[SetupUuidKuesioner.SetupUuidKuesionerCommand, string](context.Background(), cmd)
@@ -15258,10 +15258,10 @@ func SetupUuidKuesionersHandlerfunc(c *fiber.Ctx) error <span class="cov8" title
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"message": message})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"message": message})</span>
 }
 
-func ModuleKuesioner(app *fiber.App) <span class="cov8" title="1">{
+func ModuleKuesioner(app *fiber.App) <span class="cov0" title="0">{
         admin := []string{"admin"}
         whoamiURL := os.Getenv("WHOAMI_URL")
 
@@ -15603,7 +15603,7 @@ import (
 // @Produce json
 // @Success 200 {object} commondomain.Paged[Prodidomain.ProdiDefault]
 // @Router /prodis [get]
-func GetAllProdisHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetAllProdisHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
         limit := c.QueryInt("limit", 10)
@@ -15637,7 +15637,7 @@ func GetAllProdisHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
                 }
         }
 
-        <span class="cov8" title="1">query := GetAllProdis.GetAllProdisQuery{
+        <span class="cov0" title="0">query := GetAllProdis.GetAllProdisQuery{
                 Search:        search,
                 SearchFilters: filters,
         }
@@ -15650,13 +15650,13 @@ func GetAllProdisHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
                 adapter = &amp;commonpresentation.NDJSONAdapter[Prodidomain.ProdiDefault]{}</span>
         case "sse":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.SSEAdapter[Prodidomain.ProdiDefault]{}</span>
-        default:<span class="cov8" title="1">
+        default:<span class="cov0" title="0">
                 query.Page = &amp;page
                 query.Limit = &amp;limit
                 adapter = &amp;commonpresentation.PagingAdapter[Prodidomain.ProdiDefault]{}</span>
         }
 
-        <span class="cov8" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllProdis.GetAllProdisQuery,
                 commondomain.Paged[Prodidomain.ProdiDefault],
         ](context.Background(), query)
@@ -15665,10 +15665,10 @@ func GetAllProdisHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func ModuleProdi(app *fiber.App) <span class="cov8" title="1">{
+func ModuleProdi(app *fiber.App) <span class="cov0" title="0">{
         // admin := []string{"admin"}
         // whoamiURL := os.Getenv("WHOAMI_URL")
 
@@ -17162,7 +17162,7 @@ import (
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatejawaban [post]
 
-func CreateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func CreateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         TemplatePertanyaan := c.FormValue("template_pertanyaan")
         Jawaban := c.FormValue("jawaban")
@@ -17185,7 +17185,7 @@ func CreateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -17207,7 +17207,7 @@ func CreateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatejawaban/{uuid} [put]
-func UpdateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func UpdateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         TemplatePertanyaan := c.FormValue("template_pertanyaan")
@@ -17232,7 +17232,7 @@ func UpdateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -17250,7 +17250,7 @@ func UpdateTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatejawaban/{uuid} [delete]
-func DeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func DeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -17264,7 +17264,7 @@ func DeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -17282,7 +17282,7 @@ func DeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" tit
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatejawaban/{uuid} [delete]
-func ForceDeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func ForceDeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -17296,7 +17296,7 @@ func ForceDeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -17314,7 +17314,7 @@ func ForceDeleteTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatejawaban/{uuid} [delete]
-func RestoreTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func RestoreTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -17327,7 +17327,7 @@ func RestoreTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" ti
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -17345,7 +17345,7 @@ func RestoreTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov1" ti
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatejawaban/{uuid} [get]
-func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov10" title="3">{
+func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetTemplateJawaban.GetTemplateJawabanByUuidQuery{Uuid: uuid}
@@ -17355,15 +17355,15 @@ func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov10" title
                 *TemplateJawabandomain.TemplateJawaban,
         ](context.Background(), query)
 
-        if err != nil </span><span class="cov1" title="1">{
+        if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov6" title="2">if TemplateJawaban == nil </span><span class="cov1" title="1">{
+        <span class="cov0" title="0">if TemplateJawaban == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "TemplateJawaban not found"})
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(TemplateJawaban)</span>
+        <span class="cov0" title="0">return c.JSON(TemplateJawaban)</span>
 }
 
 // =======================================================
@@ -17380,7 +17380,7 @@ func GetTemplateJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov10" title
 // @Produce json
 // @Success 200 {object} commondomain.Paged[TemplateJawabandomain.TemplateJawabanDefault]
 // @Router /templatejawabans [get]
-func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         flag := c.Query("flag", "none") //with deleted
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
@@ -17415,11 +17415,11 @@ func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1" ti
                 }
         }
 
-        <span class="cov1" title="1">withDeleted := false
+        <span class="cov0" title="0">withDeleted := false
         if flag == "deleted" </span><span class="cov0" title="0">{
                 withDeleted = true
         }</span>
-        <span class="cov1" title="1">query := GetAllTemplateJawabans.GetAllTemplateJawabansQuery{
+        <span class="cov0" title="0">query := GetAllTemplateJawabans.GetAllTemplateJawabansQuery{
                 Search:        search,
                 SearchFilters: filters,
                 Deleted:       withDeleted,
@@ -17427,7 +17427,7 @@ func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1" ti
 
         var adapter commonpresentation.OutputAdapter[TemplateJawabandomain.TemplateJawabanDefault]
         switch mode </span>{
-        case "all":<span class="cov1" title="1">
+        case "all":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.AllAdapter[TemplateJawabandomain.TemplateJawabanDefault]{}</span>
         case "ndjson":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.NDJSONAdapter[TemplateJawabandomain.TemplateJawabanDefault]{}</span>
@@ -17439,7 +17439,7 @@ func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1" ti
                 adapter = &amp;commonpresentation.PagingAdapter[TemplateJawabandomain.TemplateJawabanDefault]{}</span>
         }
 
-        <span class="cov1" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllTemplateJawabans.GetAllTemplateJawabansQuery,
                 commondomain.Paged[TemplateJawabandomain.TemplateJawabanDefault],
         ](context.Background(), query)
@@ -17448,10 +17448,10 @@ func GetAllTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1" ti
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func SetupUuidTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1" title="1">{
+func SetupUuidTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         cmd := SetupUuidTemplateJawaban.SetupUuidTemplateJawabanCommand{}
 
         message, err := mediatr.Send[SetupUuidTemplateJawaban.SetupUuidTemplateJawabanCommand, string](context.Background(), cmd)
@@ -17459,10 +17459,10 @@ func SetupUuidTemplateJawabansHandlerfunc(c *fiber.Ctx) error <span class="cov1"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov1" title="1">return c.JSON(fiber.Map{"message": message})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"message": message})</span>
 }
 
-func ModuleTemplateJawaban(app *fiber.App) <span class="cov1" title="1">{
+func ModuleTemplateJawaban(app *fiber.App) <span class="cov0" title="0">{
         // admin := []string{"admin"}
         // whoamiURL := os.Getenv("WHOAMI_URL")
 
@@ -19631,7 +19631,7 @@ import (
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan [post]
 
-func CreateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func CreateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         BankSoal := c.FormValue("bank_soal")
         Pertanyaan := c.FormValue("pertanyaan")
@@ -19643,11 +19643,11 @@ func CreateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
         Resource := c.FormValue("resource")
 
         required := 0
-        if v, err := strconv.ParseBool(Required); err == nil &amp;&amp; v </span><span class="cov8" title="1">{
+        if v, err := strconv.ParseBool(Required); err == nil &amp;&amp; v </span><span class="cov0" title="0">{
                 required = 1
         }</span>
 
-        <span class="cov8" title="1">cmd := CreateTemplatePertanyaan.CreateTemplatePertanyaanCommand{
+        <span class="cov0" title="0">cmd := CreateTemplatePertanyaan.CreateTemplatePertanyaanCommand{
                 UuidBankSoal: BankSoal,
                 Pertanyaan:   Pertanyaan,
                 JenisPilihan: JenisPilihan,
@@ -19663,7 +19663,7 @@ func CreateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return commonpresentation.JsonUUID(c, uuid)</span>
+        <span class="cov0" title="0">return commonpresentation.JsonUUID(c, uuid)</span>
 }
 
 // =======================================================
@@ -19687,7 +19687,7 @@ func CreateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [put]
-func UpdateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func UpdateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         BankSoal := c.FormValue("bank_soal")
@@ -19704,7 +19704,7 @@ func UpdateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
                 required = 1
         }</span>
 
-        <span class="cov8" title="1">cmd := UpdateTemplatePertanyaan.UpdateTemplatePertanyaanCommand{
+        <span class="cov0" title="0">cmd := UpdateTemplatePertanyaan.UpdateTemplatePertanyaanCommand{
                 Uuid:         uuid,
                 UuidBankSoal: BankSoal,
                 Pertanyaan:   Pertanyaan,
@@ -19721,7 +19721,7 @@ func UpdateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -19740,7 +19740,7 @@ func UpdateTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [put]
-func StatusTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func StatusTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         status := c.FormValue("status")
@@ -19755,7 +19755,7 @@ func StatusTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": updatedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": updatedID})</span>
 }
 
 // =======================================================
@@ -19773,7 +19773,7 @@ func StatusTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [delete]
-func DeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func DeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -19787,7 +19787,7 @@ func DeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -19805,7 +19805,7 @@ func DeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" 
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [delete]
-func ForceDeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func ForceDeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -19819,7 +19819,7 @@ func ForceDeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="c
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -19837,7 +19837,7 @@ func ForceDeleteTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="c
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [delete]
-func RestoreTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func RestoreTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
 
@@ -19850,7 +19850,7 @@ func RestoreTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -19868,7 +19868,7 @@ func RestoreTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8"
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [delete]
-func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         uuid := c.Params("uuid")
         SID := c.FormValue("sid")
@@ -19885,7 +19885,7 @@ func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" ti
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"uuid": deletedID})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"uuid": deletedID})</span>
 }
 
 // =======================================================
@@ -19903,7 +19903,7 @@ func CopyTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" ti
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid} [get]
-func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetTemplatePertanyaanDefault.GetTemplatePertanyaanDefaultByUuidQuery{Uuid: uuid}
@@ -19917,11 +19917,11 @@ func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" tit
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">if TemplatePertanyaan == nil </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if TemplatePertanyaan == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "TemplatePertanyaan not found"})
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(TemplatePertanyaan)</span>
+        <span class="cov0" title="0">return c.JSON(TemplatePertanyaan)</span>
 }
 
 // =======================================================
@@ -19939,7 +19939,7 @@ func GetTemplatePertanyaanHandlerfunc(c *fiber.Ctx) error <span class="cov8" tit
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid}/template [get]
-func GetTemplateHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetTemplateHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         query := GetTemplate.GetTemplatePertanyaanWithAnswareDefaultByUuidQuery{Uuid: uuid}
@@ -19953,11 +19953,11 @@ func GetTemplateHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">if TemplatePertanyaan == nil </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if TemplatePertanyaan == nil </span><span class="cov0" title="0">{
                 return c.Status(404).JSON(fiber.Map{"error": "TemplatePertanyaan not found"})
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(TemplatePertanyaan)</span>
+        <span class="cov0" title="0">return c.JSON(TemplatePertanyaan)</span>
 }
 
 // =======================================================
@@ -19975,7 +19975,7 @@ func GetTemplateHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /templatepertanyaan/{uuid}/banksoal [get]
-func GetTemplateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetTemplateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         uuid := c.Params("uuid")
 
         var adapter commonpresentation.OutputAdapter[TemplatePertanyaandomain.TemplatePertanyaanWithAnswareDefault]
@@ -19991,7 +19991,7 @@ func GetTemplateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov8" title
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 
 }
 
@@ -20009,7 +20009,7 @@ func GetTemplateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov8" title
 // @Produce json
 // @Success 200 {object} commondomain.Paged[TemplatePertanyaandomain.TemplatePertanyaanDefault]
 // @Router /templatepertanyaans [get]
-func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         flag := c.Query("flag", "none") //with deleted
         mode := c.Query("mode", "paging")
         page := c.QueryInt("page", 1)
@@ -20044,11 +20044,11 @@ func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov8"
                 }
         }
 
-        <span class="cov8" title="1">withDeleted := false
+        <span class="cov0" title="0">withDeleted := false
         if flag == "deleted" </span><span class="cov0" title="0">{
                 withDeleted = true
         }</span>
-        <span class="cov8" title="1">query := GetAllTemplatePertanyaans.GetAllTemplatePertanyaansQuery{
+        <span class="cov0" title="0">query := GetAllTemplatePertanyaans.GetAllTemplatePertanyaansQuery{
                 Search:        search,
                 SearchFilters: filters,
                 Deleted:       withDeleted,
@@ -20056,7 +20056,7 @@ func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov8"
 
         var adapter commonpresentation.OutputAdapter[TemplatePertanyaandomain.TemplatePertanyaanDefault]
         switch mode </span>{
-        case "all":<span class="cov8" title="1">
+        case "all":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.AllAdapter[TemplatePertanyaandomain.TemplatePertanyaanDefault]{}</span>
         case "ndjson":<span class="cov0" title="0">
                 adapter = &amp;commonpresentation.NDJSONAdapter[TemplatePertanyaandomain.TemplatePertanyaanDefault]{}</span>
@@ -20068,7 +20068,7 @@ func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov8"
                 adapter = &amp;commonpresentation.PagingAdapter[TemplatePertanyaandomain.TemplatePertanyaanDefault]{}</span>
         }
 
-        <span class="cov8" title="1">result, err := mediatr.Send[
+        <span class="cov0" title="0">result, err := mediatr.Send[
                 GetAllTemplatePertanyaans.GetAllTemplatePertanyaansQuery,
                 commondomain.Paged[TemplatePertanyaandomain.TemplatePertanyaanDefault],
         ](context.Background(), query)
@@ -20077,10 +20077,10 @@ func GetAllTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov8"
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return adapter.Send(c, result)</span>
+        <span class="cov0" title="0">return adapter.Send(c, result)</span>
 }
 
-func SetupUuidTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov8" title="1">{
+func SetupUuidTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
         cmd := SetupUuidTemplatePertanyaan.SetupUuidTemplatePertanyaanCommand{}
 
         message, err := mediatr.Send[SetupUuidTemplatePertanyaan.SetupUuidTemplatePertanyaanCommand, string](context.Background(), cmd)
@@ -20088,10 +20088,10 @@ func SetupUuidTemplatePertanyaansHandlerfunc(c *fiber.Ctx) error <span class="co
                 return commoninfra.HandleError(c, err)
         }</span>
 
-        <span class="cov8" title="1">return c.JSON(fiber.Map{"message": message})</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"message": message})</span>
 }
 
-func ModuleTemplatePertanyaan(app *fiber.App) <span class="cov8" title="1">{
+func ModuleTemplatePertanyaan(app *fiber.App) <span class="cov0" title="0">{
         // admin := []string{"admin"}
         // whoamiURL := os.Getenv("WHOAMI_URL")
 
