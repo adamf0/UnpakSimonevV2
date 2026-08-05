@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -238,9 +239,7 @@ func main() {
 	mediatr.RegisterRequestPipelineBehaviors(NewValidationBehavior())
 
 	mustStart("ENV", func() error {
-		if err := godotenv.Load(); err != nil {
-			return errors.New("tidak ada env")
-		}
+		_ = godotenv.Load() // optional: ignore if .env file is not present in container
 		return nil
 	})
 

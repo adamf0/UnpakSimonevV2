@@ -8,6 +8,8 @@ WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 
+RUN apk add --no-cache tzdata ca-certificates
+
 COPY . .
 
 RUN mkdir -p /out
@@ -27,10 +29,10 @@ RUN CGO_ENABLED=0 \
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
 # timezone
-#COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 
 # ssl cert
-#COPY --from=builder /etc/ssl/certs /etc/ssl/certs
+COPY --from=builder /etc/ssl/certs /etc/ssl/certs
 
 ENV TZ=Asia/Jakarta
 
