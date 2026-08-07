@@ -7716,36 +7716,54 @@ func UpdateTimeBankSoal(
                 return common.FailureValue[*BankSoal](InvalidData())
         }</span>
 
-        <span class="cov0" title="0">format := "2006-01-02"
-
-        var tanggalMulai time.Time
+        <span class="cov0" title="0">var tanggalMulai time.Time
         var tanggalAkhir time.Time
         var err error
 
-        if tanggalmulai != nil </span><span class="cov0" title="0">{
-                tanggalMulai, err = time.Parse(format, helper.StringValue(tanggalmulai))
+        if tanggalmulai != nil &amp;&amp; helper.StringValue(tanggalmulai) != "" </span><span class="cov0" title="0">{
+                tanggalMulai, err = parseAndAdjustDate(helper.StringValue(tanggalmulai), false)
                 if err != nil </span><span class="cov0" title="0">{
                         return common.FailureValue[*BankSoal](InvalidDate("tanggal awal"))
                 }</span>
+                <span class="cov0" title="0">prev.TanggalMulai = &amp;tanggalMulai</span>
         }
 
-        <span class="cov0" title="0">if tanggalakhir != nil </span><span class="cov0" title="0">{
-                tanggalAkhir, err = time.Parse(format, helper.StringValue(tanggalakhir))
+        <span class="cov0" title="0">if tanggalakhir != nil &amp;&amp; helper.StringValue(tanggalakhir) != "" </span><span class="cov0" title="0">{
+                tanggalAkhir, err = parseAndAdjustDate(helper.StringValue(tanggalakhir), true)
                 if err != nil </span><span class="cov0" title="0">{
                         return common.FailureValue[*BankSoal](InvalidDate("tanggal akhir"))
                 }</span>
+                <span class="cov0" title="0">prev.TanggalAkhir = &amp;tanggalAkhir</span>
         }
 
-        <span class="cov0" title="0">if tanggalmulai != nil &amp;&amp; tanggalakhir != nil </span><span class="cov0" title="0">{
-                if isOverlap(tanggalMulai, tanggalAkhir) </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if prev.TanggalMulai != nil &amp;&amp; prev.TanggalAkhir != nil </span><span class="cov0" title="0">{
+                if isOverlap(*prev.TanggalMulai, *prev.TanggalAkhir) </span><span class="cov0" title="0">{
                         return common.FailureValue[*BankSoal](InvalidDateRange())
                 }</span>
         }
 
-        <span class="cov0" title="0">prev.TanggalMulai = &amp;tanggalMulai
-        prev.TanggalAkhir = &amp;tanggalAkhir
+        <span class="cov0" title="0">return common.SuccessValue(prev)</span>
+}
 
-        return common.SuccessValue(prev)</span>
+func parseAndAdjustDate(str string, isEnd bool) (time.Time, error) <span class="cov0" title="0">{
+        formats := []string{
+                time.RFC3339,
+                "2006-01-02T15:04:05Z07:00",
+                "2006-01-02 15:04:05",
+                "2006-01-02",
+        }
+        var t time.Time
+        var err error
+        for _, f := range formats </span><span class="cov0" title="0">{
+                t, err = time.Parse(f, str)
+                if err == nil </span><span class="cov0" title="0">{
+                        if isEnd </span><span class="cov0" title="0">{
+                                return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location()), nil
+                        }</span>
+                        <span class="cov0" title="0">return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()), nil</span>
+                }
+        }
+        <span class="cov0" title="0">return t, err</span>
 }
 
 // === Delete ===
@@ -7957,32 +7975,31 @@ func AddTimeBankSoalExt(
                 return common.FailureValue[*BankSoalExt](InvalidData())
         }</span>
 
-        <span class="cov0" title="0">format := "2006-01-02"
-
-        var tanggalMulai time.Time
-        var tanggalAkhir time.Time
-        var err error
+        <span class="cov0" title="0">var tanggalMulaiPtr *time.Time
+        var tanggalAkhirPtr *time.Time
 
         if createdby != "local" </span><span class="cov0" title="0">{
                 return common.FailureValue[*BankSoalExt](InvalidOwner())
         }</span>
 
-        <span class="cov0" title="0">if tanggalmulai != nil </span><span class="cov0" title="0">{
-                tanggalMulai, err = time.Parse(format, helper.StringValue(tanggalmulai))
+        <span class="cov0" title="0">if tanggalmulai != nil &amp;&amp; helper.StringValue(tanggalmulai) != "" </span><span class="cov0" title="0">{
+                t, err := parseAndAdjustDate(helper.StringValue(tanggalmulai), false)
                 if err != nil </span><span class="cov0" title="0">{
                         return common.FailureValue[*BankSoalExt](InvalidDate("tanggal awal"))
                 }</span>
+                <span class="cov0" title="0">tanggalMulaiPtr = &amp;t</span>
         }
 
-        <span class="cov0" title="0">if tanggalakhir != nil </span><span class="cov0" title="0">{
-                tanggalAkhir, err = time.Parse(format, helper.StringValue(tanggalakhir))
+        <span class="cov0" title="0">if tanggalakhir != nil &amp;&amp; helper.StringValue(tanggalakhir) != "" </span><span class="cov0" title="0">{
+                t, err := parseAndAdjustDate(helper.StringValue(tanggalakhir), true)
                 if err != nil </span><span class="cov0" title="0">{
                         return common.FailureValue[*BankSoalExt](InvalidDate("tanggal akhir"))
                 }</span>
+                <span class="cov0" title="0">tanggalAkhirPtr = &amp;t</span>
         }
 
-        <span class="cov0" title="0">if tanggalmulai != nil &amp;&amp; tanggalakhir != nil </span><span class="cov0" title="0">{
-                if isOverlap(tanggalMulai, tanggalAkhir) </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">if tanggalMulaiPtr != nil &amp;&amp; tanggalAkhirPtr != nil </span><span class="cov0" title="0">{
+                if isOverlap(*tanggalMulaiPtr, *tanggalAkhirPtr) </span><span class="cov0" title="0">{
                         return common.FailureValue[*BankSoalExt](InvalidDateRange())
                 }</span>
         }
@@ -7990,8 +8007,8 @@ func AddTimeBankSoalExt(
         <span class="cov0" title="0">banksoalext := &amp;BankSoalExt{
                 UUID:         uuid.New(),
                 IdBankSoal:   banksoal.ID,
-                TanggalMulai: &amp;tanggalMulai,
-                TanggalAkhir: &amp;tanggalAkhir,
+                TanggalMulai: tanggalMulaiPtr,
+                TanggalAkhir: tanggalAkhirPtr,
                 CreatedBy:    helper.StrPtr(createdby),
                 CreatedByRef: helper.StrPtr(createdbyref),
         }
@@ -14863,8 +14880,8 @@ import (
 // CreateKuesionerHandler godoc
 // @Summary Create new Kuesioner
 // @Tags Kuesioner
-//@param bank_soal formData string true "BankSoal" format(uuid)
-//@param tanggal formData string true "Tanggal"
+// @param bank_soal formData string true "BankSoal" format(uuid)
+// @param tanggal formData string true "Tanggal"
 // @Produce json
 // @Success 200 {object} map[string]string "uuid of created Kuesioner"
 // @Failure 400 {object} commoninfra.ResponseError
@@ -14872,7 +14889,6 @@ import (
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kuesioner [post]
-
 func CreateKuesionerHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 
         UuidBankSoal := c.FormValue("bank_soal")
