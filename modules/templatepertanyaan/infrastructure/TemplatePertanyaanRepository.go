@@ -124,8 +124,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 			a.required as Required,
 			a.status as Status,
 			CASE
-				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
-				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", COALESCE(p.nama_prodi, u.prodi))
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", COALESCE(f.nama_fakultas, u.fakultas))
 				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
 				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
 				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
@@ -218,8 +218,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 			a.required as Required,
 			a.status as Status,
 			CASE
-				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
-				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", COALESCE(p.nama_prodi, u.prodi))
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", COALESCE(f.nama_fakultas, u.fakultas))
 				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
 				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
 				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
