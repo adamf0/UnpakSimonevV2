@@ -49,9 +49,9 @@ def run_sql(sql):
         cmd.append(f"-u{user}")
     if password:
         cmd.append(f"-p{password}")
-    cmd.extend([name, "-N", "-B", "-e", sql])
+    cmd.extend([name, "-N", "-B"])
     
-    p = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    p = subprocess.run(cmd, input=sql, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if p.returncode != 0:
         raise Exception(f"SQL Error: {p.stderr.strip()}")
     return p.stdout.strip()
@@ -351,7 +351,17 @@ q_raw = run_sql("""
         SUM(CASE WHEN Jawaban = '4' OR Jawaban = 'Baik' OR Jawaban = 'Setuju' THEN 1 ELSE 0 END) AS r4,
         SUM(CASE WHEN Jawaban = '5' OR Jawaban = 'Sangat Baik' OR Jawaban = 'Sangat Setuju' THEN 1 ELSE 0 END) AS r5,
         COUNT(*) AS total_resp,
-        COALESCE(AVG(CASE WHEN JenisPilihan = 'rating' AND Jawaban REGEXP '^[0-9]+$' THEN CAST(Jawaban AS DECIMAL(4,2)) ELSE NULL END), 0.0) AS avg_score
+        COALESCE(AVG(
+            CASE 
+                WHEN Jawaban = '1' OR Jawaban = 'Sangat Tidak Baik' OR Jawaban = 'Sangat Tidak Setuju' THEN 1.0
+                WHEN Jawaban = '2' OR Jawaban = 'Tidak Baik' OR Jawaban = 'Tidak Setuju' THEN 2.0
+                WHEN Jawaban = '3' OR Jawaban = 'Cukup' OR Jawaban = 'Netral' THEN 3.0
+                WHEN Jawaban = '4' OR Jawaban = 'Baik' OR Jawaban = 'Setuju' THEN 4.0
+                WHEN Jawaban = '5' OR Jawaban = 'Sangat Baik' OR Jawaban = 'Sangat Setuju' THEN 5.0
+                WHEN Jawaban REGEXP '^[0-9]+(\\.[0-9]+)?$' THEN CAST(Jawaban AS DECIMAL(4,2))
+                ELSE NULL 
+            END
+        ), 0.0) AS avg_score
     FROM kuesioner_materialized
     WHERE Judul IS NOT NULL AND Judul != '' AND Kategori IS NOT NULL AND Kategori != '' AND Pertanyaan IS NOT NULL AND Pertanyaan != ''
     GROUP BY COALESCE(NULLIF(KodeFakultas, ''), 'UNKNOWN'), COALESCE(NULLIF(KodeProdi, ''), 'Umum'), Judul, Semester, COALESCE(NULLIF(Kategori, ''), 'Umum'), Pertanyaan, COALESCE(NULLIF(JenisPilihan, ''), 'rating')
@@ -449,8 +459,8 @@ for (judul, sem, k_fak, k_prodi, kat), data in combined_map.items():
     values_list.append(f"({escape_sql(judul)}, {escape_sql(sem)}, {escape_sql(k_fak)}, {escape_sql(k_prodi)}, {escape_sql(kat)}, {escape_sql(data['full_text'])}, {tot_q}, {tot_resp}, {avg_score}, {escape_sql(c_json)}, {escape_sql(q_json)})")
 
 if values_list:
-    for i in range(0, len(values_list), 500):
-        chunk = values_list[i:i+500]
+    for i in range(0, len(values_list), 50):
+        chunk = values_list[i:i+50]
         run_sql(f"INSERT INTO report_kategori_summary (judul, semester, kode_fakultas, kode_prodi, nama_kategori, full_text, total_pertanyaan, total_responden, rata_rata_skor, chart_distribution, questions_json) VALUES {','.join(chunk)}")
 
 print("4. report_kategori_summary populated!")

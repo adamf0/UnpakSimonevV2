@@ -480,13 +480,14 @@ var allowedSearchColumns = map[string]string{
 	"nama_fakultas": "f.nama_fakultas",
 	"nama_prodi": `
 		CONCAT(
-			COALESCE(ul.nama_prodi, dc.nama_prodi),
-			' ',
-			CASE COALESCE(ul.kode_jenjang, dc.kode_jenjang)
-				WHEN 'E' THEN 'D3'
-				WHEN 'A' THEN 'S3'
-				WHEN 'B' THEN 'S2'
-				WHEN 'C' THEN 'S1'
+			p.nama_prodi,
+			CASE p.kode_jenjang
+				WHEN 'J' THEN ' (Profesi)'
+				WHEN 'E' THEN ' (D3)'
+				WHEN 'D' THEN ' (D4)'
+				WHEN 'A' THEN ' (S3)'
+				WHEN 'B' THEN ' (S2)'
+				WHEN 'C' THEN ' (S1)'
 				ELSE ''
 			END
 		)

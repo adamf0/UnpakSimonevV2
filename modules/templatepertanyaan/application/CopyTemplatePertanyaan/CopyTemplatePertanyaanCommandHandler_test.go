@@ -134,7 +134,7 @@ func TestCopyTemplatePertanyaanResultCommandHandler(t *testing.T) {
 	repo := &mock.MockTemplatePertanyaanRepository{}
 	expectedMap := map[uint]uint{1: 2}
 
-	repo.CopyByBankSoalFunc = func(ctx context.Context, tx *gorm.DB, sourceBankSoalID uint, targetBankSoalID uint, resource string, sid string) (map[uint]uint, error) {
+	repo.CopyByBankSoalFunc = func(ctx context.Context, tx *gorm.DB, sourceBankSoalID uint, targetBankSoalID uint, resource string, sid string, isDefault ...bool) (map[uint]uint, error) {
 		assert.Equal(t, uint(1), sourceBankSoalID)
 		assert.Equal(t, uint(2), targetBankSoalID)
 		assert.Equal(t, "local", resource)

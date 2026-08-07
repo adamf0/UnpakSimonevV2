@@ -105,6 +105,9 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 		Table("template_pertanyaanv2 a").
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,
@@ -120,10 +123,16 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 			k.full_text as FullPath,
 			a.required as Required,
 			a.status as Status,
-			a.createdBy as CreatedBy,
+			CASE
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
+			END as CreatedBy,
 			a.createdByRef as CreatedByRef,
-			a.fakultas as Fakultas,
-			a.prodi as Prodi,
+			COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas) as Fakultas,
+			COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi) as Prodi,
 			a.unit as Unit,
 			a.jenjang as Jenjang,
 			a.deleted_at as DeletedAt,
@@ -190,6 +199,9 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 		Table("template_pertanyaanv2 a").
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,
@@ -205,10 +217,16 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 			k.full_text as FullPath,
 			a.required as Required,
 			a.status as Status,
-			a.createdBy as CreatedBy,
+			CASE
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
+			END as CreatedBy,
 			a.createdByRef as CreatedByRef,
-			a.fakultas as Fakultas,
-			a.prodi as Prodi,
+			COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas) as Fakultas,
+			COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi) as Prodi,
 			a.unit as Unit,
 			a.jenjang as Jenjang,
 			a.deleted_at as DeletedAt,
@@ -552,7 +570,12 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
 	targetBankSoalID uint,
 	resource string,
 	sid string,
+	isDefault ...bool,
 ) (map[uint]uint, error) {
+	checkDefault := false
+	if len(isDefault) > 0 {
+		checkDefault = isDefault[0]
+	}
 
 	var rows []domaintemplatepertanyaan.TemplatePertanyaan
 
@@ -576,8 +599,10 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
 		row.UUID = uuid.New()
 
 		row.IdBankSoal = targetBankSoalID
-		row.CreatedBy = helper.StrPtr(resource)
-		row.CreatedByRef = helper.StrPtr(sid)
+		if !checkDefault {
+			row.CreatedBy = helper.StrPtr(resource)
+			row.CreatedByRef = helper.StrPtr(sid)
+		}
 
 		if err := r.db.WithContext(ctx).
 			Create(&row).Error; err != nil {

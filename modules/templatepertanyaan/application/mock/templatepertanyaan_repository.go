@@ -17,7 +17,7 @@ type MockTemplatePertanyaanRepository struct {
 	GetDefaultWithAnswareByUuidFunc       func(ctx context.Context, uid uuid.UUID) (*domain.TemplatePertanyaanWithAnswareDefault, error)
 	GetDefaultWithAnswareByBankSoalFunc   func(ctx context.Context, id_banksoal uint) ([]domain.TemplatePertanyaanWithAnswareDefault, error)
 	GetAllFunc                            func(ctx context.Context, search string, searchFilters []commonDomain.SearchFilter, page, limit *int, deleted bool) ([]domain.TemplatePertanyaanDefault, int64, error)
-	CopyByBankSoalFunc                    func(ctx context.Context, tx *gorm.DB, sourceBankSoalID uint, targetBankSoalID uint, resource string, sid string) (map[uint]uint, error)
+	CopyByBankSoalFunc                    func(ctx context.Context, tx *gorm.DB, sourceBankSoalID uint, targetBankSoalID uint, resource string, sid string, isDefault ...bool) (map[uint]uint, error)
 	CreateFunc                            func(ctx context.Context, aktivitasproker *domain.TemplatePertanyaan) error
 	UpdateFunc                            func(ctx context.Context, aktivitasproker *domain.TemplatePertanyaan) error
 	DeleteFunc                            func(ctx context.Context, uid uuid.UUID) error
@@ -81,9 +81,10 @@ func (m *MockTemplatePertanyaanRepository) CopyByBankSoal(
 	targetBankSoalID uint,
 	resource string,
 	sid string,
+	isDefault ...bool,
 ) (map[uint]uint, error) {
 	if m.CopyByBankSoalFunc != nil {
-		return m.CopyByBankSoalFunc(ctx, tx, sourceBankSoalID, targetBankSoalID, resource, sid)
+		return m.CopyByBankSoalFunc(ctx, tx, sourceBankSoalID, targetBankSoalID, resource, sid, isDefault...)
 	}
 	return nil, nil
 }

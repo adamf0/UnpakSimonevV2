@@ -21,5 +21,6 @@ func (h *CopyTemplatePertanyaanResultCommandHandler) Handle(
 		cmd.TargetBankSoalID,
 		cmd.Resource,
 		cmd.Sid,
+		true,
 	)
 }

@@ -28,6 +28,7 @@ type ITemplatePertanyaanRepository interface {
 		targetBankSoalID uint,
 		resource string,
 		sid string,
+		isDefault ...bool,
 	) (map[uint]uint, error)
 	Create(ctx context.Context, aktivitasproker *TemplatePertanyaan) error
 	Update(ctx context.Context, aktivitasproker *TemplatePertanyaan) error

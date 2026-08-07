@@ -25,4 +25,5 @@ type KuesionerDefault struct {
 	Judul         string
 	Semester      *string
 	Tanggal       time.Time
+	CreatedAt     time.Time
 }

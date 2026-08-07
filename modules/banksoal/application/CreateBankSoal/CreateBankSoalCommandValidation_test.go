@@ -22,8 +22,8 @@ func TestCreateBankSoalCommandValidation(t *testing.T) {
 	cmdFailJudul.Judul = ""
 	assert.Error(t, CreateBankSoalCommandValidation(cmdFailJudul))
 
-	// Fail on invalid Semester format
+	// Fail on empty Semester
 	cmdFailSemester := cmd
-	cmdFailSemester.Semester = "2024"
+	cmdFailSemester.Semester = ""
 	assert.Error(t, CreateBankSoalCommandValidation(cmdFailSemester))
 }

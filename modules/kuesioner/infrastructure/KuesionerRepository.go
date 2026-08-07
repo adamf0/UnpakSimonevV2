@@ -237,6 +237,8 @@ var allowedSearchColumns = map[string]string{
 	// key:param -> db column
 	"judul":          "b.judul",
 	"semester":       "b.semester",
+	"uuid_bank_soal": "b.uuid",
+	"id_bank_soal":   "a.id_bank_soal",
 	"nidn":           "a.nidn",
 	"nama_dosen":     "a.nama_dosen",
 	"nip":            "a.nip",
@@ -279,9 +281,11 @@ func (r *KuesionerRepository) GetAll(
 			a.prodi AS Prodi,
 			a.unit AS Unit,
 			a.id_bank_soal AS IdBankSoal,
+			b.uuid AS UUIDBankSoal,
 			b.judul AS Judul,
 			b.semester AS Semester,
-			a.tanggal AS Tanggal
+			a.tanggal AS Tanggal,
+			a.created_at AS CreatedAt
 	`).
 		Joins("JOIN bank_soalv2 b ON a.id_bank_soal = b.id")
 
