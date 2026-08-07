@@ -2376,6 +2376,9 @@
         "domain.KuesionerDefault": {
             "type": "object",
             "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
                 "fakultas": {
                     "type": "string"
                 },

@@ -5644,13 +5644,14 @@ var allowedSearchColumns = map[string]string{
         "nama_fakultas": "f.nama_fakultas",
         "nama_prodi": `
                 CONCAT(
-                        COALESCE(ul.nama_prodi, dc.nama_prodi),
-                        ' ',
-                        CASE COALESCE(ul.kode_jenjang, dc.kode_jenjang)
-                                WHEN 'E' THEN 'D3'
-                                WHEN 'A' THEN 'S3'
-                                WHEN 'B' THEN 'S2'
-                                WHEN 'C' THEN 'S1'
+                        p.nama_prodi,
+                        CASE p.kode_jenjang
+                                WHEN 'J' THEN ' (Profesi)'
+                                WHEN 'E' THEN ' (D3)'
+                                WHEN 'D' THEN ' (D4)'
+                                WHEN 'A' THEN ' (S3)'
+                                WHEN 'B' THEN ' (S2)'
+                                WHEN 'C' THEN ' (S1)'
                                 ELSE ''
                         END
                 )
@@ -6592,8 +6593,6 @@ func (h *CreateBankSoalCommandHandler) Handle(
 		<pre class="file" id="file55" style="display: none">package application
 
 import (
-        "regexp"
-
         validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
@@ -6610,8 +6609,6 @@ func CreateBankSoalCommandValidation(cmd CreateBankSoalCommand) error <span clas
                 // ),
                 validation.Field(&amp;cmd.Semester,
                         validation.Required.Error("Semester cannot be blank"),
-                        validation.Match(regexp.MustCompile(`^\d{4}(01|02)$`)).
-                                Error("Semester invalid format"),
                 ),
                 validation.Field(&amp;cmd.SID,
                         validation.Required.Error("SID cannot be blank"),
@@ -7418,7 +7415,6 @@ func (h *UpdateBankSoalCommandHandler) Handle(
 
 import (
         helper "UnpakSiamida/common/helper"
-        "regexp"
 
         validation "github.com/go-ozzo/ozzo-validation/v4"
 )
@@ -7440,8 +7436,6 @@ func UpdateBankSoalCommandValidation(cmd UpdateBankSoalCommand) error <span clas
                 // ),
                 validation.Field(&amp;cmd.Semester,
                         validation.Required.Error("Semester cannot be blank"),
-                        validation.Match(regexp.MustCompile(`^\d{4}(01|02)$`)).
-                                Error("Semester invalid format"),
                 ),
                 validation.Field(&amp;cmd.SID,
                         validation.Required.Error("SID cannot be blank"),
@@ -14415,6 +14409,8 @@ var allowedSearchColumns = map[string]string{
         // key:param -&gt; db column
         "judul":          "b.judul",
         "semester":       "b.semester",
+        "uuid_bank_soal": "b.uuid",
+        "id_bank_soal":   "a.id_bank_soal",
         "nidn":           "a.nidn",
         "nama_dosen":     "a.nama_dosen",
         "nip":            "a.nip",
@@ -14457,9 +14453,11 @@ func (r *KuesionerRepository) GetAll(
                         a.prodi AS Prodi,
                         a.unit AS Unit,
                         a.id_bank_soal AS IdBankSoal,
+                        b.uuid AS UUIDBankSoal,
                         b.judul AS Judul,
                         b.semester AS Semester,
-                        a.tanggal AS Tanggal
+                        a.tanggal AS Tanggal,
+                        a.created_at AS CreatedAt
         `).
                 Joins("JOIN bank_soalv2 b ON a.id_bank_soal = b.id")
 
@@ -17769,6 +17767,7 @@ func (h *CopyTemplatePertanyaanResultCommandHandler) Handle(
                 cmd.TargetBankSoalID,
                 cmd.Resource,
                 cmd.Sid,
+                true,
         )
 }</span>
 </pre>
@@ -18586,7 +18585,7 @@ type MockTemplatePertanyaanRepository struct {
         GetDefaultWithAnswareByUuidFunc       func(ctx context.Context, uid uuid.UUID) (*domain.TemplatePertanyaanWithAnswareDefault, error)
         GetDefaultWithAnswareByBankSoalFunc   func(ctx context.Context, id_banksoal uint) ([]domain.TemplatePertanyaanWithAnswareDefault, error)
         GetAllFunc                            func(ctx context.Context, search string, searchFilters []commonDomain.SearchFilter, page, limit *int, deleted bool) ([]domain.TemplatePertanyaanDefault, int64, error)
-        CopyByBankSoalFunc                    func(ctx context.Context, tx *gorm.DB, sourceBankSoalID uint, targetBankSoalID uint, resource string, sid string) (map[uint]uint, error)
+        CopyByBankSoalFunc                    func(ctx context.Context, tx *gorm.DB, sourceBankSoalID uint, targetBankSoalID uint, resource string, sid string, isDefault ...bool) (map[uint]uint, error)
         CreateFunc                            func(ctx context.Context, aktivitasproker *domain.TemplatePertanyaan) error
         UpdateFunc                            func(ctx context.Context, aktivitasproker *domain.TemplatePertanyaan) error
         DeleteFunc                            func(ctx context.Context, uid uuid.UUID) error
@@ -18650,9 +18649,10 @@ func (m *MockTemplatePertanyaanRepository) CopyByBankSoal(
         targetBankSoalID uint,
         resource string,
         sid string,
+        isDefault ...bool,
 ) (map[uint]uint, error) <span class="cov0" title="0">{
         if m.CopyByBankSoalFunc != nil </span><span class="cov0" title="0">{
-                return m.CopyByBankSoalFunc(ctx, tx, sourceBankSoalID, targetBankSoalID, resource, sid)
+                return m.CopyByBankSoalFunc(ctx, tx, sourceBankSoalID, targetBankSoalID, resource, sid, isDefault...)
         }</span>
         <span class="cov0" title="0">return nil, nil</span>
 }
@@ -19220,6 +19220,9 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
                 Table("template_pertanyaanv2 a").
                 Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
                 Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+                Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+                Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+                Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
                 Select(`
                         a.id as ID,
                         a.uuid as UUID,
@@ -19235,10 +19238,16 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
                         k.full_text as FullPath,
                         a.required as Required,
                         a.status as Status,
-                        a.createdBy as CreatedBy,
+                        CASE
+                                WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+                                WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+                                WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+                                WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+                                ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
+                        END as CreatedBy,
                         a.createdByRef as CreatedByRef,
-                        a.fakultas as Fakultas,
-                        a.prodi as Prodi,
+                        COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas) as Fakultas,
+                        COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi) as Prodi,
                         a.unit as Unit,
                         a.jenjang as Jenjang,
                         a.deleted_at as DeletedAt,
@@ -19305,6 +19314,9 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
                 Table("template_pertanyaanv2 a").
                 Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
                 Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
+                Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+                Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+                Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
                 Select(`
                         a.id as ID,
                         a.uuid as UUID,
@@ -19320,10 +19332,16 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
                         k.full_text as FullPath,
                         a.required as Required,
                         a.status as Status,
-                        a.createdBy as CreatedBy,
+                        CASE
+                                WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+                                WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+                                WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+                                WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+                                ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
+                        END as CreatedBy,
                         a.createdByRef as CreatedByRef,
-                        a.fakultas as Fakultas,
-                        a.prodi as Prodi,
+                        COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas) as Fakultas,
+                        COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi) as Prodi,
                         a.unit as Unit,
                         a.jenjang as Jenjang,
                         a.deleted_at as DeletedAt,
@@ -19667,9 +19685,14 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
         targetBankSoalID uint,
         resource string,
         sid string,
+        isDefault ...bool,
 ) (map[uint]uint, error) <span class="cov0" title="0">{
+        checkDefault := false
+        if len(isDefault) &gt; 0 </span><span class="cov0" title="0">{
+                checkDefault = isDefault[0]
+        }</span>
 
-        var rows []domaintemplatepertanyaan.TemplatePertanyaan
+        <span class="cov0" title="0">var rows []domaintemplatepertanyaan.TemplatePertanyaan
 
         if err := tx.WithContext(ctx).
                 Where("id_bank_soal = ?", sourceBankSoalID).
@@ -19691,10 +19714,12 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
                 row.UUID = uuid.New()
 
                 row.IdBankSoal = targetBankSoalID
-                row.CreatedBy = helper.StrPtr(resource)
-                row.CreatedByRef = helper.StrPtr(sid)
+                if !checkDefault </span><span class="cov0" title="0">{
+                        row.CreatedBy = helper.StrPtr(resource)
+                        row.CreatedByRef = helper.StrPtr(sid)
+                }</span>
 
-                if err := r.db.WithContext(ctx).
+                <span class="cov0" title="0">if err := r.db.WithContext(ctx).
                         Create(&amp;row).Error; err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
