@@ -106,36 +106,54 @@ func UpdateTimeBankSoal(
 		return common.FailureValue[*BankSoal](InvalidData())
 	}
 
-	format := "2006-01-02"
-
 	var tanggalMulai time.Time
 	var tanggalAkhir time.Time
 	var err error
 
-	if tanggalmulai != nil {
-		tanggalMulai, err = time.Parse(format, helper.StringValue(tanggalmulai))
+	if tanggalmulai != nil && helper.StringValue(tanggalmulai) != "" {
+		tanggalMulai, err = parseAndAdjustDate(helper.StringValue(tanggalmulai), false)
 		if err != nil {
 			return common.FailureValue[*BankSoal](InvalidDate("tanggal awal"))
 		}
+		prev.TanggalMulai = &tanggalMulai
 	}
 
-	if tanggalakhir != nil {
-		tanggalAkhir, err = time.Parse(format, helper.StringValue(tanggalakhir))
+	if tanggalakhir != nil && helper.StringValue(tanggalakhir) != "" {
+		tanggalAkhir, err = parseAndAdjustDate(helper.StringValue(tanggalakhir), true)
 		if err != nil {
 			return common.FailureValue[*BankSoal](InvalidDate("tanggal akhir"))
 		}
+		prev.TanggalAkhir = &tanggalAkhir
 	}
 
-	if tanggalmulai != nil && tanggalakhir != nil {
-		if isOverlap(tanggalMulai, tanggalAkhir) {
+	if prev.TanggalMulai != nil && prev.TanggalAkhir != nil {
+		if isOverlap(*prev.TanggalMulai, *prev.TanggalAkhir) {
 			return common.FailureValue[*BankSoal](InvalidDateRange())
 		}
 	}
 
-	prev.TanggalMulai = &tanggalMulai
-	prev.TanggalAkhir = &tanggalAkhir
-
 	return common.SuccessValue(prev)
+}
+
+func parseAndAdjustDate(str string, isEnd bool) (time.Time, error) {
+	formats := []string{
+		time.RFC3339,
+		"2006-01-02T15:04:05Z07:00",
+		"2006-01-02 15:04:05",
+		"2006-01-02",
+	}
+	var t time.Time
+	var err error
+	for _, f := range formats {
+		t, err = time.Parse(f, str)
+		if err == nil {
+			if isEnd {
+				return time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location()), nil
+			}
+			return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location()), nil
+		}
+	}
+	return t, err
 }
 
 // === Delete ===

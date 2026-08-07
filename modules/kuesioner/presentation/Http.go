@@ -35,8 +35,8 @@ import (
 // CreateKuesionerHandler godoc
 // @Summary Create new Kuesioner
 // @Tags Kuesioner
-//@param bank_soal formData string true "BankSoal" format(uuid)
-//@param tanggal formData string true "Tanggal"
+// @param bank_soal formData string true "BankSoal" format(uuid)
+// @param tanggal formData string true "Tanggal"
 // @Produce json
 // @Success 200 {object} map[string]string "uuid of created Kuesioner"
 // @Failure 400 {object} commoninfra.ResponseError
@@ -44,7 +44,6 @@ import (
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
 // @Router /kuesioner [post]
-
 func CreateKuesionerHandlerfunc(c *fiber.Ctx) error {
 
 	UuidBankSoal := c.FormValue("bank_soal")

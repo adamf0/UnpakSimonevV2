@@ -38,32 +38,31 @@ func AddTimeBankSoalExt(
 		return common.FailureValue[*BankSoalExt](InvalidData())
 	}
 
-	format := "2006-01-02"
-
-	var tanggalMulai time.Time
-	var tanggalAkhir time.Time
-	var err error
+	var tanggalMulaiPtr *time.Time
+	var tanggalAkhirPtr *time.Time
 
 	if createdby != "local" {
 		return common.FailureValue[*BankSoalExt](InvalidOwner())
 	}
 
-	if tanggalmulai != nil {
-		tanggalMulai, err = time.Parse(format, helper.StringValue(tanggalmulai))
+	if tanggalmulai != nil && helper.StringValue(tanggalmulai) != "" {
+		t, err := parseAndAdjustDate(helper.StringValue(tanggalmulai), false)
 		if err != nil {
 			return common.FailureValue[*BankSoalExt](InvalidDate("tanggal awal"))
 		}
+		tanggalMulaiPtr = &t
 	}
 
-	if tanggalakhir != nil {
-		tanggalAkhir, err = time.Parse(format, helper.StringValue(tanggalakhir))
+	if tanggalakhir != nil && helper.StringValue(tanggalakhir) != "" {
+		t, err := parseAndAdjustDate(helper.StringValue(tanggalakhir), true)
 		if err != nil {
 			return common.FailureValue[*BankSoalExt](InvalidDate("tanggal akhir"))
 		}
+		tanggalAkhirPtr = &t
 	}
 
-	if tanggalmulai != nil && tanggalakhir != nil {
-		if isOverlap(tanggalMulai, tanggalAkhir) {
+	if tanggalMulaiPtr != nil && tanggalAkhirPtr != nil {
+		if isOverlap(*tanggalMulaiPtr, *tanggalAkhirPtr) {
 			return common.FailureValue[*BankSoalExt](InvalidDateRange())
 		}
 	}
@@ -71,8 +70,8 @@ func AddTimeBankSoalExt(
 	banksoalext := &BankSoalExt{
 		UUID:         uuid.New(),
 		IdBankSoal:   banksoal.ID,
-		TanggalMulai: &tanggalMulai,
-		TanggalAkhir: &tanggalAkhir,
+		TanggalMulai: tanggalMulaiPtr,
+		TanggalAkhir: tanggalAkhirPtr,
 		CreatedBy:    helper.StrPtr(createdby),
 		CreatedByRef: helper.StrPtr(createdbyref),
 	}
