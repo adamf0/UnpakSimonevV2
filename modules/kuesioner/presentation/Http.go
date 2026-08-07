@@ -83,7 +83,7 @@ func CreateKuesionerHandlerfunc(c *fiber.Ctx) error {
 // @Failure 404 {object} commoninfra.ResponseError
 // @Failure 409 {object} commoninfra.ResponseError
 // @Failure 500 {object} commoninfra.ResponseError
-// @Router /kuesioner [post]
+// @Router /kuesioner/{uuid}/jawaban [post]
 func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error {
 
 	UuidKuesioner := c.Params("uuid")
