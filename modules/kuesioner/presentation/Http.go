@@ -340,11 +340,12 @@ func GetKuesionerReportSummaryHandlerfunc(c *fiber.Ctx) error {
 	judul := c.FormValue("judul")
 	kodeFakultas := c.FormValue("kode_fakultas")
 	kodeProdi := c.FormValue("kode_prodi")
+	unit := c.FormValue("unit")
 	repo := kuesionerInfrastructure.GlobalKuesionerRepo
 	if repo == nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
 	}
-	summary, err := repo.GetReportSummary(c.Context(), judul, kodeFakultas, kodeProdi)
+	summary, err := repo.GetReportSummary(c.Context(), judul, kodeFakultas, kodeProdi, unit)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -358,11 +359,12 @@ func GetReportSummaryOverviewHandlerfunc(c *fiber.Ctx) error {
 	judul := c.FormValue("judul")
 	kodeFakultas := c.FormValue("kode_fakultas")
 	kodeProdi := c.FormValue("kode_prodi")
+	unit := c.FormValue("unit")
 	repo := kuesionerInfrastructure.GlobalKuesionerRepo
 	if repo == nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
 	}
-	res, err := repo.GetReportSummaryOverview(c.Context(), judul, kodeFakultas, kodeProdi)
+	res, err := repo.GetReportSummaryOverview(c.Context(), judul, kodeFakultas, kodeProdi, unit)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -373,11 +375,12 @@ func GetReportDistribusiFakultasHandlerfunc(c *fiber.Ctx) error {
 	judul := c.FormValue("judul")
 	kodeFakultas := c.FormValue("kode_fakultas")
 	kodeProdi := c.FormValue("kode_prodi")
+	unit := c.FormValue("unit")
 	repo := kuesionerInfrastructure.GlobalKuesionerRepo
 	if repo == nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
 	}
-	res, err := repo.GetReportDistribusiFakultas(c.Context(), judul, kodeFakultas, kodeProdi)
+	res, err := repo.GetReportDistribusiFakultas(c.Context(), judul, kodeFakultas, kodeProdi, unit)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -388,11 +391,12 @@ func GetReportTopQuestionsHandlerfunc(c *fiber.Ctx) error {
 	judul := c.FormValue("judul")
 	kodeFakultas := c.FormValue("kode_fakultas")
 	kodeProdi := c.FormValue("kode_prodi")
+	unit := c.FormValue("unit")
 	repo := kuesionerInfrastructure.GlobalKuesionerRepo
 	if repo == nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
 	}
-	res, err := repo.GetReportTopQuestions(c.Context(), judul, kodeFakultas, kodeProdi)
+	res, err := repo.GetReportTopQuestions(c.Context(), judul, kodeFakultas, kodeProdi, unit)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -403,11 +407,12 @@ func GetReportKategoriSummaryHandlerfunc(c *fiber.Ctx) error {
 	judul := c.FormValue("judul")
 	kodeFakultas := c.FormValue("kode_fakultas")
 	kodeProdi := c.FormValue("kode_prodi")
+	unit := c.FormValue("unit")
 	repo := kuesionerInfrastructure.GlobalKuesionerRepo
 	if repo == nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
 	}
-	res, err := repo.GetReportKategoriSummary(c.Context(), judul, kodeFakultas, kodeProdi)
+	res, err := repo.GetReportKategoriSummary(c.Context(), judul, kodeFakultas, kodeProdi, unit)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}

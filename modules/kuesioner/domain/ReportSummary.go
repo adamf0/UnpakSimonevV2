@@ -4,6 +4,9 @@ type ReportSummaryOverview struct {
 	ID             uint    `gorm:"primaryKey;column:id" json:"id"`
 	Judul          string  `gorm:"column:judul" json:"judul"`
 	Semester       string  `gorm:"column:semester" json:"semester"`
+	KodeFakultas   string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+	KodeProdi      string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+	Unit           string  `gorm:"column:unit" json:"unit"`
 	TotalResponden int     `gorm:"column:total_responden" json:"total_responden"`
 	TotalJawaban   int     `gorm:"column:total_jawaban" json:"total_jawaban"`
 	RataRataRating float64 `gorm:"column:rata_rata_rating" json:"rata_rata_rating"`
@@ -18,6 +21,8 @@ type ReportDistribusiFakultas struct {
 	Judul             string  `gorm:"column:judul" json:"judul"`
 	Semester          string  `gorm:"column:semester" json:"semester"`
 	KodeFakultas      string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+	KodeProdi         string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+	Unit              string  `gorm:"column:unit" json:"unit"`
 	NamaFakultas      string  `gorm:"column:nama_fakultas" json:"nama_fakultas"`
 	TotalResponden    int     `gorm:"column:total_responden" json:"total_responden"`
 	Persentase        float64 `gorm:"column:persentase" json:"persentase"`
@@ -32,6 +37,9 @@ type ReportTopQuestion struct {
 	ID             uint    `gorm:"primaryKey;column:id" json:"id"`
 	Judul          string  `gorm:"column:judul" json:"judul"`
 	Semester       string  `gorm:"column:semester" json:"semester"`
+	KodeFakultas   string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+	KodeProdi      string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+	Unit           string  `gorm:"column:unit" json:"unit"`
 	Pertanyaan     string  `gorm:"column:pertanyaan" json:"pertanyaan"`
 	NamaKategori   string  `gorm:"column:nama_kategori" json:"nama_kategori"`
 	TotalResponden int     `gorm:"column:total_responden" json:"total_responden"`
@@ -47,6 +55,9 @@ type ReportKategoriSummary struct {
 	ID                uint    `gorm:"primaryKey;column:id" json:"id"`
 	Judul             string  `gorm:"column:judul" json:"judul"`
 	Semester          string  `gorm:"column:semester" json:"semester"`
+	KodeFakultas      string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+	KodeProdi         string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+	Unit              string  `gorm:"column:unit" json:"unit"`
 	NamaKategori      string  `gorm:"column:nama_kategori" json:"nama_kategori"`
 	FullText          string  `gorm:"column:full_text" json:"full_text"`
 	TotalPertanyaan   int     `gorm:"column:total_pertanyaan" json:"total_pertanyaan"`
