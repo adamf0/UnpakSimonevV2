@@ -13778,6 +13778,9 @@ type ReportSummaryOverview struct {
         ID             uint    `gorm:"primaryKey;column:id" json:"id"`
         Judul          string  `gorm:"column:judul" json:"judul"`
         Semester       string  `gorm:"column:semester" json:"semester"`
+        KodeFakultas   string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+        KodeProdi      string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+        Unit           string  `gorm:"column:unit" json:"unit"`
         TotalResponden int     `gorm:"column:total_responden" json:"total_responden"`
         TotalJawaban   int     `gorm:"column:total_jawaban" json:"total_jawaban"`
         RataRataRating float64 `gorm:"column:rata_rata_rating" json:"rata_rata_rating"`
@@ -13792,6 +13795,8 @@ type ReportDistribusiFakultas struct {
         Judul             string  `gorm:"column:judul" json:"judul"`
         Semester          string  `gorm:"column:semester" json:"semester"`
         KodeFakultas      string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+        KodeProdi         string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+        Unit              string  `gorm:"column:unit" json:"unit"`
         NamaFakultas      string  `gorm:"column:nama_fakultas" json:"nama_fakultas"`
         TotalResponden    int     `gorm:"column:total_responden" json:"total_responden"`
         Persentase        float64 `gorm:"column:persentase" json:"persentase"`
@@ -13806,6 +13811,9 @@ type ReportTopQuestion struct {
         ID             uint    `gorm:"primaryKey;column:id" json:"id"`
         Judul          string  `gorm:"column:judul" json:"judul"`
         Semester       string  `gorm:"column:semester" json:"semester"`
+        KodeFakultas   string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+        KodeProdi      string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+        Unit           string  `gorm:"column:unit" json:"unit"`
         Pertanyaan     string  `gorm:"column:pertanyaan" json:"pertanyaan"`
         NamaKategori   string  `gorm:"column:nama_kategori" json:"nama_kategori"`
         TotalResponden int     `gorm:"column:total_responden" json:"total_responden"`
@@ -13821,6 +13829,9 @@ type ReportKategoriSummary struct {
         ID                uint    `gorm:"primaryKey;column:id" json:"id"`
         Judul             string  `gorm:"column:judul" json:"judul"`
         Semester          string  `gorm:"column:semester" json:"semester"`
+        KodeFakultas      string  `gorm:"column:kode_fakultas" json:"kode_fakultas"`
+        KodeProdi         string  `gorm:"column:kode_prodi" json:"kode_prodi"`
+        Unit              string  `gorm:"column:unit" json:"unit"`
         NamaKategori      string  `gorm:"column:nama_kategori" json:"nama_kategori"`
         FullText          string  `gorm:"column:full_text" json:"full_text"`
         TotalPertanyaan   int     `gorm:"column:total_pertanyaan" json:"total_pertanyaan"`
@@ -14752,57 +14763,83 @@ func (r *KuesionerRepository) SetupUuid(ctx context.Context) error <span class="
 
 func applySummaryFilter(db *gorm.DB, rawJudul string) *gorm.DB <span class="cov0" title="0">{
         rawStr := strings.TrimSpace(rawJudul)
-        var judul, semester string
-        lastOpen := strings.LastIndex(rawStr, " (")
-        lastClose := strings.LastIndex(rawStr, ")")
-        if lastOpen != -1 &amp;&amp; lastClose &gt; lastOpen </span><span class="cov0" title="0">{
-                judul = strings.TrimSpace(rawStr[:lastOpen])
-                semester = strings.TrimSpace(rawStr[lastOpen+2 : lastClose])
-        }</span> else<span class="cov0" title="0"> {
-                judul = rawStr
+        if rawStr == "" </span><span class="cov0" title="0">{
+                return db
         }</span>
+
+        <span class="cov0" title="0">var extractedSem string
+        if idx := strings.LastIndex(rawStr, " (20"); idx != -1 &amp;&amp; strings.HasSuffix(rawStr, ")") </span><span class="cov0" title="0">{
+                semCandidate := strings.TrimSuffix(rawStr[idx+2:], ")")
+                isDigits := true
+                for _, r := range semCandidate </span><span class="cov0" title="0">{
+                        if r &lt; '0' || r &gt; '9' </span><span class="cov0" title="0">{
+                                isDigits = false
+                                break</span>
+                        }
+                }
+                <span class="cov0" title="0">if isDigits &amp;&amp; len(semCandidate) &gt;= 4 </span><span class="cov0" title="0">{
+                        extractedSem = semCandidate
+                        rawStr = strings.TrimSpace(rawStr[:idx])
+                }</span>
+        }
 
         <span class="cov0" title="0">cleanJudul := strings.TrimSpace(
                 strings.ReplaceAll(
-                        strings.ReplaceAll(judul, " - Semester Ganjil", ""),
+                        strings.ReplaceAll(rawStr, " - Semester Ganjil", ""),
                         " - Semester Genap", "",
                 ),
         )
 
-        if semester != "" </span><span class="cov0" title="0">{
-                return db.Where("(judul LIKE ? OR judul LIKE ?) AND semester = ?", "%"+judul+"%", "%"+cleanJudul+"%", semester)
+        subDb := db.Where("(judul = ? OR judul LIKE ? OR judul LIKE ?)", rawJudul, "%"+rawStr+"%", "%"+cleanJudul+"%")
+        if extractedSem != "" </span><span class="cov0" title="0">{
+                subDb = subDb.Where("semester = ?", extractedSem)
         }</span>
-        <span class="cov0" title="0">return db.Where("judul LIKE ?", "%"+cleanJudul+"%")</span>
+        <span class="cov0" title="0">return subDb</span>
 }
 
-func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*domainkuesioner.ReportSummaryOverview, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) (*domainkuesioner.ReportSummaryOverview, error) <span class="cov0" title="0">{
         var overview domainkuesioner.ReportSummaryOverview
         qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul).
-                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
+                Where("kode_fakultas = ? AND kode_prodi = ? AND unit = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi), strings.TrimSpace(unit))
         err := qOverview.First(&amp;overview).Error
         return &amp;overview, err
 }</span>
 
-func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportDistribusiFakultas, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) ([]domainkuesioner.ReportDistribusiFakultas, error) <span class="cov0" title="0">{
         var fakultas []domainkuesioner.ReportDistribusiFakultas
-        qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul).
-                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
-        err := qFakultas.Order("total_responden DESC").Find(&amp;fakultas).Error
-        return fakultas, err
-}</span>
+        qFakultas := applySummaryFilter(r.db.WithContext(ctx).Table("report_distribusi_fakultas"), rawJudul)
 
-func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportTopQuestion, error) <span class="cov0" title="0">{
+        kFak := strings.TrimSpace(kodeFakultas)
+        kProdi := strings.TrimSpace(kodeProdi)
+        uVal := strings.TrimSpace(unit)
+
+        if kProdi != "" </span><span class="cov0" title="0">{
+                qFakultas = qFakultas.Where("kode_prodi = ?", kProdi)
+        }</span> else<span class="cov0" title="0"> if kFak != "" </span><span class="cov0" title="0">{
+                qFakultas = qFakultas.Where("kode_fakultas = ? AND kode_prodi = ''", kFak)
+        }</span> else<span class="cov0" title="0"> if uVal != "" </span><span class="cov0" title="0">{
+                qFakultas = qFakultas.Where("unit = ? AND kode_prodi = ''", uVal)
+        }</span> else<span class="cov0" title="0"> {
+                // Overall Level 1: Return all faculty/unit distribution rows for this kuesioner
+                qFakultas = qFakultas.Where("kode_prodi = ''")
+        }</span>
+
+        <span class="cov0" title="0">err := qFakultas.Order("total_responden DESC").Find(&amp;fakultas).Error
+        return fakultas, err</span>
+}
+
+func (r *KuesionerRepository) GetReportTopQuestions(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) ([]domainkuesioner.ReportTopQuestion, error) <span class="cov0" title="0">{
         var topQuestions []domainkuesioner.ReportTopQuestion
         qTop := applySummaryFilter(r.db.WithContext(ctx).Table("report_top_questions"), rawJudul).
-                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
+                Where("kode_fakultas = ? AND kode_prodi = ? AND unit = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi), strings.TrimSpace(unit))
         err := qTop.Order("peringkat ASC").Limit(10).Find(&amp;topQuestions).Error
         return topQuestions, err
 }</span>
 
-func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) ([]domainkuesioner.ReportKategoriSummary, error) <span class="cov0" title="0">{
+func (r *KuesionerRepository) GetReportKategoriSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) ([]domainkuesioner.ReportKategoriSummary, error) <span class="cov0" title="0">{
         var kategoriSummary []domainkuesioner.ReportKategoriSummary
         qKat := applySummaryFilter(r.db.WithContext(ctx).Table("report_kategori_summary"), rawJudul).
-                Where("kode_fakultas = ? AND kode_prodi = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi))
+                Where("kode_fakultas = ? AND kode_prodi = ? AND unit = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi), strings.TrimSpace(unit))
         err := qKat.Order("nama_kategori ASC").Find(&amp;kategoriSummary).Error
         return kategoriSummary, err
 }</span>
@@ -14826,11 +14863,11 @@ func (r *KuesionerRepository) GetDashboardStats(ctx context.Context) (*domainkue
         return &amp;stats, err
 }</span>
 
-func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi string) (*domainkuesioner.ReportSummaryResponse, error) <span class="cov0" title="0">{
-        overview, _ := r.GetReportSummaryOverview(ctx, rawJudul, kodeFakultas, kodeProdi)
-        fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul, kodeFakultas, kodeProdi)
-        topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul, kodeFakultas, kodeProdi)
-        kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul, kodeFakultas, kodeProdi)
+func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) (*domainkuesioner.ReportSummaryResponse, error) <span class="cov0" title="0">{
+        overview, _ := r.GetReportSummaryOverview(ctx, rawJudul, kodeFakultas, kodeProdi, unit)
+        fakultas, _ := r.GetReportDistribusiFakultas(ctx, rawJudul, kodeFakultas, kodeProdi, unit)
+        topQuestions, _ := r.GetReportTopQuestions(ctx, rawJudul, kodeFakultas, kodeProdi, unit)
+        kategoriSummary, _ := r.GetReportKategoriSummary(ctx, rawJudul, kodeFakultas, kodeProdi, unit)
         reportYear, _ := r.GetReportYear(ctx)
 
         return &amp;domainkuesioner.ReportSummaryResponse{
@@ -15185,11 +15222,12 @@ func GetKuesionerReportSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0"
         judul := c.FormValue("judul")
         kodeFakultas := c.FormValue("kode_fakultas")
         kodeProdi := c.FormValue("kode_prodi")
+        unit := c.FormValue("unit")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">summary, err := repo.GetReportSummary(c.Context(), judul, kodeFakultas, kodeProdi)
+        <span class="cov0" title="0">summary, err := repo.GetReportSummary(c.Context(), judul, kodeFakultas, kodeProdi, unit)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15203,11 +15241,12 @@ func GetReportSummaryOverviewHandlerfunc(c *fiber.Ctx) error <span class="cov0" 
         judul := c.FormValue("judul")
         kodeFakultas := c.FormValue("kode_fakultas")
         kodeProdi := c.FormValue("kode_prodi")
+        unit := c.FormValue("unit")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportSummaryOverview(c.Context(), judul, kodeFakultas, kodeProdi)
+        <span class="cov0" title="0">res, err := repo.GetReportSummaryOverview(c.Context(), judul, kodeFakultas, kodeProdi, unit)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15218,11 +15257,12 @@ func GetReportDistribusiFakultasHandlerfunc(c *fiber.Ctx) error <span class="cov
         judul := c.FormValue("judul")
         kodeFakultas := c.FormValue("kode_fakultas")
         kodeProdi := c.FormValue("kode_prodi")
+        unit := c.FormValue("unit")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportDistribusiFakultas(c.Context(), judul, kodeFakultas, kodeProdi)
+        <span class="cov0" title="0">res, err := repo.GetReportDistribusiFakultas(c.Context(), judul, kodeFakultas, kodeProdi, unit)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15233,11 +15273,12 @@ func GetReportTopQuestionsHandlerfunc(c *fiber.Ctx) error <span class="cov0" tit
         judul := c.FormValue("judul")
         kodeFakultas := c.FormValue("kode_fakultas")
         kodeProdi := c.FormValue("kode_prodi")
+        unit := c.FormValue("unit")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportTopQuestions(c.Context(), judul, kodeFakultas, kodeProdi)
+        <span class="cov0" title="0">res, err := repo.GetReportTopQuestions(c.Context(), judul, kodeFakultas, kodeProdi, unit)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
@@ -15248,11 +15289,12 @@ func GetReportKategoriSummaryHandlerfunc(c *fiber.Ctx) error <span class="cov0" 
         judul := c.FormValue("judul")
         kodeFakultas := c.FormValue("kode_fakultas")
         kodeProdi := c.FormValue("kode_prodi")
+        unit := c.FormValue("unit")
         repo := kuesionerInfrastructure.GlobalKuesionerRepo
         if repo == nil </span><span class="cov0" title="0">{
                 return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
         }</span>
-        <span class="cov0" title="0">res, err := repo.GetReportKategoriSummary(c.Context(), judul, kodeFakultas, kodeProdi)
+        <span class="cov0" title="0">res, err := repo.GetReportKategoriSummary(c.Context(), judul, kodeFakultas, kodeProdi, unit)
         if err != nil </span><span class="cov0" title="0">{
                 return commoninfra.HandleError(c, err)
         }</span>
