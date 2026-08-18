@@ -678,3 +678,12 @@ func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul, ko
 		ReportYear:         reportYear,
 	}, nil
 }
+
+func (r *KuesionerRepository) GetUnits(ctx context.Context) ([]string, error) {
+	var units []string
+	err := r.db.WithContext(ctx).Table("report_distribusi_fakultas").
+		Where("unit IS NOT NULL AND unit != ''").
+		Order("unit ASC").
+		Pluck("DISTINCT unit", &units).Error
+	return units, err
+}

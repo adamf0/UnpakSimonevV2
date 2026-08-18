@@ -15,6 +15,7 @@ type IKuesionerRepository interface {
 	GetReportYear(ctx context.Context) ([]ReportYear, error)
 	GetDashboardStats(ctx context.Context) (*DashboardStats, error)
 	GetReportSummary(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) (*ReportSummaryResponse, error)
+	GetUnits(ctx context.Context) ([]string, error)
 	GetAllKuesionerResult(
 		ctx context.Context,
 		JudulBankSoal *string,

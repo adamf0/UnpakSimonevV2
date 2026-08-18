@@ -443,6 +443,18 @@ func GetDashboardStatsHandlerfunc(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"code": 200, "data": res})
 }
 
+func GetUnitsHandlerfunc(c *fiber.Ctx) error {
+	repo := kuesionerInfrastructure.GlobalKuesionerRepo
+	if repo == nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+	}
+	res, err := repo.GetUnits(c.Context())
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+	return c.JSON(fiber.Map{"code": 200, "data": res})
+}
+
 // =======================================================
 // GET /kuesioners/Active
 // =======================================================
@@ -581,6 +593,7 @@ func ModuleKuesioner(app *fiber.App) {
 	app.Post("/api/v2/kuesioners/report_top_questions", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportTopQuestionsHandlerfunc)
 	app.Post("/api/v2/kuesioners/report_kategori_summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportKategoriSummaryHandlerfunc)
 	app.Post("/api/v2/kuesioners/report_year", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportYearHandlerfunc)
+	app.Get("/api/v2/units", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetUnitsHandlerfunc)
 	app.Get("/api/v2/dashboard/stats", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetDashboardStatsHandlerfunc)
 	app.Post("/api/v2/dashboard/stats", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetDashboardStatsHandlerfunc)
 	app.Get("/api/v2/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
