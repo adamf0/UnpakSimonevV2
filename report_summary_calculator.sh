@@ -413,26 +413,11 @@ q_raw = run_sql("""
         MAX(FullPath) AS full_text,
         Pertanyaan AS pertanyaan,
         COALESCE(NULLIF(JenisPilihan, ''), 'rating') AS jenispilihan,
-        SUM(CASE WHEN Jawaban = '1' OR Jawaban = 'Sangat Tidak Baik' OR Jawaban = 'Sangat Tidak Setuju' THEN 1 ELSE 0 END) AS r1,
-        SUM(CASE WHEN Jawaban = '2' OR Jawaban = 'Tidak Baik' OR Jawaban = 'Tidak Setuju' THEN 1 ELSE 0 END) AS r2,
-        SUM(CASE WHEN Jawaban = '3' OR Jawaban = 'Cukup' OR Jawaban = 'Netral' THEN 1 ELSE 0 END) AS r3,
-        SUM(CASE WHEN Jawaban = '4' OR Jawaban = 'Baik' OR Jawaban = 'Setuju' THEN 1 ELSE 0 END) AS r4,
-        SUM(CASE WHEN Jawaban = '5' OR Jawaban = 'Sangat Baik' OR Jawaban = 'Sangat Setuju' THEN 1 ELSE 0 END) AS r5,
-        COUNT(*) AS total_resp,
-        COALESCE(AVG(
-            CASE 
-                WHEN Jawaban = '1' OR Jawaban = 'Sangat Tidak Baik' OR Jawaban = 'Sangat Tidak Setuju' THEN 1.0
-                WHEN Jawaban = '2' OR Jawaban = 'Tidak Baik' OR Jawaban = 'Tidak Setuju' THEN 2.0
-                WHEN Jawaban = '3' OR Jawaban = 'Cukup' OR Jawaban = 'Netral' THEN 3.0
-                WHEN Jawaban = '4' OR Jawaban = 'Baik' OR Jawaban = 'Setuju' THEN 4.0
-                WHEN Jawaban = '5' OR Jawaban = 'Sangat Baik' OR Jawaban = 'Sangat Setuju' THEN 5.0
-                WHEN Jawaban REGEXP '^[0-9]+(\\.[0-9]+)?$' THEN CAST(Jawaban AS DECIMAL(4,2))
-                ELSE NULL 
-            END
-        ), 0.0) AS avg_score
+        COALESCE(NULLIF(Jawaban, ''), 'Kosong') AS jawaban,
+        COUNT(*) AS total_resp
     FROM kuesioner_materialized
     WHERE Judul IS NOT NULL AND Judul != '' AND Kategori IS NOT NULL AND Kategori != '' AND Pertanyaan IS NOT NULL AND Pertanyaan != ''
-    GROUP BY KodeFakultas, KodeProdi, COALESCE(NULLIF(Unit, ''), 'Umum'), Judul, Semester, COALESCE(NULLIF(Kategori, ''), 'Umum'), Pertanyaan, COALESCE(NULLIF(JenisPilihan, ''), 'rating')
+    GROUP BY KodeFakultas, KodeProdi, COALESCE(NULLIF(Unit, ''), 'Umum'), Judul, Semester, COALESCE(NULLIF(Kategori, ''), 'Umum'), Pertanyaan, COALESCE(NULLIF(JenisPilihan, ''), 'rating'), COALESCE(NULLIF(Jawaban, ''), 'Kosong')
 """)
 
 overall_map = {}
@@ -444,26 +429,42 @@ for line in q_raw.split("\n"):
     if not line.strip():
         continue
     parts = line.split("\t")
-    if len(parts) < 16:
+    if len(parts) < 11:
         continue
-    k_fak, k_prodi, unit_val, judul, semester, kat, full_text, pert, j_pilihan = parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]
-    r1, r2, r3, r4, r5 = int(parts[9]), int(parts[10]), int(parts[11]), int(parts[12]), int(parts[13])
-    t_resp = int(parts[14])
-    avg_s = float(parts[15]) if parts[15] else 0.0
+    k_fak, k_prodi, unit_val, judul, semester, kat, full_text, pert, j_pilihan, jawaban, t_resp_str = parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8], parts[9], parts[10]
+    t_resp = int(t_resp_str)
 
     def add_to_map(target_dict, key):
         if key not in target_dict:
             target_dict[key] = {"full_text": full_text, "questions": {}}
         if pert not in target_dict[key]["questions"]:
-            target_dict[key]["questions"][pert] = {"title": pert, "jenispilihan": j_pilihan, "chart_distribution": {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0}, "total_resp": 0, "scores": []}
+            default_chart = {"1": 0, "2": 0, "3": 0, "4": 0, "5": 0} if j_pilihan == "rating" else {}
+            target_dict[key]["questions"][pert] = {
+                "title": pert,
+                "jenispilihan": j_pilihan,
+                "chart_distribution": default_chart,
+                "total_resp": 0,
+                "scores": []
+            }
         q = target_dict[key]["questions"][pert]
-        q["chart_distribution"]["1"] += r1
-        q["chart_distribution"]["2"] += r2
-        q["chart_distribution"]["3"] += r3
-        q["chart_distribution"]["4"] += r4
-        q["chart_distribution"]["5"] += r5
+
+        if j_pilihan == "rating":
+            rating_map = {
+                '1': '1', 'sangat tidak baik': '1', 'sangat tidak setuju': '1',
+                '2': '2', 'tidak baik': '2', 'tidak setuju': '2',
+                '3': '3', 'cukup': '3', 'netral': '3',
+                '4': '4', 'baik': '4', 'setuju': '4',
+                '5': '5', 'sangat baik': '5', 'sangat setuju': '5',
+            }
+            clean_j = jawaban.strip().lower()
+            r_key = rating_map.get(clean_j, '1' if clean_j.isdigit() and 1 <= int(clean_j) <= 5 else None)
+            if r_key:
+                q["chart_distribution"][r_key] = q["chart_distribution"].get(r_key, 0) + t_resp
+                q["scores"].append(float(r_key) * t_resp)
+        else:
+            q["chart_distribution"][jawaban] = q["chart_distribution"].get(jawaban, 0) + t_resp
+
         q["total_resp"] += t_resp
-        if avg_s > 0: q["scores"].append(avg_s)
 
     # 1. Overall
     add_to_map(overall_map, (judul, semester, "", "", "", kat))
@@ -500,13 +501,15 @@ for (judul, sem, k_fak, k_prodi, unit_val, kat), data in combined_map.items():
             "jenispilihan": q["jenispilihan"],
             "chart_distribution": q["chart_distribution"]
         })
-        for r_k in ["1", "2", "3", "4", "5"]:
-            c_chart[r_k] += q["chart_distribution"][r_k]
+        if q["jenispilihan"] == "rating":
+            for r_k in ["1", "2", "3", "4", "5"]:
+                c_chart[r_k] += q["chart_distribution"].get(r_k, 0)
         tot_resp += q["total_resp"]
         if q["scores"]:
             scores.extend(q["scores"])
             
-    avg_score = round(sum(scores) / len(scores), 2) if scores else 0.0
+    rating_resp_count = sum(c_chart.values())
+    avg_score = round(sum(scores) / rating_resp_count, 2) if rating_resp_count > 0 else 0.0
     q_json = json.dumps(q_arr)
     c_json = json.dumps(c_chart)
     
