@@ -602,7 +602,21 @@ func (r *KuesionerRepository) GetReportSummaryOverview(ctx context.Context, rawJ
 	qOverview := applySummaryFilter(r.db.WithContext(ctx).Table("report_summary_overview"), rawJudul).
 		Where("kode_fakultas = ? AND kode_prodi = ? AND unit = ?", strings.TrimSpace(kodeFakultas), strings.TrimSpace(kodeProdi), strings.TrimSpace(unit))
 	err := qOverview.First(&overview).Error
-	return &overview, err
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &domainkuesioner.ReportSummaryOverview{
+				Judul:          rawJudul,
+				KodeFakultas:   kodeFakultas,
+				KodeProdi:      kodeProdi,
+				Unit:           unit,
+				TotalResponden: 0,
+				TotalJawaban:   0,
+				RataRataRating: 0,
+			}, nil
+		}
+		return nil, err
+	}
+	return &overview, nil
 }
 
 func (r *KuesionerRepository) GetReportDistribusiFakultas(ctx context.Context, rawJudul, kodeFakultas, kodeProdi, unit string) ([]domainkuesioner.ReportDistribusiFakultas, error) {
