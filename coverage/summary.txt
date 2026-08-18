@@ -471,6 +471,7 @@ UnpakSiamida/modules/kuesioner/infrastructure/KuesionerRepository.go:639:							
 UnpakSiamida/modules/kuesioner/infrastructure/KuesionerRepository.go:647:												GetReportYear					0.0%
 UnpakSiamida/modules/kuesioner/infrastructure/KuesionerRepository.go:653:												GetDashboardStats				0.0%
 UnpakSiamida/modules/kuesioner/infrastructure/KuesionerRepository.go:666:												GetReportSummary				0.0%
+UnpakSiamida/modules/kuesioner/infrastructure/KuesionerRepository.go:682:												GetUnits					0.0%
 UnpakSiamida/modules/kuesioner/presentation/Http.go:47:															CreateKuesionerHandlerfunc			0.0%
 UnpakSiamida/modules/kuesioner/presentation/Http.go:87:															SaveKuesionerJawabanHandlerfunc			0.0%
 UnpakSiamida/modules/kuesioner/presentation/Http.go:129:														GetKuesionerJawabanHandlerfunc			0.0%
@@ -485,10 +486,11 @@ UnpakSiamida/modules/kuesioner/presentation/Http.go:390:														GetReportT
 UnpakSiamida/modules/kuesioner/presentation/Http.go:406:														GetReportKategoriSummaryHandlerfunc		0.0%
 UnpakSiamida/modules/kuesioner/presentation/Http.go:422:														GetReportYearHandlerfunc			0.0%
 UnpakSiamida/modules/kuesioner/presentation/Http.go:434:														GetDashboardStatsHandlerfunc			0.0%
-UnpakSiamida/modules/kuesioner/presentation/Http.go:460:														ActiveKuesionersHandlerfunc			0.0%
-UnpakSiamida/modules/kuesioner/presentation/Http.go:512:														GetKuesionersActiveByTargetHandler		0.0%
-UnpakSiamida/modules/kuesioner/presentation/Http.go:552:														SetupUuidKuesionersHandlerfunc			0.0%
-UnpakSiamida/modules/kuesioner/presentation/Http.go:563:														ModuleKuesioner					0.0%
+UnpakSiamida/modules/kuesioner/presentation/Http.go:446:														GetUnitsHandlerfunc				0.0%
+UnpakSiamida/modules/kuesioner/presentation/Http.go:472:														ActiveKuesionersHandlerfunc			0.0%
+UnpakSiamida/modules/kuesioner/presentation/Http.go:524:														GetKuesionersActiveByTargetHandler		0.0%
+UnpakSiamida/modules/kuesioner/presentation/Http.go:564:														SetupUuidKuesionersHandlerfunc			0.0%
+UnpakSiamida/modules/kuesioner/presentation/Http.go:575:														ModuleKuesioner					0.0%
 UnpakSiamida/modules/prodi/application/GetAllProdis/GetAllProdisQueryHandler.go:14:											Handle						100.0%
 UnpakSiamida/modules/prodi/application/mock/prodi_repository.go:15:													GetAll						0.0%
 UnpakSiamida/modules/prodi/domain/ProdiErrors.go:8:															EmptyData					0.0%
@@ -641,4 +643,4 @@ UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:393:													Ge
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:427:													GetAllTemplatePertanyaansHandlerfunc		0.0%
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:498:													SetupUuidTemplatePertanyaansHandlerfunc		0.0%
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:509:													ModuleTemplatePertanyaan			0.0%
-total:																					(statements)					23.4%
+total:																					(statements)					23.3%

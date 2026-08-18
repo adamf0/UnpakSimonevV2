@@ -14878,6 +14878,15 @@ func (r *KuesionerRepository) GetReportSummary(ctx context.Context, rawJudul, ko
                 ReportYear:         reportYear,
         }, nil
 }</span>
+
+func (r *KuesionerRepository) GetUnits(ctx context.Context) ([]string, error) <span class="cov0" title="0">{
+        var units []string
+        err := r.db.WithContext(ctx).Table("report_distribusi_fakultas").
+                Where("unit IS NOT NULL AND unit != ''").
+                Order("unit ASC").
+                Pluck("DISTINCT unit", &amp;units).Error
+        return units, err
+}</span>
 </pre>
 		
 		<pre class="file" id="file130" style="display: none">package presentation
@@ -15325,6 +15334,18 @@ func GetDashboardStatsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="
         <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
 }
 
+func GetUnitsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
+        repo := kuesionerInfrastructure.GlobalKuesionerRepo
+        if repo == nil </span><span class="cov0" title="0">{
+                return c.Status(500).JSON(fiber.Map{"error": "Repository not initialized"})
+        }</span>
+        <span class="cov0" title="0">res, err := repo.GetUnits(c.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                return commoninfra.HandleError(c, err)
+        }</span>
+        <span class="cov0" title="0">return c.JSON(fiber.Map{"code": 200, "data": res})</span>
+}
+
 // =======================================================
 // GET /kuesioners/Active
 // =======================================================
@@ -15463,6 +15484,7 @@ func ModuleKuesioner(app *fiber.App) <span class="cov0" title="0">{
         app.Post("/api/v2/kuesioners/report_top_questions", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportTopQuestionsHandlerfunc)
         app.Post("/api/v2/kuesioners/report_kategori_summary", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportKategoriSummaryHandlerfunc)
         app.Post("/api/v2/kuesioners/report_year", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetReportYearHandlerfunc)
+        app.Get("/api/v2/units", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetUnitsHandlerfunc)
         app.Get("/api/v2/dashboard/stats", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetDashboardStatsHandlerfunc)
         app.Post("/api/v2/dashboard/stats", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetDashboardStatsHandlerfunc)
         app.Get("/api/v2/kuesioners/active", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), commonpresentation.RBACMiddleware(admin, whoamiURL), ActiveKuesionersHandlerfunc)
