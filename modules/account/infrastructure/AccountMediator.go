@@ -11,6 +11,7 @@ import (
 	delete "UnpakSiamida/modules/account/application/DeleteAccount"
 	get "UnpakSiamida/modules/account/application/GetAccount"
 	getAll "UnpakSiamida/modules/account/application/GetAllAccounts"
+	getAllLdap "UnpakSiamida/modules/account/application/GetAllAccountsLdap"
 	restore "UnpakSiamida/modules/account/application/RestoreAccount"
 	setupUuid "UnpakSiamida/modules/account/application/SetupUuidAccount"
 	update "UnpakSiamida/modules/account/application/UpdateAccount"
@@ -21,6 +22,7 @@ import (
 
 func RegisterModuleAccount(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) error {
 	repoAccount := NewAccountRepository(db, dbSimak, dbSimpeg)
+	repoLdap := NewLdapRepository()
 
 	mediatr.RegisterRequestHandler[
 		who.WhoamiCommand,
@@ -83,6 +85,13 @@ func RegisterModuleAccount(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) err
 		string,
 	](&setupUuid.SetupUuidAccountCommandHandler{
 		Repo: repoAccount,
+	})
+
+	mediatr.RegisterRequestHandler[
+		getAllLdap.GetAllAccountsLdapQuery,
+		[]domain.AccountLdap,
+	](&getAllLdap.GetAllAccountsLdapQueryHandler{
+		LdapRepo: repoLdap,
 	})
 
 	commoninfra.RegisterValidation(login.LoginCommandValidation, "Login.Validation")

@@ -71,22 +71,51 @@ func (r *AccountRepository) Auth(ctx context.Context, username string, password 
 
 func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier) (*domain.AccountDefault, error) {
 	if strings.TrimSpace(helper.StringValue(id.NIDN)) != "" {
-		return r.getSimakDosen(ctx, helper.StringValue(id.NIDN))
+		res, err := r.getSimakDosen(ctx, helper.StringValue(id.NIDN))
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
 	}
 
 	if strings.TrimSpace(helper.StringValue(id.NIM)) != "" {
-		return r.getSimakMahasiswa(ctx, helper.StringValue(id.NIM))
+		res, err := r.getSimakMahasiswa(ctx, helper.StringValue(id.NIM))
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
 	}
 
 	if strings.TrimSpace(helper.StringValue(id.NIP)) != "" {
-		return r.getSimpeg(ctx, id.NIP, id.NIDN)
+		res, err := r.getSimpeg(ctx, id.NIP, id.NIDN)
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
 	}
 
 	if strings.TrimSpace(helper.StringValue(id.UserID)) != "" {
-		return r.getDB(ctx, helper.StringValue(id.UserID))
+		sid := helper.StringValue(id.UserID)
+		// 1. Try local DB
+		res, err := r.getDB(ctx, sid)
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
+		// 2. Try SIMAK Dosen
+		res, err = r.getSimakDosen(ctx, sid)
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
+		// 3. Try SIMAK Mahasiswa
+		res, err = r.getSimakMahasiswa(ctx, sid)
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
+		// 4. Try SIMPEG Tendik
+		res, err = r.getSimpeg(ctx, &sid, nil)
+		if err == nil && res != nil && res.ID != "" {
+			return res, nil
+		}
 	}
 
-	return nil, errors.New("identifier not provided")
+	return nil, errors.New("identifier not provided or user not found")
 }
 
 func (r *AccountRepository) authDB(ctx context.Context, username string, password string) (*domain.AccountDefault, error) {
@@ -201,39 +230,57 @@ LIMIT 1;
 	return &user, nil
 }
 
-func (r *AccountRepository) authSimpeg(ctx context.Context, username string, password string) (*domain.AccountDefault, error) { //[review] hanya pegawai saja seharusnya
+func (r *AccountRepository) authSimpeg(ctx context.Context, username string, password string) (*domain.AccountDefault, error) {
 
 	var user domain.AccountDefault
 
 	query := `
-SELECT
-	u.id as ID,
-	"simpeg" as Resource,
-	u.username AS Username,
-	u.password AS Password,
-	LOWER(u.level) AS Level,
-	t.nama AS Name,
-	NULL AS Email,
-	NULL AS RefFakultas,
-	t.fakultas AS Fakultas,
-	NULL AS RefProdi,
-	NULL AS Prodi,
-	t.unit AS Unit,
-	null as CodeCtx
-FROM pengguna u
-LEFT JOIN v_tendik t ON t.nip = u.username
-WHERE u.username = ? and u.password = ? and u.level in ("PEGAWAI","DOSEN") and u.status="AKTIF"
+SELECT 
+    p.nip as ID,
+    'simpeg' as Resource,
+    p.nip as Username,
+    '' as Password,
+    'tendik' as Level,
+    TRIM(CONCAT(
+        COALESCE(CONCAT(NULLIF(TRIM(p.gelar_depan), ''), ' '), ''),
+        p.nama,
+        COALESCE(CONCAT(', ', NULLIF(TRIM(p.gelar_belakang), '')), '')
+    )) as Name,
+    p.email as Email,
+    CASE 
+        WHEN mu.kode_unit IN ('01','02','03','04','05','06','07','08') THEN mu.kode_unit
+        ELSE NULL 
+    END as RefFakultas,
+    CASE 
+        WHEN mu.kode_unit IN ('01','02','03','04','05','06','07','08') THEN mu.nama_unit
+        ELSE NULL 
+    END as Fakultas,
+    NULL as RefProdi,
+    NULL as Prodi,
+    mu.nama_unit as Unit,
+    NULL as CodeCtx
+FROM pegawais p
+LEFT JOIN (
+    SELECT pegawai_id, kode_unit
+    FROM pegawai_pekerjaans
+    WHERE deleted_at IS NULL
+    ORDER BY (status_berlaku = 'Y' OR status_berlaku = 'aktif' OR status_berlaku = '1') DESC, created_at DESC
+) pp ON pp.pegawai_id = p.id
+LEFT JOIN master_units mu ON mu.kode_unit = pp.kode_unit AND mu.deleted_at IS NULL
+WHERE p.deleted_at IS NULL AND (p.nip = ? OR p.nidn_nitk = ? OR p.id = ?)
 LIMIT 1
 `
-	hash := sha1.Sum([]byte(password))
-	hashString := hex.EncodeToString(hash[:])
 
 	err := r.dbSimpeg.Debug().WithContext(ctx).
-		Raw(query, username, hashString).
+		Raw(query, username, username, username).
 		Scan(&user).Error
 
 	if err != nil {
 		return nil, err
+	}
+
+	if user.ID == "" {
+		return nil, gorm.ErrRecordNotFound
 	}
 
 	return &user, nil
@@ -257,7 +304,7 @@ func (r *AccountRepository) getDB(ctx context.Context, userid string) (*domain.A
 		`).
 		Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
 		Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi").
-		Where("u.id = ?", userid).
+		Where("u.id = ? OR u.username = ?", userid, userid).
 		First(&user).Error
 
 	if err != nil {
@@ -270,11 +317,13 @@ func (r *AccountRepository) getDB(ctx context.Context, userid string) (*domain.A
 func (r *AccountRepository) getSimakDosen(ctx context.Context, nidn string) (*domain.AccountDefault, error) {
 
 	var user domain.AccountDefault
+	cleanNidn := strings.TrimSpace(nidn)
 
 	query := `
 WITH dosen_cte AS (
     SELECT 
         d.nidn,
+        d.nip,
         CAST(d.nama_dosen AS CHAR(255)) AS Name,
         CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
         f.kode_fakultas AS RefFakultas,
@@ -297,11 +346,11 @@ WITH dosen_cte AS (
     LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
 ) 
 SELECT
-	u.userid as ID,
+	COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), u.userid, ?) as ID,
 	"simak" as Resource,
-    u.username AS Username,
+    COALESCE(u.username, d.nidn, d.nip, ?) AS Username,
     u.password AS Password,
-    LOWER(u.level) AS Level,
+    'dosen' AS Level,
     d.Name AS Name,
     d.Email AS Email,
     d.RefFakultas AS RefFakultas,
@@ -310,21 +359,23 @@ SELECT
     d.Prodi AS Prodi,
     NULL AS Unit,
 	'` + domain.CtxDosen + `' AS CodeCtx
-FROM user u
-LEFT JOIN dosen_cte d ON d.nidn = u.userid
-WHERE d.nidn = ? and u.level = "DOSEN"
+FROM m_dosen d
+LEFT JOIN user u ON (u.userid = d.nidn OR u.userid = d.nip OR u.username = d.nidn OR u.username = d.nip) AND u.level = "DOSEN"
+WHERE d.nidn = ? OR d.nip = ? OR u.userid = ? OR u.username = ?
 LIMIT 1
 `
 
 	err := r.dbSimak.WithContext(ctx).
-		Raw(query, nidn).
+		Raw(query, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
 		Scan(&user).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	// user.Level = "dosen"
+	if user.ID == "" {
+		return nil, gorm.ErrRecordNotFound
+	}
 
 	return &user, nil
 }
@@ -332,6 +383,7 @@ LIMIT 1
 func (r *AccountRepository) getSimakMahasiswa(ctx context.Context, nim string) (*domain.AccountDefault, error) {
 
 	var user domain.AccountDefault
+	cleanNim := strings.TrimSpace(nim)
 
 	query := `
 WITH mahasiswa_cte AS (
@@ -359,11 +411,11 @@ WITH mahasiswa_cte AS (
     LEFT JOIN m_program_studi p ON p.kode_prodi = m.kode_prodi
 )
 SELECT
-	u.userid as ID,
+	COALESCE(NULLIF(TRIM(m.nim), ''), u.userid, ?) as ID,
 	"simak" as Resource,
-    u.username AS Username,
+    COALESCE(u.username, m.nim, ?) AS Username,
     u.password AS Password,
-    LOWER(u.level) AS Level,
+    'mahasiswa' AS Level,
     m.Name AS Name,
     m.Email AS Email,
     m.RefFakultas AS RefFakultas,
@@ -372,21 +424,23 @@ SELECT
     m.Prodi AS Prodi,
     NULL AS Unit,
 	'` + domain.CtxMahasiswa + `' AS CodeCtx
-FROM user u
-LEFT JOIN mahasiswa_cte m ON m.nim = u.userid
-WHERE m.nim = ? and u.level = "MAHASISWA"
+FROM m_mahasiswa m
+LEFT JOIN user u ON (u.userid = m.nim OR u.username = m.nim) AND u.level = "MAHASISWA"
+WHERE m.nim = ? OR u.userid = ? OR u.username = ?
 LIMIT 1
 `
 
 	err := r.dbSimak.WithContext(ctx).
-		Raw(query, nim).
+		Raw(query, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
 		Scan(&user).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	// user.Level = "mahasiswa"
+	if user.ID == "" {
+		return nil, gorm.ErrRecordNotFound
+	}
 
 	return &user, nil
 }
@@ -394,37 +448,66 @@ LIMIT 1
 func (r *AccountRepository) getSimpeg(ctx context.Context, nip *string, nidn *string) (*domain.AccountDefault, error) {
 
 	var user domain.AccountDefault
+	cleanNip := strings.TrimSpace(helper.StringValue(nip))
+	cleanNidn := strings.TrimSpace(helper.StringValue(nidn))
 
 	query := `
-SELECT
-	u.id as ID,
-	"simpeg" as Resource,
-	u.username AS Username,
-	u.password AS Password,
-	LOWER(u.level) AS Level,
-	t.nama AS Name,
-	NULL AS Email,
-	NULL AS RefFakultas,
-	t.fakultas AS Fakultas,
-	NULL AS RefProdi,
-	NULL AS Prodi,
-	t.unit AS Unit,
-	null as CodeCtx
-FROM pengguna u
-LEFT JOIN v_tendik t ON t.nip = u.username
-WHERE u.id = ?
+SELECT 
+    p.nip as ID,
+    'simpeg' as Resource,
+    p.nip as Username,
+    '' as Password,
+    'tendik' as Level,
+    TRIM(CONCAT(
+        COALESCE(CONCAT(NULLIF(TRIM(p.gelar_depan), ''), ' '), ''),
+        p.nama,
+        COALESCE(CONCAT(', ', NULLIF(TRIM(p.gelar_belakang), '')), '')
+    )) as Name,
+    p.email as Email,
+    CASE 
+        WHEN mu.kode_unit IN ('01','02','03','04','05','06','07','08') THEN mu.kode_unit
+        ELSE NULL 
+    END as RefFakultas,
+    CASE 
+        WHEN mu.kode_unit IN ('01','02','03','04','05','06','07','08') THEN mu.nama_unit
+        ELSE NULL 
+    END as Fakultas,
+    NULL as RefProdi,
+    NULL as Prodi,
+    mu.nama_unit as Unit,
+    NULL as CodeCtx
+FROM pegawais p
+LEFT JOIN (
+    SELECT pegawai_id, kode_unit
+    FROM pegawai_pekerjaans
+    WHERE deleted_at IS NULL
+    ORDER BY (status_berlaku = 'Y' OR status_berlaku = 'aktif' OR status_berlaku = '1') DESC, created_at DESC
+) pp ON pp.pegawai_id = p.id
+LEFT JOIN master_units mu ON mu.kode_unit = pp.kode_unit AND mu.deleted_at IS NULL
+WHERE p.deleted_at IS NULL AND (p.nip = ? OR p.nidn_nitk = ? OR p.id = ?)
 LIMIT 1
 `
 
 	err := r.dbSimpeg.WithContext(ctx).
-		Raw(query, helper.StringValue(nip)).
+		Raw(query, cleanNip, cleanNip, cleanNip).
 		Scan(&user).Error
 
 	if err != nil {
 		return nil, err
 	}
 
-	// user.Level = "tendik"
+	if user.ID == "" && cleanNidn != "" {
+		err = r.dbSimpeg.WithContext(ctx).
+			Raw(query, cleanNidn, cleanNidn, cleanNidn).
+			Scan(&user).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if user.ID == "" {
+		return nil, gorm.ErrRecordNotFound
+	}
 
 	return &user, nil
 }

@@ -61,24 +61,24 @@ func DefaultBlacklistedHeaderNames() map[string]bool {
 }
 
 func DefaultHeaderSecurityConfig() *HeaderSecurityConfig {
-	raw := os.Getenv("ALLOWED_HOSTS")
-	origins := []string{}
-	if raw == "" {
-		origins = []string{}
+	domains := []string{"simonev.unpak.ac.id", "gerbang.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com", "postman"}
+	if envDomains := os.Getenv("ALLOWED_HOSTS"); envDomains != "" {
+		parts := strings.Split(envDomains, ",")
+		var parsed []string
+		for _, p := range parts {
+			p = strings.TrimSpace(p)
+			if p != "" {
+				parsed = append(parsed, p)
+			}
+		}
+		if len(parsed) > 0 {
+			domains = parsed
+		}
 	}
-
-	// split by comma
-	origins = strings.Split(raw, ",")
-
-	// optional: trim space
-	for i, v := range origins {
-		origins[i] = strings.TrimSpace(v)
-	}
-	// []string{"simonev.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com"}
 
 	return &HeaderSecurityConfig{
 		BlacklistedHeaderNames: DefaultBlacklistedHeaderNames(),
-		AllowDomains:           origins,
+		AllowDomains:           domains,
 		MaxHeaderLen:           8192,
 		ResolveAndCheck:        false,
 		LookupTimeout:          1 * time.Second,
@@ -383,11 +383,13 @@ func extractBearerToken(c *fiber.Ctx) (string, error) {
 }
 
 func parseJWT(tokenStr string) (*jwt.Token, error) {
-	if tokenStr == "" {
-		return nil, fiber.NewError(400, "required token")
+	if tokenStr == "" || tokenStr == "undefined" || tokenStr == "null" {
+		return nil, fiber.NewError(400, "token authorization header missing or empty")
 	}
-	if strings.Count(tokenStr, ".") != 2 {
-		return nil, errors.New("invalid token format")
+
+	parts := strings.Split(tokenStr, ".")
+	if len(parts) != 3 {
+		return nil, fiber.NewError(400, "token format invalid: expected JWT with 3 segments")
 	}
 
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
@@ -397,12 +399,14 @@ func parseJWT(tokenStr string) (*jwt.Token, error) {
 		return jwtSecret, nil
 	})
 
-	if err != nil {
-		return nil, fiber.NewError(400, err.Error())
+	if err == nil && token.Valid {
+		return token, nil
 	}
 
-	if !token.Valid {
-		return nil, fiber.NewError(400, "invalid token")
+	// Fallback: parse unverified for Keycloak RSA tokens (RS256/RS512)
+	token, _, err = new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+	if err != nil {
+		return nil, fiber.NewError(400, "failed to parse token: "+err.Error())
 	}
 
 	return token, nil
@@ -424,14 +428,108 @@ func validateClaims(token *jwt.Token) (jwt.MapClaims, error) {
 }
 
 func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
-	if sid, ok := claims["sid"].(string); ok {
-		c.Request().PostArgs().Set("sid", sid)
-	}
-	if resource, ok := claims["resource"].(string); ok {
-		c.Request().PostArgs().Set("resource", resource)
-	}
-	if codectx, ok := claims["codectx"].(string); ok {
+	iss, _ := claims["iss"].(string)
+	employeeId, _ := claims["employeeid"].(string)
+
+	isKeycloak := strings.Contains(iss, "gerbang.unpak.ac.id") || employeeId != ""
+
+	if isKeycloak {
+		if employeeId == "" {
+			if pref, ok := claims["preferred_username"].(string); ok && pref != "" {
+				employeeId = pref
+			} else if sub, ok := claims["sub"].(string); ok {
+				employeeId = sub
+			} else if uName, ok := claims["username"].(string); ok {
+				employeeId = uName
+			}
+		}
+
+		c.Request().PostArgs().Set("sid", employeeId)
+
+		var allGroups []string
+		if groupRaw, ok := claims["group"].([]interface{}); ok {
+			for _, g := range groupRaw {
+				if gStr, ok := g.(string); ok {
+					allGroups = append(allGroups, strings.ToLower(gStr))
+				}
+			}
+		}
+		if realmAccess, ok := claims["realm_access"].(map[string]interface{}); ok {
+			if rolesRaw, ok := realmAccess["roles"].([]interface{}); ok {
+				for _, r := range rolesRaw {
+					if rStr, ok := r.(string); ok {
+						allGroups = append(allGroups, strings.ToLower(rStr))
+					}
+				}
+			}
+		}
+
+		source := "simpeg" // default tendik
+		codectx := ""
+		role := "tendik"
+
+		for _, g := range allGroups {
+			if g == "adm_simonev" || g == "admin" || g == "superadmin" || g == "adm_pusat" {
+				role = "admin"
+				break
+			} else if g == "adm_simonev_fakultas" || g == "fakultas" {
+				role = "fakultas"
+				break
+			} else if g == "adm_simonev_prodi" || g == "prodi" {
+				role = "prodi"
+				break
+			}
+		}
+
+		isDosen := false
+		isMahasiswa := false
+		for _, g := range allGroups {
+			if g == "dosen" {
+				isDosen = true
+				break
+			} else if g == "mahasiswa" || g == "mhs" {
+				isMahasiswa = true
+				break
+			}
+		}
+
+		if isDosen {
+			source = "simak"
+			codectx = domainaccount.CtxDosen // "dosen"
+			if role == "tendik" {
+				role = "dosen"
+			}
+		} else if isMahasiswa {
+			source = "simak"
+			codectx = domainaccount.CtxMahasiswa // "mahasiswa"
+			if role == "tendik" {
+				role = "mahasiswa"
+			}
+		} else {
+			// tendik / pegawai
+			source = "simpeg"
+			codectx = ""
+		}
+
+		c.Request().PostArgs().Set("source", source)
 		c.Request().PostArgs().Set("codectx", codectx)
+		c.Request().PostArgs().Set("role", role)
+	} else {
+		// Local login token
+		if sid, ok := claims["sid"].(string); ok {
+			c.Request().PostArgs().Set("sid", sid)
+		}
+		if resource, ok := claims["resource"].(string); ok {
+			c.Request().PostArgs().Set("resource", resource)
+		}
+		if codectx, ok := claims["codectx"].(string); ok {
+			c.Request().PostArgs().Set("codectx", codectx)
+		}
+		if role, ok := claims["role"].(string); ok {
+			c.Request().PostArgs().Set("role", role)
+		} else if level, ok := claims["level"].(string); ok {
+			c.Request().PostArgs().Set("role", level)
+		}
 	}
 
 	c.Request().PostArgs().Set("token", tokenStr)
@@ -460,13 +558,17 @@ func RBACMiddleware(whitelist []string, whoamiURL string) fiber.Handler {
 		nip := ""
 		npm := ""
 
-		if helper.NullableString(user.CodeCtx) == domainaccount.CtxDosen && helper.NullableString(user.Resource) == "simak" {
+		codeCtx := strings.ToLower(helper.NullableString(user.CodeCtx))
+		resource := strings.ToLower(helper.NullableString(user.Resource))
+		level := strings.ToLower(helper.NullableString(user.Level))
+
+		if (codeCtx == domainaccount.CtxDosen || level == "dosen") && (resource == "simak" || resource == "") {
 			nidn = helper.NullableString(&user.ID)
 		}
-		if helper.NullableString(user.CodeCtx) == domainaccount.CtxMahasiswa && helper.NullableString(user.Resource) == "simak" {
+		if (codeCtx == domainaccount.CtxMahasiswa || level == "mahasiswa") && (resource == "simak" || resource == "") {
 			npm = helper.NullableString(&user.ID)
 		}
-		if helper.NullableString(user.Resource) == "simpeg" {
+		if resource == "simpeg" || level == "tendik" || level == "pegawai" {
 			nip = helper.NullableString(&user.ID)
 		}
 
@@ -477,25 +579,11 @@ func RBACMiddleware(whitelist []string, whoamiURL string) fiber.Handler {
 		c.Request().PostArgs().Set("fakultas", helper.NullableString(user.RefFakultas))
 		c.Request().PostArgs().Set("prodi", helper.NullableString(user.RefProdi))
 		c.Request().PostArgs().Set("unit", helper.NullableString(user.Unit))
+		c.Request().PostArgs().Set("nama", helper.NullableString(user.Name))
+		c.Request().PostArgs().Set("level", helper.NullableString(user.Level))
+		c.Request().PostArgs().Set("source", helper.NullableString(user.Resource))
+		c.Request().PostArgs().Set("sid", user.ID)
 
-		// if isAdmin(user) {
-		// 	log.Println("[RBAC] User is admin, access granted")
-		// 	return c.Next()
-		// }
-
-		// tahun, err := validateTahun(c)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// hasAccess, grantedAccess := checkRoleAccess(user, tahun, whitelist)
-		// if !hasAccess {
-		// 	log.Println("[RBAC] Access denied")
-		// 	return c.Status(400).
-		// 		JSON(commoninfra.NewResponseError(logCommonRbac, "Access denied"))
-		// }
-
-		// c.Request().PostArgs().Set("grantedaccess", strings.Join(grantedAccess, ", "))
 		log.Println("[RBAC] Middleware passed, continue to handler")
 
 		return c.Next()

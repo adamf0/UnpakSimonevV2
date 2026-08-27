@@ -174,6 +174,7 @@ func NewMySQLSimpeg() (*gorm.DB, error) {
 // @host 127.0.0.1:3000
 // @BasePath /
 func main() {
+	_ = godotenv.Load()
 	cfg := commonpresentation.DefaultHeaderSecurityConfig()
 	cfg.ResolveAndCheck = false
 

@@ -488,6 +488,20 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 	npm := c.FormValue("npm")
 	fakultas := c.FormValue("fakultas")
 	prodi := c.FormValue("prodi")
+	role := c.FormValue("role")
+	if role == "adm_simonev" || role == "admin" || role == "superadmin" || role == "adm_pusat" {
+		role = "admin"
+		nip = ""
+		nidn = ""
+	} else if role == "adm_simonev_fakultas" {
+		role = "fakultas"
+		nip = ""
+		nidn = ""
+	} else if role == "adm_simonev_prodi" {
+		role = "prodi"
+		nip = ""
+		nidn = ""
+	}
 
 	query := GetAllBankSoals.GetAllBankSoalsQuery{
 		Search:         search,

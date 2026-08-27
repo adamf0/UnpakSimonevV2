@@ -19,6 +19,7 @@ import (
 	DeleteAccount "UnpakSiamida/modules/account/application/DeleteAccount"
 	GetAccount "UnpakSiamida/modules/account/application/GetAccount"
 	GetAllAccounts "UnpakSiamida/modules/account/application/GetAllAccounts"
+	GetAllAccountsLdap "UnpakSiamida/modules/account/application/GetAllAccountsLdap"
 	RestoreAccount "UnpakSiamida/modules/account/application/RestoreAccount"
 	SetupUuidAccount "UnpakSiamida/modules/account/application/SetupUuidAccount"
 	UpdateAccount "UnpakSiamida/modules/account/application/UpdateAccount"
@@ -64,8 +65,17 @@ func LoginHandlerfunc(c *fiber.Ctx) error {
 func WhoAmIHandler(c *fiber.Ctx) error {
 
 	userID := c.FormValue("sid")
+	if userID == "" {
+		userID = c.Query("sid")
+	}
 	resource := c.FormValue("resource")
+	if resource == "" {
+		resource = c.Query("resource")
+	}
 	codectx := c.FormValue("codectx")
+	if codectx == "" {
+		codectx = c.Query("codectx")
+	}
 
 	var (
 		SID  *string
@@ -74,11 +84,14 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 		NPM  *string
 	)
 
-	if codectx == domainaccount.CtxDosen && helper.NullableString(&resource) == "simak" {
+	normCode := strings.ToLower(strings.TrimSpace(codectx))
+	normRes := strings.ToLower(strings.TrimSpace(resource))
+
+	if (normCode == domainaccount.CtxDosen || normCode == "dosen") && (normRes == "simak" || normRes == "") {
 		NIDN = helper.StrPtr(userID)
-	} else if codectx == domainaccount.CtxMahasiswa && helper.NullableString(&resource) == "simak" {
+	} else if (normCode == domainaccount.CtxMahasiswa || normCode == "mahasiswa") && (normRes == "simak" || normRes == "") {
 		NPM = helper.StrPtr(userID)
-	} else if resource == "simpeg" {
+	} else if normRes == "simpeg" || normCode == "tendik" || normCode == "pegawai" {
 		NIP = helper.StrPtr(userID)
 	} else {
 		SID = helper.StrPtr(userID)
@@ -449,6 +462,41 @@ func GetAllAccountsHandlerfunc(c *fiber.Ctx) error {
 	return adapter.Send(c, result)
 }
 
+func GetAllAccountsLdapHandlerfunc(c *fiber.Ctx) error {
+	groupsParam := c.Query("groups", "")
+	var groups []string
+	if groupsParam != "" {
+		parts := strings.Split(groupsParam, ",")
+		for _, p := range parts {
+			if trimmed := strings.TrimSpace(p); trimmed != "" {
+				groups = append(groups, trimmed)
+			}
+		}
+	}
+
+	query := GetAllAccountsLdap.GetAllAccountsLdapQuery{
+		Groups: groups,
+	}
+
+	result, err := mediatr.Send[
+		GetAllAccountsLdap.GetAllAccountsLdapQuery,
+		[]domainaccount.AccountLdap,
+	](context.Background(), query)
+
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	if result == nil {
+		result = []domainaccount.AccountLdap{}
+	}
+
+	return c.JSON(fiber.Map{
+		"data":  result,
+		"total": len(result),
+	})
+}
+
 func SetupUuidAccountsHandlerfunc(c *fiber.Ctx) error {
 	cmd := SetupUuidAccount.SetupUuidAccountCommand{}
 
@@ -475,4 +523,5 @@ func ModuleAccount(app *fiber.App) {
 
 	app.Get("/api/v2/account/:uuid", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAccountHandlerfunc)
 	app.Get("/api/v2/accounts", commonpresentation.SmartCompress(), commonpresentation.JWTMiddleware(), GetAllAccountsHandlerfunc)
+	app.Get("/api/v2/accounts/ldap", commonpresentation.SmartCompress(), GetAllAccountsLdapHandlerfunc)
 }
