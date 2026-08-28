@@ -169,7 +169,10 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
 		Timeout:   10 * time.Second,
 	}
 
-	token := r.getKeycloakToken(httpClient, baseURL, realm)
+	token := os.Getenv("KEYCLOAK_ADMIN_TOKEN")
+	if token == "" {
+		token = r.getKeycloakToken(httpClient, baseURL, realm)
+	}
 
 	usersURL := fmt.Sprintf("%s/admin/realms/%s/users?max=1000", baseURL, realm)
 	req, err := http.NewRequest("GET", usersURL, nil)
@@ -183,14 +186,12 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		log.Printf("[Keycloak Notice] Failed to query %s: %v", usersURL, err)
 		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("[Keycloak Notice] %s returned status %d", usersURL, resp.StatusCode)
-		return nil, fmt.Errorf("keycloak api returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("keycloak api status %d", resp.StatusCode)
 	}
 
 	var rawUsers []keycloakUser
@@ -364,9 +365,6 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 	if err == nil && len(kcUsers) > 0 {
 		log.Printf("[LdapRepository] Successfully fetched %d users from Keycloak Gerbang API", len(kcUsers))
 		return kcUsers, nil
-	}
-	if err != nil {
-		log.Printf("[LdapRepository] Keycloak fetch notice: %v", err)
 	}
 
 	// 2. Fallback to LDAP TCP connection with 3s fast timeout
