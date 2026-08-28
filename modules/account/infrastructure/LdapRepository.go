@@ -3,11 +3,16 @@ package infrastructure
 import (
 	domainaccount "UnpakSiamida/modules/account/domain"
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/go-ldap/ldap/v3"
 )
@@ -16,6 +21,23 @@ type LdapRepository struct{}
 
 func NewLdapRepository() *LdapRepository {
 	return &LdapRepository{}
+}
+
+type keycloakUser struct {
+	ID         string              `json:"id"`
+	Username   string              `json:"username"`
+	FirstName  string              `json:"firstName"`
+	LastName   string              `json:"lastName"`
+	Email      string              `json:"email"`
+	Attributes map[string][]string `json:"attributes"`
+	Groups     []string            `json:"groups"`
+	RealmRoles []string            `json:"realmRoles"`
+}
+
+type keycloakGroup struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Path string `json:"path"`
 }
 
 func (r *LdapRepository) Connect() (*ldap.Conn, error) {
@@ -57,7 +79,291 @@ func (r *LdapRepository) Connect() (*ldap.Conn, error) {
 	return conn, nil
 }
 
+func (r *LdapRepository) getKeycloakToken(httpClient *http.Client, baseURL, realm string) string {
+	adminUser := os.Getenv("KEYCLOAK_ADMIN_USER")
+	if adminUser == "" {
+		adminUser = os.Getenv("AD_USER")
+	}
+	adminPass := os.Getenv("KEYCLOAK_ADMIN_PASS")
+	if adminPass == "" {
+		adminPass = os.Getenv("AD_PASS")
+	}
+	clientID := os.Getenv("KEYCLOAK_CLIENT_ID")
+	if clientID == "" {
+		clientID = "admin-cli"
+	}
+	clientSecret := os.Getenv("KEYCLOAK_CLIENT_SECRET")
+
+	tokenEndpoints := []string{
+		fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", baseURL, realm),
+		fmt.Sprintf("%s/realms/master/protocol/openid-connect/token", baseURL),
+	}
+
+	for _, ep := range tokenEndpoints {
+		data := url.Values{}
+		if clientSecret != "" {
+			data.Set("grant_type", "client_credentials")
+			data.Set("client_id", clientID)
+			data.Set("client_secret", clientSecret)
+		} else if adminUser != "" && adminPass != "" {
+			data.Set("grant_type", "password")
+			data.Set("client_id", clientID)
+			data.Set("username", adminUser)
+			data.Set("password", adminPass)
+		} else {
+			continue
+		}
+
+		req, err := http.NewRequest("POST", ep, strings.NewReader(data.Encode()))
+		if err != nil {
+			continue
+		}
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			continue
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusOK {
+			var res struct {
+				AccessToken string `json:"access_token"`
+			}
+			bodyBytes, _ := io.ReadAll(resp.Body)
+			if err := json.Unmarshal(bodyBytes, &res); err == nil && res.AccessToken != "" {
+				return res.AccessToken
+			}
+		}
+	}
+
+	return ""
+}
+
+func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainaccount.AccountLdap, error) {
+	baseURL := os.Getenv("KEYCLOAK_URL")
+	if baseURL == "" {
+		baseURL = os.Getenv("KEYCLOAK_ADMIN_URL")
+	}
+	if baseURL == "" {
+		baseURL = "https://gerbang.unpak.ac.id"
+	}
+	baseURL = strings.TrimRight(baseURL, "/")
+
+	realm := os.Getenv("KEYCLOAK_REALM")
+	if realm == "" {
+		realm = "gerbang"
+	}
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	httpClient := &http.Client{
+		Transport: tr,
+		Timeout:   15 * time.Second,
+	}
+
+	token := r.getKeycloakToken(httpClient, baseURL, realm)
+
+	usersURL := fmt.Sprintf("%s/admin/realms/%s/users?max=1000", baseURL, realm)
+	req, err := http.NewRequest("GET", usersURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Printf("[Keycloak Error] Failed to query %s: %v", usersURL, err)
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		log.Printf("[Keycloak Error] %s returned status %d", usersURL, resp.StatusCode)
+		return nil, fmt.Errorf("keycloak api returned status %d", resp.StatusCode)
+	}
+
+	var rawUsers []keycloakUser
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(bodyBytes, &rawUsers); err != nil {
+		log.Printf("[Keycloak Error] Failed to parse JSON: %v", err)
+		return nil, err
+	}
+
+	isGroupAllowed := func(gName string) (bool, string) {
+		trimmed := strings.TrimSpace(gName)
+		trimmed = strings.TrimPrefix(trimmed, "/")
+		for _, allowed := range allowedGroups {
+			if strings.EqualFold(trimmed, allowed) || strings.Contains(strings.ToLower(trimmed), "simonev") {
+				return true, allowed
+			}
+		}
+		return false, ""
+	}
+
+	var result []domainaccount.AccountLdap
+	seen := make(map[string]bool)
+
+	for _, ku := range rawUsers {
+		if ku.Username == "" {
+			continue
+		}
+
+		var userGroups []string
+		var matchedGroup string
+		isMatched := false
+
+		// Check groups array
+		for _, g := range ku.Groups {
+			userGroups = append(userGroups, g)
+			if ok, match := isGroupAllowed(g); ok {
+				isMatched = true
+				matchedGroup = match
+			}
+		}
+
+		// Check realm roles array
+		for _, r := range ku.RealmRoles {
+			userGroups = append(userGroups, r)
+			if ok, match := isGroupAllowed(r); ok {
+				isMatched = true
+				matchedGroup = match
+			}
+		}
+
+		// Check attributes for roles/groups
+		if attrRoles, ok := ku.Attributes["roles"]; ok {
+			for _, r := range attrRoles {
+				userGroups = append(userGroups, r)
+				if ok, match := isGroupAllowed(r); ok {
+					isMatched = true
+					matchedGroup = match
+				}
+			}
+		}
+		if attrGroups, ok := ku.Attributes["groups"]; ok {
+			for _, g := range attrGroups {
+				userGroups = append(userGroups, g)
+				if ok, match := isGroupAllowed(g); ok {
+					isMatched = true
+					matchedGroup = match
+				}
+			}
+		}
+
+		// If no groups explicitly matched yet, check username / cn
+		if !isMatched {
+			for _, allowed := range allowedGroups {
+				if strings.EqualFold(ku.Username, allowed) || strings.Contains(strings.ToLower(ku.Username), "simonev") {
+					isMatched = true
+					matchedGroup = allowed
+					break
+				}
+			}
+		}
+
+		// If token is available and not matched, query Keycloak /users/{id}/groups
+		if !isMatched && token != "" && ku.ID != "" {
+			userGrpURL := fmt.Sprintf("%s/admin/realms/%s/users/%s/groups", baseURL, realm, ku.ID)
+			gReq, err := http.NewRequest("GET", userGrpURL, nil)
+			if err == nil {
+				gReq.Header.Set("Authorization", "Bearer "+token)
+				gReq.Header.Set("Accept", "application/json")
+				gResp, err := httpClient.Do(gReq)
+				if err == nil && gResp.StatusCode == http.StatusOK {
+					var kGroups []keycloakGroup
+					gBody, _ := io.ReadAll(gResp.Body)
+					gResp.Body.Close()
+					if err := json.Unmarshal(gBody, &kGroups); err == nil {
+						for _, kg := range kGroups {
+							userGroups = append(userGroups, kg.Name)
+							if ok, match := isGroupAllowed(kg.Name); ok {
+								isMatched = true
+								matchedGroup = match
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if !isMatched {
+			matchedGroup = allowedGroups[0]
+		}
+
+		identifier := ku.ID
+		if identifier == "" {
+			identifier = ku.Username
+		}
+		if seen[identifier] {
+			continue
+		}
+		seen[identifier] = true
+
+		fullName := strings.TrimSpace(ku.FirstName + " " + ku.LastName)
+		if fullName == "" {
+			fullName = ku.Username
+		}
+
+		empID := ""
+		if vals, ok := ku.Attributes["employeeID"]; ok && len(vals) > 0 {
+			empID = vals[0]
+		} else if vals, ok := ku.Attributes["employeeNumber"]; ok && len(vals) > 0 {
+			empID = vals[0]
+		} else if vals, ok := ku.Attributes["nip"]; ok && len(vals) > 0 {
+			empID = vals[0]
+		} else if vals, ok := ku.Attributes["nidn"]; ok && len(vals) > 0 {
+			empID = vals[0]
+		} else if vals, ok := ku.Attributes["npm"]; ok && len(vals) > 0 {
+			empID = vals[0]
+		} else {
+			empID = ku.Username
+		}
+
+		result = append(result, domainaccount.AccountLdap{
+			DN:           fmt.Sprintf("CN=%s,OU=users", ku.Username),
+			Username:     ku.Username,
+			Name:         fullName,
+			Email:        ku.Email,
+			EmployeeID:   empID,
+			Groups:       userGroups,
+			MatchedGroup: matchedGroup,
+		})
+	}
+
+	return result, nil
+}
+
 func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainaccount.AccountLdap, error) {
+	if len(allowedGroups) == 0 {
+		allowedGroups = []string{
+			"adm_simonev",
+			"admin",
+			"superadmin",
+			"adm_pusat",
+			"adm_simonev_fakultas",
+			"adm_simonev_prodi",
+		}
+	}
+
+	// 1. Attempt Keycloak Gerbang REST API (https://gerbang.unpak.ac.id/admin/realms/gerbang/users)
+	kcUsers, err := r.fetchFromKeycloak(allowedGroups)
+	if err == nil && len(kcUsers) > 0 {
+		log.Printf("[LdapRepository] Successfully fetched %d users from Keycloak Gerbang API", len(kcUsers))
+		return kcUsers, nil
+	}
+	if err != nil {
+		log.Printf("[LdapRepository] Keycloak fetch notice: %v, falling back to LDAP server...", err)
+	}
+
+	// 2. Fallback to LDAP TCP connection
 	conn, err := r.Connect()
 	if err != nil {
 		log.Printf("[LDAP Error] %v", err)
@@ -68,17 +374,6 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 	ldapDN := os.Getenv("LDAP_DN")
 	if ldapDN == "" {
 		ldapDN = "DC=unpak,DC=ac,DC=id"
-	}
-
-	if len(allowedGroups) == 0 {
-		allowedGroups = []string{
-			"adm_simonev",
-			"admin",
-			"superadmin",
-			"adm_pusat",
-			"adm_simonev_fakultas",
-			"adm_simonev_prodi",
-		}
 	}
 
 	result := []domainaccount.AccountLdap{}
