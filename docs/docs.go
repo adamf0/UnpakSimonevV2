@@ -183,7 +183,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "127.0.0.1:3000",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "UnpakSiamidaV2 API",
+	Title:            "UnpakSimonevV2 API",
 	Description:      "All Module Siamida",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
