@@ -226,7 +226,7 @@ UnpakSiamida/modules/account/infrastructure/LdapRepository.go:23:													Ne
 UnpakSiamida/modules/account/infrastructure/LdapRepository.go:44:													Connect						0.0%
 UnpakSiamida/modules/account/infrastructure/LdapRepository.go:84:													getKeycloakToken				0.0%
 UnpakSiamida/modules/account/infrastructure/LdapRepository.go:149:													fetchFromKeycloak				0.0%
-UnpakSiamida/modules/account/infrastructure/LdapRepository.go:350:													GetAccountsByGroups				0.0%
+UnpakSiamida/modules/account/infrastructure/LdapRepository.go:351:													GetAccountsByGroups				0.0%
 UnpakSiamida/modules/account/presentation/Http.go:44:															LoginHandlerfunc				0.0%
 UnpakSiamida/modules/account/presentation/Http.go:65:															WhoAmIHandler					0.0%
 UnpakSiamida/modules/account/presentation/Http.go:135:															CreateAccountHandlerfunc			0.0%
