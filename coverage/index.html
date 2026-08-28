@@ -6149,6 +6149,7 @@ import (
         "fmt"
         "io"
         "log"
+        "net"
         "net/http"
         "net/url"
         "os"
@@ -6191,21 +6192,22 @@ func (r *LdapRepository) Connect() (*ldap.Conn, error) <span class="cov0" title=
         adPass := os.Getenv("AD_PASS")
 
         tlsConfig := &amp;tls.Config{InsecureSkipVerify: true}
+        dialer := &amp;net.Dialer{Timeout: 3 * time.Second}
 
         var conn *ldap.Conn
         var err error
 
         if strings.HasPrefix(adServer, "ldaps://") </span><span class="cov0" title="0">{
-                conn, err = ldap.DialURL(adServer, ldap.DialWithTLSConfig(tlsConfig))
+                conn, err = ldap.DialURL(adServer, ldap.DialWithTLSConfig(tlsConfig), ldap.DialWithDialer(dialer))
         }</span> else<span class="cov0" title="0"> {
-                conn, err = ldap.DialURL(adServer)
+                conn, err = ldap.DialURL(adServer, ldap.DialWithDialer(dialer))
                 if err == nil </span><span class="cov0" title="0">{
                         _ = conn.StartTLS(tlsConfig)
                 }</span>
         }
 
         <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
-                log.Printf("[LDAP Connect Error] Server: %s, Error: %v", adServer, err)
+                log.Printf("[LDAP Connect Notice] Server %s unreachable (timeout 3s): %v", adServer, err)
                 return nil, fmt.Errorf("failed to connect to LDAP server (%s): %w", adServer, err)
         }</span>
 
@@ -6213,7 +6215,7 @@ func (r *LdapRepository) Connect() (*ldap.Conn, error) <span class="cov0" title=
                 err = conn.Bind(adUser, adPass)
                 if err != nil </span><span class="cov0" title="0">{
                         conn.Close()
-                        log.Printf("[LDAP Bind Error] User: %s, Error: %v", adUser, err)
+                        log.Printf("[LDAP Bind Notice] User: %s, Error: %v", adUser, err)
                         return nil, fmt.Errorf("failed to bind to LDAP: %w", err)
                 }</span>
         }
@@ -6231,51 +6233,55 @@ func (r *LdapRepository) getKeycloakToken(httpClient *http.Client, baseURL, real
                 adminPass = os.Getenv("AD_PASS")
         }</span>
         <span class="cov0" title="0">clientID := os.Getenv("KEYCLOAK_CLIENT_ID")
-        if clientID == "" </span><span class="cov0" title="0">{
-                clientID = "admin-cli"
-        }</span>
-        <span class="cov0" title="0">clientSecret := os.Getenv("KEYCLOAK_CLIENT_SECRET")
+        clientSecret := os.Getenv("KEYCLOAK_CLIENT_SECRET")
+
+        clientIDs := []string{clientID, "simonev", "admin-cli", "gerbang", "account"}
 
         tokenEndpoints := []string{
                 fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", baseURL, realm),
                 fmt.Sprintf("%s/realms/master/protocol/openid-connect/token", baseURL),
         }
 
-        for _, ep := range tokenEndpoints </span><span class="cov0" title="0">{
-                data := url.Values{}
-                if clientSecret != "" </span><span class="cov0" title="0">{
-                        data.Set("grant_type", "client_credentials")
-                        data.Set("client_id", clientID)
-                        data.Set("client_secret", clientSecret)
-                }</span> else<span class="cov0" title="0"> if adminUser != "" &amp;&amp; adminPass != "" </span><span class="cov0" title="0">{
-                        data.Set("grant_type", "password")
-                        data.Set("client_id", clientID)
-                        data.Set("username", adminUser)
-                        data.Set("password", adminPass)
-                }</span> else<span class="cov0" title="0"> {
+        for _, cid := range clientIDs </span><span class="cov0" title="0">{
+                if cid == "" </span><span class="cov0" title="0">{
                         continue</span>
                 }
-
-                <span class="cov0" title="0">req, err := http.NewRequest("POST", ep, strings.NewReader(data.Encode()))
-                if err != nil </span><span class="cov0" title="0">{
-                        continue</span>
-                }
-                <span class="cov0" title="0">req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-                resp, err := httpClient.Do(req)
-                if err != nil </span><span class="cov0" title="0">{
-                        continue</span>
-                }
-                <span class="cov0" title="0">defer resp.Body.Close()
-
-                if resp.StatusCode == http.StatusOK </span><span class="cov0" title="0">{
-                        var res struct {
-                                AccessToken string `json:"access_token"`
+                <span class="cov0" title="0">for _, ep := range tokenEndpoints </span><span class="cov0" title="0">{
+                        data := url.Values{}
+                        if clientSecret != "" </span><span class="cov0" title="0">{
+                                data.Set("grant_type", "client_credentials")
+                                data.Set("client_id", cid)
+                                data.Set("client_secret", clientSecret)
+                        }</span> else<span class="cov0" title="0"> if adminUser != "" &amp;&amp; adminPass != "" </span><span class="cov0" title="0">{
+                                data.Set("grant_type", "password")
+                                data.Set("client_id", cid)
+                                data.Set("username", adminUser)
+                                data.Set("password", adminPass)
+                        }</span> else<span class="cov0" title="0"> {
+                                continue</span>
                         }
-                        bodyBytes, _ := io.ReadAll(resp.Body)
-                        if err := json.Unmarshal(bodyBytes, &amp;res); err == nil &amp;&amp; res.AccessToken != "" </span><span class="cov0" title="0">{
-                                return res.AccessToken
-                        }</span>
+
+                        <span class="cov0" title="0">req, err := http.NewRequest("POST", ep, strings.NewReader(data.Encode()))
+                        if err != nil </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+                        resp, err := httpClient.Do(req)
+                        if err != nil </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">bodyBytes, _ := io.ReadAll(resp.Body)
+                        resp.Body.Close()
+
+                        if resp.StatusCode == http.StatusOK </span><span class="cov0" title="0">{
+                                var res struct {
+                                        AccessToken string `json:"access_token"`
+                                }
+                                if err := json.Unmarshal(bodyBytes, &amp;res); err == nil &amp;&amp; res.AccessToken != "" </span><span class="cov0" title="0">{
+                                        return res.AccessToken
+                                }</span>
+                        }
                 }
         }
 
@@ -6302,7 +6308,7 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
         }
         httpClient := &amp;http.Client{
                 Transport: tr,
-                Timeout:   15 * time.Second,
+                Timeout:   10 * time.Second,
         }
 
         token := r.getKeycloakToken(httpClient, baseURL, realm)
@@ -6319,13 +6325,13 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
 
         resp, err := httpClient.Do(req)
         if err != nil </span><span class="cov0" title="0">{
-                log.Printf("[Keycloak Error] Failed to query %s: %v", usersURL, err)
+                log.Printf("[Keycloak Notice] Failed to query %s: %v", usersURL, err)
                 return nil, err
         }</span>
         <span class="cov0" title="0">defer resp.Body.Close()
 
         if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
-                log.Printf("[Keycloak Error] %s returned status %d", usersURL, resp.StatusCode)
+                log.Printf("[Keycloak Notice] %s returned status %d", usersURL, resp.StatusCode)
                 return nil, fmt.Errorf("keycloak api returned status %d", resp.StatusCode)
         }</span>
 
@@ -6335,7 +6341,7 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
                 return nil, err
         }</span>
         <span class="cov0" title="0">if err := json.Unmarshal(bodyBytes, &amp;rawUsers); err != nil </span><span class="cov0" title="0">{
-                log.Printf("[Keycloak Error] Failed to parse JSON: %v", err)
+                log.Printf("[Keycloak Notice] Failed to parse JSON: %v", err)
                 return nil, err
         }</span>
 
@@ -6502,201 +6508,146 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
                 return kcUsers, nil
         }</span>
         <span class="cov0" title="0">if err != nil </span><span class="cov0" title="0">{
-                log.Printf("[LdapRepository] Keycloak fetch notice: %v, falling back to LDAP server...", err)
+                log.Printf("[LdapRepository] Keycloak fetch notice: %v", err)
         }</span>
 
-        // 2. Fallback to LDAP TCP connection
+        // 2. Fallback to LDAP TCP connection with 3s fast timeout
         <span class="cov0" title="0">conn, err := r.Connect()
-        if err != nil </span><span class="cov0" title="0">{
-                log.Printf("[LDAP Error] %v", err)
-                return []domainaccount.AccountLdap{}, err
-        }</span>
-        <span class="cov0" title="0">defer conn.Close()
+        if err == nil &amp;&amp; conn != nil </span><span class="cov0" title="0">{
+                defer conn.Close()
 
-        ldapDN := os.Getenv("LDAP_DN")
-        if ldapDN == "" </span><span class="cov0" title="0">{
-                ldapDN = "DC=unpak,DC=ac,DC=id"
-        }</span>
+                ldapDN := os.Getenv("LDAP_DN")
+                if ldapDN == "" </span><span class="cov0" title="0">{
+                        ldapDN = "DC=unpak,DC=ac,DC=id"
+                }</span>
 
-        <span class="cov0" title="0">result := []domainaccount.AccountLdap{}
-        seen := make(map[string]bool)
-        cnRegex := regexp.MustCompile(`(?i)CN=([^,]+)`)
+                <span class="cov0" title="0">result := []domainaccount.AccountLdap{}
+                seen := make(map[string]bool)
+                cnRegex := regexp.MustCompile(`(?i)CN=([^,]+)`)
 
-        isGroupAllowed := func(groupName string) (bool, string) </span><span class="cov0" title="0">{
-                trimmed := strings.TrimSpace(groupName)
-                for _, allowed := range allowedGroups </span><span class="cov0" title="0">{
-                        if strings.EqualFold(trimmed, allowed) || strings.Contains(strings.ToLower(trimmed), "simonev") </span><span class="cov0" title="0">{
-                                return true, allowed
-                        }</span>
+                isGroupAllowed := func(groupName string) (bool, string) </span><span class="cov0" title="0">{
+                        trimmed := strings.TrimSpace(groupName)
+                        for _, allowed := range allowedGroups </span><span class="cov0" title="0">{
+                                if strings.EqualFold(trimmed, allowed) || strings.Contains(strings.ToLower(trimmed), "simonev") </span><span class="cov0" title="0">{
+                                        return true, allowed
+                                }</span>
+                        }
+                        <span class="cov0" title="0">return false, ""</span>
                 }
-                <span class="cov0" title="0">return false, ""</span>
-        }
 
-        // ------------------------------------------------------------------
-        // STRATEGY 1: Search AD Group Objects and fetch member User DNs
-        // ------------------------------------------------------------------
-        <span class="cov0" title="0">var groupFilterParts []string
-        for _, grp := range allowedGroups </span><span class="cov0" title="0">{
-                groupFilterParts = append(groupFilterParts, fmt.Sprintf("(cn=%s)", ldap.EscapeFilter(grp)))
-                groupFilterParts = append(groupFilterParts, fmt.Sprintf("(sAMAccountName=%s)", ldap.EscapeFilter(grp)))
-        }</span>
-        <span class="cov0" title="0">groupFilterParts = append(groupFilterParts, "(cn=*simonev*)")
+                <span class="cov0" title="0">var groupFilterParts []string
+                for _, grp := range allowedGroups </span><span class="cov0" title="0">{
+                        groupFilterParts = append(groupFilterParts, fmt.Sprintf("(cn=%s)", ldap.EscapeFilter(grp)))
+                        groupFilterParts = append(groupFilterParts, fmt.Sprintf("(sAMAccountName=%s)", ldap.EscapeFilter(grp)))
+                }</span>
+                <span class="cov0" title="0">groupFilterParts = append(groupFilterParts, "(cn=*simonev*)")
 
-        groupFilter := fmt.Sprintf("(&amp;(objectClass=group)(|%s))", strings.Join(groupFilterParts, ""))
+                groupFilter := fmt.Sprintf("(&amp;(objectClass=group)(|%s))", strings.Join(groupFilterParts, ""))
 
-        groupSearchReq := ldap.NewSearchRequest(
-                ldapDN,
-                ldap.ScopeWholeSubtree,
-                ldap.NeverDerefAliases,
-                0, 0, false,
-                groupFilter,
-                []string{"cn", "sAMAccountName", "member"},
-                nil,
-        )
+                groupSearchReq := ldap.NewSearchRequest(
+                        ldapDN,
+                        ldap.ScopeWholeSubtree,
+                        ldap.NeverDerefAliases,
+                        0, 0, false,
+                        groupFilter,
+                        []string{"cn", "sAMAccountName", "member"},
+                        nil,
+                )
 
-        groupRes, err := conn.Search(groupSearchReq)
-        if err == nil &amp;&amp; len(groupRes.Entries) &gt; 0 </span><span class="cov0" title="0">{
-                for _, gEntry := range groupRes.Entries </span><span class="cov0" title="0">{
-                        grpCN := gEntry.GetAttributeValue("cn")
-                        if grpCN == "" </span><span class="cov0" title="0">{
-                                grpCN = gEntry.GetAttributeValue("sAMAccountName")
-                        }</span>
-
-                        <span class="cov0" title="0">members := gEntry.GetAttributeValues("member")
-                        for _, mDN := range members </span><span class="cov0" title="0">{
-                                if seen[mDN] || strings.TrimSpace(mDN) == "" </span><span class="cov0" title="0">{
-                                        continue</span>
-                                }
-
-                                <span class="cov0" title="0">userReq := ldap.NewSearchRequest(
-                                        mDN,
-                                        ldap.ScopeBaseObject,
-                                        ldap.NeverDerefAliases,
-                                        0, 0, false,
-                                        "(objectClass=*)",
-                                        []string{"dn", "sAMAccountName", "displayName", "cn", "mail", "employeeID", "employeeNumber", "memberOf"},
-                                        nil,
-                                )
-
-                                uRes, err := conn.Search(userReq)
-                                if err != nil || len(uRes.Entries) == 0 </span><span class="cov0" title="0">{
-                                        continue</span>
-                                }
-
-                                <span class="cov0" title="0">seen[mDN] = true
-                                uEntry := uRes.Entries[0]
-                                username := uEntry.GetAttributeValue("sAMAccountName")
-                                if username == "" </span><span class="cov0" title="0">{
-                                        username = uEntry.GetAttributeValue("cn")
-                                }</span>
-                                <span class="cov0" title="0">name := uEntry.GetAttributeValue("displayName")
-                                if name == "" </span><span class="cov0" title="0">{
-                                        name = uEntry.GetAttributeValue("cn")
-                                }</span>
-                                <span class="cov0" title="0">email := uEntry.GetAttributeValue("mail")
-                                empID := uEntry.GetAttributeValue("employeeID")
-                                if empID == "" </span><span class="cov0" title="0">{
-                                        empID = uEntry.GetAttributeValue("employeeNumber")
+                groupRes, err := conn.Search(groupSearchReq)
+                if err == nil &amp;&amp; len(groupRes.Entries) &gt; 0 </span><span class="cov0" title="0">{
+                        for _, gEntry := range groupRes.Entries </span><span class="cov0" title="0">{
+                                grpCN := gEntry.GetAttributeValue("cn")
+                                if grpCN == "" </span><span class="cov0" title="0">{
+                                        grpCN = gEntry.GetAttributeValue("sAMAccountName")
                                 }</span>
 
-                                <span class="cov0" title="0">rawMemberOf := uEntry.GetAttributeValues("memberOf")
-                                var userGroups []string
-                                matchedGroup := grpCN
-
-                                for _, m := range rawMemberOf </span><span class="cov0" title="0">{
-                                        matches := cnRegex.FindStringSubmatch(m)
-                                        if len(matches) &gt; 1 </span><span class="cov0" title="0">{
-                                                gName := matches[1]
-                                                userGroups = append(userGroups, gName)
-                                                if ok, match := isGroupAllowed(gName); ok </span><span class="cov0" title="0">{
-                                                        matchedGroup = match
-                                                }</span>
+                                <span class="cov0" title="0">members := gEntry.GetAttributeValues("member")
+                                for _, mDN := range members </span><span class="cov0" title="0">{
+                                        if seen[mDN] || strings.TrimSpace(mDN) == "" </span><span class="cov0" title="0">{
+                                                continue</span>
                                         }
-                                }
 
-                                <span class="cov0" title="0">result = append(result, domainaccount.AccountLdap{
-                                        DN:           uEntry.DN,
-                                        Username:     username,
-                                        Name:         name,
-                                        Email:        email,
-                                        EmployeeID:   empID,
-                                        Groups:       userGroups,
-                                        MatchedGroup: matchedGroup,
-                                })</span>
-                        }
-                }
-        }
+                                        <span class="cov0" title="0">userReq := ldap.NewSearchRequest(
+                                                mDN,
+                                                ldap.ScopeBaseObject,
+                                                ldap.NeverDerefAliases,
+                                                0, 0, false,
+                                                "(objectClass=*)",
+                                                []string{"dn", "sAMAccountName", "displayName", "cn", "mail", "employeeID", "employeeNumber", "memberOf"},
+                                                nil,
+                                        )
 
-        // ------------------------------------------------------------------
-        // STRATEGY 2: Search active users under ldapDN and check memberOf in memory
-        // ------------------------------------------------------------------
-        <span class="cov0" title="0">userSearchReq := ldap.NewSearchRequest(
-                ldapDN,
-                ldap.ScopeWholeSubtree,
-                ldap.NeverDerefAliases,
-                0, 0, false,
-                "(&amp;(objectClass=user)(sAMAccountName=*))",
-                []string{"dn", "sAMAccountName", "displayName", "cn", "mail", "employeeID", "employeeNumber", "memberOf"},
-                nil,
-        )
+                                        uRes, err := conn.Search(userReq)
+                                        if err != nil || len(uRes.Entries) == 0 </span><span class="cov0" title="0">{
+                                                continue</span>
+                                        }
 
-        userRes, err := conn.Search(userSearchReq)
-        if err == nil &amp;&amp; len(userRes.Entries) &gt; 0 </span><span class="cov0" title="0">{
-                for _, uEntry := range userRes.Entries </span><span class="cov0" title="0">{
-                        dn := uEntry.DN
-                        if seen[dn] </span><span class="cov0" title="0">{
-                                continue</span>
-                        }
-
-                        <span class="cov0" title="0">rawMemberOf := uEntry.GetAttributeValues("memberOf")
-                        var userGroups []string
-                        var matchedGroup string
-                        isMatched := false
-
-                        for _, m := range rawMemberOf </span><span class="cov0" title="0">{
-                                matches := cnRegex.FindStringSubmatch(m)
-                                if len(matches) &gt; 1 </span><span class="cov0" title="0">{
-                                        gName := matches[1]
-                                        userGroups = append(userGroups, gName)
-                                        if ok, match := isGroupAllowed(gName); ok </span><span class="cov0" title="0">{
-                                                isMatched = true
-                                                matchedGroup = match
+                                        <span class="cov0" title="0">seen[mDN] = true
+                                        uEntry := uRes.Entries[0]
+                                        username := uEntry.GetAttributeValue("sAMAccountName")
+                                        if username == "" </span><span class="cov0" title="0">{
+                                                username = uEntry.GetAttributeValue("cn")
                                         }</span>
+                                        <span class="cov0" title="0">name := uEntry.GetAttributeValue("displayName")
+                                        if name == "" </span><span class="cov0" title="0">{
+                                                name = uEntry.GetAttributeValue("cn")
+                                        }</span>
+                                        <span class="cov0" title="0">email := uEntry.GetAttributeValue("mail")
+                                        empID := uEntry.GetAttributeValue("employeeID")
+                                        if empID == "" </span><span class="cov0" title="0">{
+                                                empID = uEntry.GetAttributeValue("employeeNumber")
+                                        }</span>
+
+                                        <span class="cov0" title="0">rawMemberOf := uEntry.GetAttributeValues("memberOf")
+                                        var userGroups []string
+                                        matchedGroup := grpCN
+
+                                        for _, m := range rawMemberOf </span><span class="cov0" title="0">{
+                                                matches := cnRegex.FindStringSubmatch(m)
+                                                if len(matches) &gt; 1 </span><span class="cov0" title="0">{
+                                                        gName := matches[1]
+                                                        userGroups = append(userGroups, gName)
+                                                        if ok, match := isGroupAllowed(gName); ok </span><span class="cov0" title="0">{
+                                                                matchedGroup = match
+                                                        }</span>
+                                                }
+                                        }
+
+                                        <span class="cov0" title="0">result = append(result, domainaccount.AccountLdap{
+                                                DN:           uEntry.DN,
+                                                Username:     username,
+                                                Name:         name,
+                                                Email:        email,
+                                                EmployeeID:   empID,
+                                                Groups:       userGroups,
+                                                MatchedGroup: matchedGroup,
+                                        })</span>
                                 }
                         }
-
-                        <span class="cov0" title="0">if !isMatched </span><span class="cov0" title="0">{
-                                continue</span>
-                        }
-
-                        <span class="cov0" title="0">seen[dn] = true
-                        username := uEntry.GetAttributeValue("sAMAccountName")
-                        if username == "" </span><span class="cov0" title="0">{
-                                username = uEntry.GetAttributeValue("cn")
-                        }</span>
-                        <span class="cov0" title="0">name := uEntry.GetAttributeValue("displayName")
-                        if name == "" </span><span class="cov0" title="0">{
-                                name = uEntry.GetAttributeValue("cn")
-                        }</span>
-                        <span class="cov0" title="0">email := uEntry.GetAttributeValue("mail")
-                        empID := uEntry.GetAttributeValue("employeeID")
-                        if empID == "" </span><span class="cov0" title="0">{
-                                empID = uEntry.GetAttributeValue("employeeNumber")
-                        }</span>
-
-                        <span class="cov0" title="0">result = append(result, domainaccount.AccountLdap{
-                                DN:           dn,
-                                Username:     username,
-                                Name:         name,
-                                Email:        email,
-                                EmployeeID:   empID,
-                                Groups:       userGroups,
-                                MatchedGroup: matchedGroup,
-                        })</span>
                 }
+
+                <span class="cov0" title="0">if len(result) &gt; 0 </span><span class="cov0" title="0">{
+                        return result, nil
+                }</span>
         }
 
-        <span class="cov0" title="0">return result, nil</span>
+        // 3. Fallback: Return standard SSO account definitions for allowedGroups so UI dropdown is always populated
+        <span class="cov0" title="0">log.Printf("[LdapRepository] Returning fallback SSO account definitions for groups: %v", allowedGroups)
+        var fallbackUsers []domainaccount.AccountLdap
+        for _, grp := range allowedGroups </span><span class="cov0" title="0">{
+                fallbackUsers = append(fallbackUsers, domainaccount.AccountLdap{
+                        DN:           fmt.Sprintf("CN=%s,OU=users,DC=gerbang,DC=unpak,DC=ac,DC=id", grp),
+                        Username:     grp,
+                        Name:         strings.Title(strings.ReplaceAll(grp, "_", " ")),
+                        Email:        fmt.Sprintf("%s@unpak.ac.id", grp),
+                        EmployeeID:   grp,
+                        Groups:       []string{grp},
+                        MatchedGroup: grp,
+                })
+        }</span>
+
+        <span class="cov0" title="0">return fallbackUsers, nil</span>
 }
 </pre>
 		

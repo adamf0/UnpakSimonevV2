@@ -222,11 +222,11 @@ UnpakSiamida/modules/account/infrastructure/AccountRepository.go:741:											
 UnpakSiamida/modules/account/infrastructure/AccountRepository.go:752:													Delete						0.0%
 UnpakSiamida/modules/account/infrastructure/AccountRepository.go:764:													SetupUuid					0.0%
 UnpakSiamida/modules/account/infrastructure/AccountRepository.go:818:													md5String					0.0%
-UnpakSiamida/modules/account/infrastructure/LdapRepository.go:22:													NewLdapRepository				0.0%
-UnpakSiamida/modules/account/infrastructure/LdapRepository.go:43:													Connect						0.0%
-UnpakSiamida/modules/account/infrastructure/LdapRepository.go:82:													getKeycloakToken				0.0%
-UnpakSiamida/modules/account/infrastructure/LdapRepository.go:143:													fetchFromKeycloak				0.0%
-UnpakSiamida/modules/account/infrastructure/LdapRepository.go:344:													GetAccountsByGroups				0.0%
+UnpakSiamida/modules/account/infrastructure/LdapRepository.go:23:													NewLdapRepository				0.0%
+UnpakSiamida/modules/account/infrastructure/LdapRepository.go:44:													Connect						0.0%
+UnpakSiamida/modules/account/infrastructure/LdapRepository.go:84:													getKeycloakToken				0.0%
+UnpakSiamida/modules/account/infrastructure/LdapRepository.go:149:													fetchFromKeycloak				0.0%
+UnpakSiamida/modules/account/infrastructure/LdapRepository.go:350:													GetAccountsByGroups				0.0%
 UnpakSiamida/modules/account/presentation/Http.go:44:															LoginHandlerfunc				0.0%
 UnpakSiamida/modules/account/presentation/Http.go:65:															WhoAmIHandler					0.0%
 UnpakSiamida/modules/account/presentation/Http.go:135:															CreateAccountHandlerfunc			0.0%
@@ -653,4 +653,4 @@ UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:393:													Ge
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:427:													GetAllTemplatePertanyaansHandlerfunc		0.0%
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:498:													SetupUuidTemplatePertanyaansHandlerfunc		0.0%
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:509:													ModuleTemplatePertanyaan			0.0%
-total:																					(statements)					20.9%
+total:																					(statements)					21.0%
