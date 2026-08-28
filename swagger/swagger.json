@@ -260,6 +260,12 @@
                     },
                     {
                         "type": "string",
+                        "description": "Employee ID / NIP LDAP",
+                        "name": "employee_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
                         "description": "Kode Fakultas",
                         "name": "fakultas",
                         "in": "formData"
@@ -2109,6 +2115,9 @@
             "type": "object",
             "properties": {
                 "Email": {
+                    "type": "string"
+                },
+                "EmployeeID": {
                     "type": "string"
                 },
                 "Fakultas": {
