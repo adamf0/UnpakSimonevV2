@@ -16,6 +16,7 @@ type Account struct {
 	Level       *string    `json:"Level"`
 	Name        *string    `json:"Name"`
 	Email       *string    `json:"Email"`
+	EmployeeID  *string    `gorm:"column:employee_id" json:"EmployeeID"`
 	RefFakultas *string    `gorm:"column:fakultas" json:"RefFakultas"`
 	Fakultas    *string    `gorm:"column:Fakultas;->" json:"Fakultas"`
 	RefProdi    *string    `gorm:"column:prodi" json:"RefProdi"`
@@ -36,6 +37,7 @@ func NewAccount(
 	level string,
 	name string,
 	email *string,
+	employeeID *string,
 	refFakultas *string,
 	refProdi *string,
 ) common.ResultValue[*Account] {
@@ -47,6 +49,7 @@ func NewAccount(
 		Level:       helper.StrPtr(level),
 		Name:        helper.StrPtr(name),
 		Email:       email,
+		EmployeeID:  employeeID,
 		RefFakultas: refFakultas,
 		RefProdi:    refProdi,
 	}
@@ -63,6 +66,7 @@ func UpdateAccount(
 	level string,
 	name string,
 	email *string,
+	employeeID *string,
 	refFakultas *string,
 	refProdi *string,
 ) common.ResultValue[*Account] {
@@ -78,6 +82,9 @@ func UpdateAccount(
 	prev.Level = helper.StrPtr(level)
 	prev.Name = helper.StrPtr(name)
 	prev.Email = email
+	if employeeID != nil && *employeeID != "" {
+		prev.EmployeeID = employeeID
+	}
 	prev.RefFakultas = refFakultas
 	prev.RefProdi = refProdi
 

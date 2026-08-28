@@ -468,17 +468,23 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
 		codectx := ""
 		role := "tendik"
 
-		for _, g := range allGroups {
-			if g == "adm_simonev" || g == "admin" || g == "superadmin" || g == "adm_pusat" {
-				role = "admin"
-				break
-			} else if g == "adm_simonev_fakultas" || g == "fakultas" {
-				role = "fakultas"
-				break
-			} else if g == "adm_simonev_prodi" || g == "prodi" {
-				role = "prodi"
-				break
+		hasGroup := func(targets ...string) bool {
+			for _, g := range allGroups {
+				for _, t := range targets {
+					if g == t {
+						return true
+					}
+				}
 			}
+			return false
+		}
+
+		if hasGroup("adm_simonev", "admin", "superadmin", "adm_pusat") {
+			role = "admin"
+		} else if hasGroup("adm_simonev_fakultas") {
+			role = "fakultas"
+		} else if hasGroup("adm_simonev_prodi") {
+			role = "prodi"
 		}
 
 		isDosen := false

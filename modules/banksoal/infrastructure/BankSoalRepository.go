@@ -14,11 +14,16 @@ import (
 )
 
 type BankSoalRepository struct {
-	db *gorm.DB
+	db      *gorm.DB
+	dbSimak *gorm.DB
 }
 
-func NewBankSoalRepository(db *gorm.DB) domainbanksoal.IBankSoalRepository {
-	return &BankSoalRepository{db: db}
+func NewBankSoalRepository(db *gorm.DB, dbSimak ...*gorm.DB) domainbanksoal.IBankSoalRepository {
+	var simak *gorm.DB
+	if len(dbSimak) > 0 {
+		simak = dbSimak[0]
+	}
+	return &BankSoalRepository{db: db, dbSimak: simak}
 }
 
 // ------------------------
@@ -114,33 +119,20 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 	var row domainbanksoal.BankSoalDefault
 
 	// =========================
-	// Subquery dosen
+	// Subquery dosen (Local users)
 	// =========================
 	dosenSub := r.db.
-		Table("m_dosen d").
+		Table("users u").
 		Select(`
-			CAST(d.NIDN AS CHAR) AS nidn,
-			d.nama_dosen,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
-			'dosen' AS role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+			CAST(u.id AS CHAR) AS nidn,
+			u.name AS nama_dosen,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
+			u.level AS role
+		`)
 
 	// =========================
 	// Subquery account
@@ -150,26 +142,13 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 		Select(`
 			CAST(u.id AS CHAR) AS id,
 			u.name,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
 			u.level AS role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+		`)
 
 	// =========================
 	// Subquery pertanyaan
@@ -300,32 +279,19 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 
 	var row domainbanksoal.BankSoalDefault
 
-	// Subquery dosen
+	// Subquery dosen (Local users)
 	dosenSub := r.db.
-		Table("m_dosen d").
+		Table("users u").
 		Select(`
-			CAST(d.NIDN AS CHAR) AS nidn,
-			d.nama_dosen,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
-			'dosen' as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+			CAST(u.id AS CHAR) AS nidn,
+			u.name AS nama_dosen,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
+			u.level as role
+		`)
 
 	// Subquery account
 	accountSub := r.db.
@@ -333,26 +299,13 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 		Select(`
 			CAST(u.id AS CHAR) AS id,
 			u.name,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
 			u.level as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+		`)
 
 	// =========================
 	// SUBQUERY PERTANYAAN
@@ -528,6 +481,7 @@ func (r *BankSoalRepository) GetAll(
 	TargetProdi string,
 	TargetUnit string,
 	TargetStatus string,
+	UserRole string,
 	page, limit *int,
 	deleted bool,
 	active bool,
@@ -536,32 +490,19 @@ func (r *BankSoalRepository) GetAll(
 	var rows = make([]domainbanksoal.BankSoalDefault, 0)
 	var total int64
 
-	// Subquery dosen
+	// Subquery dosen (Local users)
 	dosenSub := r.db.
-		Table("m_dosen d").
+		Table("users u").
 		Select(`
-			CAST(d.NIDN AS CHAR) AS nidn,
-			d.nama_dosen,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
-			'dosen' as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+			CAST(u.id AS CHAR) AS nidn,
+			u.name AS nama_dosen,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
+			u.level as role
+		`)
 
 	// Subquery account
 	accountSub := r.db.
@@ -569,26 +510,13 @@ func (r *BankSoalRepository) GetAll(
 		Select(`
 			CAST(u.id AS CHAR) AS id,
 			u.name,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
 			u.level as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+		`)
 
 	// Subquery pertanyaan
 	pertanyaanSub := r.db.
@@ -666,6 +594,64 @@ func (r *BankSoalRepository) GetAll(
 		db = db.Where("b.deleted_at IS NOT NULL")
 	} else {
 		db = db.Where("b.deleted_at IS NULL")
+	}
+
+	// =====================================
+	// 🔥 SCOPING FILTER BERDASARKAN ROLE / LEVEL
+	// =====================================
+	normRole := strings.ToLower(strings.TrimSpace(UserRole))
+	isAdmin := normRole == "admin" || normRole == "superadmin" || normRole == "adm_pusat" || normRole == "adm_simonev"
+
+	if !isAdmin {
+		parseList := func(s string) []string {
+			parts := strings.Split(s, ",")
+			var res []string
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if p != "" {
+					res = append(res, p)
+				}
+			}
+			return res
+		}
+
+		fakList := parseList(TargetFakultas)
+		prodiList := parseList(TargetProdi)
+
+		if normRole == "prodi" || normRole == "adm_simonev_prodi" {
+			if len(prodiList) > 0 {
+				db = db.Where(`(
+					COALESCE(ul.kode_prodi, dc.kode_prodi) IN ?
+					OR (COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ? AND (COALESCE(ul.kode_prodi, dc.kode_prodi) IS NULL OR COALESCE(ul.kode_prodi, dc.kode_prodi) = ''))
+					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+				)`, prodiList, fakList)
+			} else if len(fakList) > 0 {
+				db = db.Where(`(
+					COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
+					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+				)`, fakList)
+			}
+		} else if normRole == "fakultas" || normRole == "adm_simonev_fakultas" {
+			if len(fakList) > 0 {
+				db = db.Where(`(
+					COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
+					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+				)`, fakList)
+			}
+		} else {
+			// Fallback untuk level fakultas/prodi
+			if len(prodiList) > 0 {
+				db = db.Where(`(
+					COALESCE(ul.kode_prodi, dc.kode_prodi) IN ?
+					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+				)`, prodiList)
+			} else if len(fakList) > 0 {
+				db = db.Where(`(
+					COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
+					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+				)`, fakList)
+			}
+		}
 	}
 
 	// Advanced search filters
@@ -916,4 +902,138 @@ func (r *BankSoalRepository) WithTx(tx any) domainbanksoal.IBankSoalRepository {
 
 func (r *BankSoalRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
 	return r.db.WithContext(ctx).Begin(), nil
+}
+
+func (r *BankSoalRepository) resolveFakultasProdiNames(ctx context.Context, rows []domainbanksoal.BankSoalDefault) {
+	if len(rows) == 0 {
+		return
+	}
+
+	fakCodesMap := make(map[string]bool)
+	prodiCodesMap := make(map[string]bool)
+
+	for _, row := range rows {
+		for _, codeStr := range []string{row.KodeFakultas, row.NamaFakultas} {
+			if codeStr != "" {
+				for _, code := range strings.Split(codeStr, ",") {
+					if c := strings.TrimSpace(code); c != "" {
+						fakCodesMap[c] = true
+					}
+				}
+			}
+		}
+
+		for _, codeStr := range []string{row.KodeProdi, row.NamaProdi} {
+			if codeStr != "" {
+				for _, code := range strings.Split(codeStr, ",") {
+					if c := strings.TrimSpace(code); c != "" {
+						prodiCodesMap[c] = true
+					}
+				}
+			}
+		}
+	}
+
+	fakNameMap := make(map[string]string)
+	if r.dbSimak != nil && len(fakCodesMap) > 0 {
+		var fakList []struct {
+			KodeFakultas string `gorm:"column:kode_fakultas"`
+			NamaFakultas string `gorm:"column:nama_fakultas"`
+		}
+		codes := make([]string, 0, len(fakCodesMap))
+		for c := range fakCodesMap {
+			codes = append(codes, c)
+		}
+		_ = r.dbSimak.WithContext(ctx).
+			Table("m_fakultas").
+			Select("kode_fakultas, nama_fakultas").
+			Where("kode_fakultas IN ?", codes).
+			Find(&fakList).Error
+
+		for _, f := range fakList {
+			fakNameMap[strings.TrimSpace(f.KodeFakultas)] = strings.TrimSpace(f.NamaFakultas)
+		}
+	}
+
+	prodiNameMap := make(map[string]string)
+	if r.dbSimak != nil && len(prodiCodesMap) > 0 {
+		var prodiList []struct {
+			KodeProdi string `gorm:"column:kode_prodi"`
+			NamaProdi string `gorm:"column:nama_prodi"`
+			Jenjang   string `gorm:"column:kode_jenjang"`
+		}
+		codes := make([]string, 0, len(prodiCodesMap))
+		for c := range prodiCodesMap {
+			codes = append(codes, c)
+		}
+		_ = r.dbSimak.WithContext(ctx).
+			Table("m_program_studi").
+			Select("kode_prodi, nama_prodi, kode_jenjang").
+			Where("kode_prodi IN ?", codes).
+			Find(&prodiList).Error
+
+		for _, p := range prodiList {
+			prodiNameMap[strings.TrimSpace(p.KodeProdi)] = strings.TrimSpace(p.NamaProdi)
+		}
+	}
+
+	isNumeric := func(s string) bool {
+		if s == "" {
+			return false
+		}
+		for _, r := range s {
+			if r < '0' || r > '9' {
+				return false
+			}
+		}
+		return true
+	}
+
+	for i := range rows {
+		// Resolve NamaFakultas from dbSimak m_fakultas
+		targetFak := rows[i].NamaFakultas
+		if targetFak == "" {
+			targetFak = rows[i].KodeFakultas
+		}
+		if targetFak != "" {
+			parts := strings.Split(targetFak, ",")
+			var names []string
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if name, ok := fakNameMap[p]; ok && name != "" {
+					names = append(names, name)
+				} else if p != "" && !isNumeric(p) {
+					names = append(names, p)
+				}
+			}
+			if len(names) > 0 {
+				rows[i].NamaFakultas = strings.Join(names, ", ")
+			} else {
+				rows[i].NamaFakultas = ""
+			}
+		} else {
+			rows[i].NamaFakultas = ""
+		}
+
+		// Resolve NamaProdi from dbSimak m_program_studi
+		targetProdi := rows[i].NamaProdi
+		if targetProdi == "" {
+			targetProdi = rows[i].KodeProdi
+		}
+		if targetProdi != "" {
+			parts := strings.Split(targetProdi, ",")
+			var names []string
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if name, ok := prodiNameMap[p]; ok && name != "" {
+					names = append(names, name)
+				} else if p != "" && !isNumeric(p) {
+					names = append(names, p)
+				}
+			}
+			rows[i].NamaProdi = strings.Join(names, ", ")
+		} else {
+			rows[i].NamaProdi = ""
+		}
+	}
 }

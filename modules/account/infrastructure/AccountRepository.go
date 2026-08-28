@@ -292,8 +292,10 @@ func (r *AccountRepository) getDB(ctx context.Context, userid string) (*domain.A
 
 	err := r.db.WithContext(ctx).
 		Table("users u").
+		Debug().
 		Select(`
 			u.*,
+			u.employee_id as EmployeeID,
 			u.fakultas as RefFakultas,
 			f.nama_fakultas as Fakultas,
 			u.prodi as RefProdi,
@@ -304,7 +306,7 @@ func (r *AccountRepository) getDB(ctx context.Context, userid string) (*domain.A
 		`).
 		Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
 		Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi").
-		Where("u.id = ? OR u.username = ?", userid, userid).
+		Where("u.id = ? OR u.username = ? OR u.uuid = ? OR u.employee_id = ?", userid, userid, userid, userid).
 		First(&user).Error
 
 	if err != nil {
@@ -529,7 +531,7 @@ func (r *AccountRepository) GetByUuid(
 			u.id as ID,
 			u.uuid as UUID,
 			u.username as Username,
-			u.password as Password,
+			u.password_plain as Password,
 			u.level as Level,
 			u.name as Name,
 			u.email as Email,

@@ -25,6 +25,7 @@ func TestAccount_New(t *testing.T) {
 		"user",
 		"Test User",
 		&email,
+		nil,
 		&fakultas,
 		&prodi,
 	)
@@ -40,7 +41,7 @@ func TestAccount_New(t *testing.T) {
 
 func TestAccount_Update(t *testing.T) {
 	email := "test@unpak.ac.id"
-	acc := domain.NewAccount("testuser", "password123", "user", "Test User", &email, nil, nil).Value
+	acc := domain.NewAccount("testuser", "password123", "user", "Test User", &email, nil, nil, nil).Value
 
 	// Success case with new password
 	newPass := "newpassword"
@@ -52,6 +53,7 @@ func TestAccount_Update(t *testing.T) {
 		"admin",
 		"Updated Name",
 		&email,
+		nil,
 		helper.StrPtr("Fakultas1"),
 		helper.StrPtr("Prodi1"),
 	)
@@ -71,6 +73,7 @@ func TestAccount_Update(t *testing.T) {
 		&email,
 		nil,
 		nil,
+		nil,
 	)
 	assert.True(t, resNoPass.IsSuccess)
 	assert.Equal(t, "newpassword", *resNoPass.Value.Password)
@@ -84,6 +87,7 @@ func TestAccount_Update(t *testing.T) {
 		"admin",
 		"Updated Name",
 		&email,
+		nil,
 		nil,
 		nil,
 	)
@@ -101,13 +105,14 @@ func TestAccount_Update(t *testing.T) {
 		&email,
 		nil,
 		nil,
+		nil,
 	)
 	assert.False(t, resMismatch.IsSuccess)
 	assert.Equal(t, domain.InvalidData(), resMismatch.Error)
 }
 
 func TestAccount_DeleteAndRestore(t *testing.T) {
-	acc := domain.NewAccount("testuser", "password123", "user", "Test User", nil, nil, nil).Value
+	acc := domain.NewAccount("testuser", "password123", "user", "Test User", nil, nil, nil, nil).Value
 
 	// Delete
 	resDel := domain.DeleteAccount(acc)

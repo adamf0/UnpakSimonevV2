@@ -21,6 +21,7 @@ type IBankSoalRepository interface {
 		TargetProdi string,
 		TargetUnit string,
 		TargetStatus string,
+		UserRole string,
 		page, limit *int,
 		deleted bool,
 		active bool,

@@ -21,7 +21,6 @@ func (h *UpdateAccountCommandHandler) Handle(
 ) (string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-
 	// -------------------------
 	// VALIDATE ID
 	// -------------------------
@@ -48,10 +47,11 @@ func (h *UpdateAccountCommandHandler) Handle(
 		existingAccount,
 		uuidAccount,
 		cmd.Username,
-		cmd.Password,
+		existingAccount.Password,
 		cmd.Level,
 		cmd.Name,
 		cmd.Email,
+		cmd.EmployeeID,
 		cmd.Fakultas,
 		cmd.Prodi,
 	)

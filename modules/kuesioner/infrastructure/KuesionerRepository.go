@@ -286,7 +286,7 @@ func (r *KuesionerRepository) GetAll(
 			b.semester AS Semester,
 			a.tanggal AS Tanggal,
 			a.created_at AS CreatedAt
-	`).
+		`).
 		Joins("JOIN bank_soalv2 b ON a.id_bank_soal = b.id")
 
 	if deleted {

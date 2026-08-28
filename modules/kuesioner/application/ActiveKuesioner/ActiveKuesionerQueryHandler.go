@@ -37,6 +37,7 @@ func (h *ActiveKuesionerQueryHandler) Handle(
 		helper.NullableString(q.Prodi),
 		helper.NullableString(q.Unit),
 		"active",
+		"",
 		nil,
 		nil,
 		false,

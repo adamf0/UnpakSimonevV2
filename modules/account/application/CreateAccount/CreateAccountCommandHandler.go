@@ -24,6 +24,7 @@ func (h *CreateAccountCommandHandler) Handle(
 		cmd.Level,
 		cmd.Name,
 		cmd.Email,
+		cmd.EmployeeID,
 		cmd.Fakultas,
 		cmd.Prodi,
 	)

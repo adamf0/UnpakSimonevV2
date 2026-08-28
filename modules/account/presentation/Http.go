@@ -140,11 +140,16 @@ func CreateAccountHandlerfunc(c *fiber.Ctx) error {
 	name := c.FormValue("name")
 
 	var email *string
+	var employeeID *string
 	var fakultas *string
 	var prodi *string
 
 	if v := c.FormValue("email"); v != "" {
 		email = helper.StrPtr(v)
+	}
+
+	if v := c.FormValue("employee_id"); v != "" {
+		employeeID = helper.StrPtr(v)
 	}
 
 	if v := c.FormValue("fakultas"); v != "" {
@@ -156,13 +161,14 @@ func CreateAccountHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	cmd := CreateAccount.CreateAccountCommand{
-		Username: username,
-		Password: password,
-		Level:    level,
-		Name:     name,
-		Email:    email,
-		Fakultas: fakultas,
-		Prodi:    prodi,
+		Username:   username,
+		Password:   password,
+		Level:      level,
+		Name:       name,
+		Email:      email,
+		EmployeeID: employeeID,
+		Fakultas:   fakultas,
+		Prodi:      prodi,
 	}
 
 	uuid, err := mediatr.Send[
@@ -190,6 +196,7 @@ func CreateAccountHandlerfunc(c *fiber.Ctx) error {
 // @Param level formData string true "Level"
 // @Param name formData string true "Name"
 // @Param email formData string false "Email"
+// @Param employee_id formData string false "Employee ID / NIP LDAP"
 // @Param fakultas formData string false "Kode Fakultas"
 // @Param prodi formData string false "Kode Prodi"
 // @Produce json
@@ -208,6 +215,7 @@ func UpdateAccountHandlerfunc(c *fiber.Ctx) error {
 
 	var password *string
 	var email *string
+	var employeeID *string
 	var fakultas *string
 	var prodi *string
 
@@ -219,6 +227,10 @@ func UpdateAccountHandlerfunc(c *fiber.Ctx) error {
 		email = helper.StrPtr(v)
 	}
 
+	if v := c.FormValue("employee_id"); v != "" {
+		employeeID = helper.StrPtr(v)
+	}
+
 	if v := c.FormValue("fakultas"); v != "" {
 		fakultas = helper.StrPtr(v)
 	}
@@ -228,14 +240,15 @@ func UpdateAccountHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	cmd := UpdateAccount.UpdateAccountCommand{
-		Uuid:     uuid,
-		Username: username,
-		Password: password,
-		Level:    level,
-		Name:     name,
-		Email:    email,
-		Fakultas: fakultas,
-		Prodi:    prodi,
+		Uuid:       uuid,
+		Username:   username,
+		Password:   password,
+		Level:      level,
+		Name:       name,
+		Email:      email,
+		EmployeeID: employeeID,
+		Fakultas:   fakultas,
+		Prodi:      prodi,
 	}
 
 	updatedID, err := mediatr.Send[UpdateAccount.UpdateAccountCommand, string](context.Background(), cmd)

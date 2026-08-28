@@ -290,7 +290,7 @@ func main() {
 	})
 
 	mustStart("BankSoal Module", func() error {
-		return banksoalInfrastructure.RegisterModuleBankSoal(db)
+		return banksoalInfrastructure.RegisterModuleBankSoal(db, dbSimak)
 	})
 
 	mustStart("Kategori Module", func() error {
@@ -298,7 +298,7 @@ func main() {
 	})
 
 	mustStart("TemplatePertanyaan Module", func() error {
-		return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db)
+		return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db, dbSimak)
 	})
 
 	mustStart("TemplateJawaban Module", func() error {

@@ -23,6 +23,7 @@ type MockRepository struct {
 		TargetProdi string,
 		TargetUnit string,
 		TargetStatus string,
+		UserRole string,
 		page, limit *int,
 		deleted bool,
 		active bool,
@@ -77,12 +78,13 @@ func (m *MockRepository) GetAll(
 	TargetProdi string,
 	TargetUnit string,
 	TargetStatus string,
+	UserRole string,
 	page, limit *int,
 	deleted bool,
 	active bool,
 ) ([]domain.BankSoalDefault, int64, error) {
 	if m.GetAllFunc != nil {
-		return m.GetAllFunc(ctx, search, searchFilters, TargetFakultas, TargetProdi, TargetUnit, TargetStatus, page, limit, deleted, active)
+		return m.GetAllFunc(ctx, search, searchFilters, TargetFakultas, TargetProdi, TargetUnit, TargetStatus, UserRole, page, limit, deleted, active)
 	}
 	return nil, 0, nil
 }

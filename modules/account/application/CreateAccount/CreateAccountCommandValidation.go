@@ -13,7 +13,7 @@ func CreateAccountCommandValidation(cmd CreateAccountCommand) error {
 
 		validation.Field(
 			&cmd.Password,
-			validation.Required.Error("Password cannot be blank"),
+			validation.NilOrNotEmpty.Error("Password cannot be blank"),
 		),
 
 		validation.Field(

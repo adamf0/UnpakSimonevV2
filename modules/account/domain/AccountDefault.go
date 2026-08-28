@@ -8,6 +8,7 @@ type AccountDefault struct {
 	Level       *string `json:"Level"`
 	Name        *string `json:"Name"`
 	Email       *string `json:"Email"`
+	EmployeeID  *string `json:"EmployeeID"`
 	RefFakultas *string `json:"RefFakultas"`
 	Fakultas    *string `json:"Fakultas"`
 	RefProdi    *string `json:"RefProdi"`

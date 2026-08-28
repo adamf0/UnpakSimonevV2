@@ -15,11 +15,16 @@ import (
 )
 
 type TemplatePertanyaanRepository struct {
-	db *gorm.DB
+	db      *gorm.DB
+	dbSimak *gorm.DB
 }
 
-func NewTemplatePertanyaanRepository(db *gorm.DB) domaintemplatepertanyaan.ITemplatePertanyaanRepository {
-	return &TemplatePertanyaanRepository{db: db}
+func NewTemplatePertanyaanRepository(db *gorm.DB, dbSimak ...*gorm.DB) domaintemplatepertanyaan.ITemplatePertanyaanRepository {
+	var simak *gorm.DB
+	if len(dbSimak) > 0 {
+		simak = dbSimak[0]
+	}
+	return &TemplatePertanyaanRepository{db: db, dbSimak: simak}
 }
 
 // ------------------------
@@ -106,8 +111,6 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,
@@ -124,8 +127,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 			a.required as Required,
 			a.status as Status,
 			CASE
-				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", COALESCE(p.nama_prodi, u.prodi))
-				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", COALESCE(f.nama_fakultas, u.fakultas))
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
 				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
 				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
 				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
@@ -200,8 +203,6 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,
@@ -218,15 +219,15 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 			a.required as Required,
 			a.status as Status,
 			CASE
-				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", COALESCE(p.nama_prodi, u.prodi))
-				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", COALESCE(f.nama_fakultas, u.fakultas))
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
 				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
 				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
 				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
 			END as CreatedBy,
 			a.createdByRef as CreatedByRef,
-			COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas) as Fakultas,
-			COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi) as Prodi,
+			COALESCE(NULLIF(TRIM(a.fakultas), ''), u.fakultas) as Fakultas,
+			COALESCE(NULLIF(TRIM(a.prodi), ''), u.prodi) as Prodi,
 			a.unit as Unit,
 			a.jenjang as Jenjang,
 			a.deleted_at as DeletedAt,
@@ -325,8 +326,6 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 		a.id as ID,
 		a.uuid as UUID,
@@ -347,19 +346,8 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		a.unit as Unit,
 		a.created_at as CreatedAt,
 		CASE
-			WHEN u.prodi IS NOT NULL OR u.prodi != '' THEN CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			)
-			WHEN u.fakultas IS NOT NULL OR u.fakultas != '' THEN CONCAT("FAKULTAS ",f.nama_fakultas)
+			WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
+			WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
 			ELSE 'admin'
 		END as CreatedBy,
 		a.createdByRef as CreatedByRef,
@@ -473,6 +461,8 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		return nil, 0, err
 	}
 
+	r.resolveFakultasProdiNames(ctx, rows)
+
 	return rows, total, nil
 }
 
@@ -491,7 +481,7 @@ func (r *TemplatePertanyaanRepository) Update(ctx context.Context, templateperta
 }
 
 // ------------------------
-// DELETE (by UUID)
+// DELETE (SOFT DELETE)
 // ------------------------
 func (r *TemplatePertanyaanRepository) Delete(ctx context.Context, uid uuid.UUID) error {
 	return r.db.WithContext(ctx).
@@ -499,59 +489,37 @@ func (r *TemplatePertanyaanRepository) Delete(ctx context.Context, uid uuid.UUID
 		Delete(&domaintemplatepertanyaan.TemplatePertanyaan{}).Error
 }
 
-func (r *TemplatePertanyaanRepository) SetupUuid(ctx context.Context) error {
-	const chunkSize = 500
-
-	var ids []uint
-	if err := r.db.WithContext(ctx).
+// ------------------------
+// RESTORE
+// ------------------------
+func (r *TemplatePertanyaanRepository) Restore(ctx context.Context, uid uuid.UUID) error {
+	return r.db.WithContext(ctx).
 		Model(&domaintemplatepertanyaan.TemplatePertanyaan{}).
-		Where("uuid IS NULL OR uuid = ''").
-		Pluck("id", &ids).Error; err != nil {
+		Unscoped().
+		Where("uuid = ?", uid).
+		Update("deleted_at", nil).Error
+}
+
+// ------------------------
+// SETUP UUID
+// ------------------------
+func (r *TemplatePertanyaanRepository) SetupUuid(ctx context.Context) error {
+	var list []domaintemplatepertanyaan.TemplatePertanyaan
+	if err := r.db.WithContext(ctx).Where("uuid IS NULL OR uuid = ''").Find(&list).Error; err != nil {
 		return err
 	}
 
-	if len(ids) == 0 {
-		return nil
-	}
-
-	for i := 0; i < len(ids); i += chunkSize {
-		end := i + chunkSize
-		if end > len(ids) {
-			end = len(ids)
-		}
-
-		chunk := ids[i:end]
-
-		caseSQL := "CASE id "
-		args := make([]any, 0, len(chunk)*2+1)
-
-		for _, id := range chunk {
-			u := uuid.NewString()
-			caseSQL += "WHEN ? THEN ? "
-			args = append(args, id, u)
-		}
-
-		caseSQL += "END"
-		args = append(args, chunk)
-
-		query := fmt.Sprintf(
-			"UPDATE template_pertanyaanv2 SET uuid = %s WHERE id IN (?)",
-			caseSQL,
-		)
-
-		if err := r.db.WithContext(ctx).
-			Exec(query, args...).Error; err != nil {
+	for _, item := range list {
+		item.UUID = uuid.New()
+		if err := r.db.WithContext(ctx).Save(&item).Error; err != nil {
 			return err
 		}
 	}
-
 	return nil
 }
 
 func (r *TemplatePertanyaanRepository) CountCopy(ctx context.Context, judul string) (int, error) {
-
 	var count int64
-
 	err := r.db.WithContext(ctx).
 		Table("template_pertanyaanv2").
 		Where("pertanyaan = ? OR pertanyaan LIKE ?",
@@ -563,6 +531,9 @@ func (r *TemplatePertanyaanRepository) CountCopy(ctx context.Context, judul stri
 	return int(count), err
 }
 
+// ------------------------
+// COPY TEMPLATE PERTANYAAN
+// ------------------------
 func (r *TemplatePertanyaanRepository) CopyByBankSoal(
 	ctx context.Context,
 	tx *gorm.DB,
@@ -572,6 +543,7 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
 	sid string,
 	isDefault ...bool,
 ) (map[uint]uint, error) {
+
 	checkDefault := false
 	if len(isDefault) > 0 {
 		checkDefault = isDefault[0]
@@ -580,13 +552,9 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
 	var rows []domaintemplatepertanyaan.TemplatePertanyaan
 
 	if err := tx.WithContext(ctx).
-		Where("id_bank_soal = ?", sourceBankSoalID).
+		Where("id_bank_soal = ? AND deleted_at IS NULL", sourceBankSoalID).
 		Find(&rows).Error; err != nil {
 		return nil, err
-	}
-
-	if len(rows) == 0 {
-		return map[uint]uint{}, nil
 	}
 
 	mapping := make(map[uint]uint)
@@ -604,7 +572,7 @@ func (r *TemplatePertanyaanRepository) CopyByBankSoal(
 			row.CreatedByRef = helper.StrPtr(sid)
 		}
 
-		if err := r.db.WithContext(ctx).
+		if err := tx.WithContext(ctx).
 			Create(&row).Error; err != nil {
 			return nil, err
 		}
@@ -623,4 +591,149 @@ func (r *TemplatePertanyaanRepository) WithTx(tx any) domaintemplatepertanyaan.I
 
 func (r *TemplatePertanyaanRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
 	return r.db.WithContext(ctx).Begin(), nil
+}
+
+func (r *TemplatePertanyaanRepository) resolveFakultasProdiNames(ctx context.Context, rows []domaintemplatepertanyaan.TemplatePertanyaanDefault) {
+	if r.dbSimak == nil || len(rows) == 0 {
+		return
+	}
+
+	fakCodesMap := make(map[string]bool)
+	prodiCodesMap := make(map[string]bool)
+
+	for _, row := range rows {
+		if row.Fakultas != nil && *row.Fakultas != "" {
+			for _, code := range strings.Split(*row.Fakultas, ",") {
+				if c := strings.TrimSpace(code); c != "" {
+					fakCodesMap[c] = true
+				}
+			}
+		}
+		if row.Prodi != nil && *row.Prodi != "" {
+			for _, code := range strings.Split(*row.Prodi, ",") {
+				if c := strings.TrimSpace(code); c != "" {
+					prodiCodesMap[c] = true
+				}
+			}
+		}
+
+		if row.CreatedBy != nil {
+			createdByVal := *row.CreatedBy
+			if strings.HasPrefix(createdByVal, "FAKULTAS ") {
+				c := strings.TrimSpace(strings.TrimPrefix(createdByVal, "FAKULTAS "))
+				if c != "" {
+					fakCodesMap[c] = true
+				}
+			} else if strings.HasPrefix(createdByVal, "PRODI ") {
+				c := strings.TrimSpace(strings.TrimPrefix(createdByVal, "PRODI "))
+				if c != "" {
+					prodiCodesMap[c] = true
+				}
+			}
+		}
+	}
+
+	fakNameMap := make(map[string]string)
+	if len(fakCodesMap) > 0 {
+		var fakList []struct {
+			KodeFakultas string `gorm:"column:kode_fakultas"`
+			NamaFakultas string `gorm:"column:nama_fakultas"`
+		}
+		codes := make([]string, 0, len(fakCodesMap))
+		for c := range fakCodesMap {
+			codes = append(codes, c)
+		}
+		_ = r.dbSimak.WithContext(ctx).
+			Table("m_fakultas").
+			Select("kode_fakultas, nama_fakultas").
+			Where("kode_fakultas IN ?", codes).
+			Find(&fakList).Error
+
+		for _, f := range fakList {
+			fakNameMap[strings.TrimSpace(f.KodeFakultas)] = strings.TrimSpace(f.NamaFakultas)
+		}
+	}
+
+	prodiNameMap := make(map[string]string)
+	if len(prodiCodesMap) > 0 {
+		var prodiList []struct {
+			KodeProdi string `gorm:"column:kode_prodi"`
+			NamaProdi string `gorm:"column:nama_prodi"`
+			Jenjang   string `gorm:"column:kode_jenjang"`
+		}
+		codes := make([]string, 0, len(prodiCodesMap))
+		for c := range prodiCodesMap {
+			codes = append(codes, c)
+		}
+		_ = r.dbSimak.WithContext(ctx).
+			Table("m_program_studi").
+			Select("kode_prodi, nama_prodi, kode_jenjang").
+			Where("kode_prodi IN ?", codes).
+			Find(&prodiList).Error
+
+		for _, p := range prodiList {
+			prodiNameMap[strings.TrimSpace(p.KodeProdi)] = strings.TrimSpace(p.NamaProdi)
+		}
+	}
+
+	for i := range rows {
+		resolvedFak := ""
+		resolvedProdi := ""
+
+		if rows[i].Fakultas != nil && *rows[i].Fakultas != "" {
+			parts := strings.Split(*rows[i].Fakultas, ",")
+			var names []string
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if name, ok := fakNameMap[p]; ok && name != "" {
+					names = append(names, name)
+				} else if p != "" {
+					names = append(names, p)
+				}
+			}
+			resolvedFak = strings.Join(names, ", ")
+			rows[i].Fakultas = &resolvedFak
+		}
+
+		if rows[i].Prodi != nil && *rows[i].Prodi != "" {
+			parts := strings.Split(*rows[i].Prodi, ",")
+			var names []string
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				if name, ok := prodiNameMap[p]; ok && name != "" {
+					names = append(names, name)
+				} else if p != "" {
+					names = append(names, p)
+				}
+			}
+			resolvedProdi = strings.Join(names, ", ")
+			rows[i].Prodi = &resolvedProdi
+		}
+
+		if rows[i].CreatedBy != nil {
+			createdByVal := *rows[i].CreatedBy
+			if strings.HasPrefix(createdByVal, "FAKULTAS ") {
+				codeVal := strings.TrimSpace(strings.TrimPrefix(createdByVal, "FAKULTAS "))
+				if name, ok := fakNameMap[codeVal]; ok && name != "" {
+					val := "FAKULTAS " + name
+					rows[i].CreatedBy = &val
+				} else if resolvedFak != "" {
+					val := "FAKULTAS " + resolvedFak
+					rows[i].CreatedBy = &val
+				}
+			} else if strings.HasPrefix(createdByVal, "PRODI ") {
+				codeVal := strings.TrimSpace(strings.TrimPrefix(createdByVal, "PRODI "))
+				if name, ok := prodiNameMap[codeVal]; ok && name != "" {
+					val := "PRODI " + name
+					rows[i].CreatedBy = &val
+				} else if resolvedProdi != "" {
+					val := "PRODI " + resolvedProdi
+					rows[i].CreatedBy = &val
+				} else {
+					val := "PRODI "
+					rows[i].CreatedBy = &val
+				}
+			}
+		}
+	}
 }

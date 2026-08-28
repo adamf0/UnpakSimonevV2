@@ -489,11 +489,11 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 	fakultas := c.FormValue("fakultas")
 	prodi := c.FormValue("prodi")
 	role := c.FormValue("role")
-	if role == "adm_simonev" || role == "admin" || role == "superadmin" || role == "adm_pusat" {
-		role = "admin"
-		nip = ""
-		nidn = ""
-	} else if role == "adm_simonev_fakultas" {
+	if role == "" {
+		role = c.FormValue("level")
+	}
+
+	if role == "adm_simonev_fakultas" {
 		role = "fakultas"
 		nip = ""
 		nidn = ""
@@ -511,6 +511,7 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 		NIP:            helper.StrPtr(nip),
 		TargetFakultas: helper.StrPtr(fakultas),
 		TargetProdi:    helper.StrPtr(prodi),
+		UserRole:       helper.StrPtr(role),
 		Deleted:        withDeleted,
 	}
 

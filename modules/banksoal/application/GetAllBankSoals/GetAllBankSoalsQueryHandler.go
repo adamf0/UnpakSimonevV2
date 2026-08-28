@@ -31,6 +31,7 @@ func (h *GetAllBankSoalsQueryHandler) Handle(
 		helper.NullableString(q.TargetProdi),
 		"",
 		"",
+		helper.NullableString(q.UserRole),
 		q.Page,
 		q.Limit,
 		q.Deleted,

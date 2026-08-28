@@ -62,32 +62,19 @@ func (r *KategoriRepository) GetDefaultByUuid(
 		SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
-	// Subquery dosen
+	// Subquery dosen (Local users)
 	dosenSub := r.db.
-		Table("m_dosen d").
+		Table("users u").
 		Select(`
-			CAST(d.NIDN AS CHAR) AS nidn,
-			d.nama_dosen,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
-			'dosen' as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+			CAST(u.id AS CHAR) AS nidn,
+			u.name AS nama_dosen,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
+			u.level as role
+		`)
 
 	// Subquery account
 	accountSub := r.db.
@@ -95,26 +82,13 @@ func (r *KategoriRepository) GetDefaultByUuid(
 		Select(`
 			CAST(u.id AS CHAR) AS id,
 			u.name,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
 			u.level as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+		`)
 
 	err := r.db.WithContext(ctx).
 		Table("kategoriv2 a").
@@ -198,32 +172,19 @@ func (r *KategoriRepository) GetAll(
 		SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
-	// Subquery dosen
+	// Subquery dosen (Local users)
 	dosenSub := r.db.
-		Table("m_dosen d").
+		Table("users u").
 		Select(`
-			CAST(d.NIDN AS CHAR) AS nidn,
-			d.nama_dosen,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
-			'dosen' as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON d.kode_fak = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON d.kode_prodi = p.kode_prodi")
+			CAST(u.id AS CHAR) AS nidn,
+			u.name AS nama_dosen,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
+			u.level as role
+		`)
 
 	// Subquery account
 	accountSub := r.db.
@@ -231,26 +192,13 @@ func (r *KategoriRepository) GetAll(
 		Select(`
 			CAST(u.id AS CHAR) AS id,
 			u.name,
-			f.kode_fakultas,
-			f.nama_fakultas,
-			p.kode_prodi,
-			p.kode_jenjang,
-			CONCAT(
-				p.nama_prodi,
-				CASE p.kode_jenjang
-					WHEN 'J' THEN ' (Profesi)'
-					WHEN 'E' THEN ' (D3)'
-					WHEN 'D' THEN ' (D4)'
-					WHEN 'A' THEN ' (S3)'
-					WHEN 'B' THEN ' (S2)'
-					WHEN 'C' THEN ' (S1)'
-					ELSE ''
-				END
-			) AS nama_prodi,
+			u.fakultas AS kode_fakultas,
+			u.fakultas AS nama_fakultas,
+			u.prodi AS kode_prodi,
+			'' AS kode_jenjang,
+			u.prodi AS nama_prodi,
 			u.level as role
-		`).
-		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
-		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi")
+		`)
 
 	db := r.db.Debug().WithContext(ctx).
 		Table("kategoriv2 a").

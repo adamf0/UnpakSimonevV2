@@ -10,6 +10,7 @@ type GetAllBankSoalsQuery struct {
 	NIP            *string
 	TargetFakultas *string
 	TargetProdi    *string
+	UserRole       *string
 	Page           *int
 	Limit          *int
 	Deleted        bool
