@@ -5681,11 +5681,14 @@ func (r *AccountRepository) getDB(ctx context.Context, userid string) (*domain.A
 }
 
 func (r *AccountRepository) getSimakDosen(ctx context.Context, nidn string) (*domain.AccountDefault, error) <span class="cov0" title="0">{
-
-        var user domain.AccountDefault
         cleanNidn := strings.TrimSpace(nidn)
+        if cleanNidn == "" </span><span class="cov0" title="0">{
+                return nil, gorm.ErrRecordNotFound
+        }</span>
 
-        query := `
+        <span class="cov0" title="0">var user domain.AccountDefault
+
+        queryUser := `
 WITH dosen_cte AS (
     SELECT 
         d.nidn,
@@ -5710,49 +5713,90 @@ WITH dosen_cte AS (
     FROM m_dosen d
     LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
     LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
-) 
+)
 SELECT
-        COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), u.userid, ?) as ID,
+        COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), u.userid, u.username, ?) as ID,
         "simak" as Resource,
     COALESCE(u.username, d.nidn, d.nip, ?) AS Username,
     u.password AS Password,
     'dosen' AS Level,
-    d.Name AS Name,
-    d.Email AS Email,
-    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) AS EmployeeID,
-    d.RefFakultas AS RefFakultas,
-    d.Fakultas AS Fakultas,
-    d.RefProdi AS RefProdi,
-    d.Prodi AS Prodi,
-    NULL AS Unit,
+    COALESCE(NULLIF(TRIM(d.Name), ''), NULLIF(TRIM(u.nama), ''), u.username) AS Name,
+    COALESCE(d.Email, u.email) AS Email,
+    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), u.userid, ?) AS EmployeeID,
+    COALESCE(d.RefFakultas, f.kode_fakultas) AS RefFakultas,
+    COALESCE(d.Fakultas, f.nama_fakultas) AS Fakultas,
+    COALESCE(d.RefProdi, pr.kode_prodi) AS RefProdi,
+    COALESCE(d.Prodi, CONCAT(pr.nama_prodi, CASE pr.kode_jenjang WHEN 'J' THEN ' (Profesi)' WHEN 'E' THEN ' (D3)' WHEN 'D' THEN ' (D4)' WHEN 'A' THEN ' (S3)' WHEN 'B' THEN ' (S2)' WHEN 'C' THEN ' (S1)' ELSE '' END)) AS Prodi,
+    COALESCE(f.nama_fakultas, d.Fakultas) AS Unit,
         '` + domain.CtxDosen + `' AS CodeCtx
-FROM dosen_cte d
-LEFT JOIN user u ON (u.userid = d.nidn OR u.userid = d.nip OR u.username = d.nidn OR u.username = d.nip) AND u.level = "DOSEN"
-WHERE d.nidn = ? OR d.nip = ? OR u.userid = ? OR u.username = ?
+FROM user u
+LEFT JOIN dosen_cte d ON (d.nidn = u.userid OR d.nip = u.userid OR d.nidn = u.username OR d.nip = u.username)
+LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas
+LEFT JOIN m_program_studi pr ON pr.kode_prodi = u.prodi
+WHERE (u.userid = ? OR u.username = ?) AND (u.level = "DOSEN" OR u.level = "dosen")
 LIMIT 1
 `
-
         err := r.dbSimak.WithContext(ctx).
-                Raw(query, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
+                Raw(queryUser, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
                 Scan(&amp;user).Error
 
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+        if err == nil &amp;&amp; user.ID != "" </span><span class="cov0" title="0">{
+                return &amp;user, nil
         }</span>
 
-        <span class="cov0" title="0">if user.ID == "" </span><span class="cov0" title="0">{
-                return nil, gorm.ErrRecordNotFound
+        <span class="cov0" title="0">queryDosen := `
+SELECT
+        COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) as ID,
+        "simak" as Resource,
+    COALESCE(d.nidn, d.nip, ?) AS Username,
+    '' AS Password,
+    'dosen' AS Level,
+    CAST(d.nama_dosen AS CHAR(255)) AS Name,
+    CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
+    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) AS EmployeeID,
+    f.kode_fakultas AS RefFakultas,
+    f.nama_fakultas AS Fakultas,
+    p.kode_prodi AS RefProdi,
+    CONCAT(
+                p.nama_prodi,
+                CASE p.kode_jenjang
+                        WHEN 'J' THEN ' (Profesi)'
+                        WHEN 'E' THEN ' (D3)'
+                        WHEN 'D' THEN ' (D4)'
+                        WHEN 'A' THEN ' (S3)'
+                        WHEN 'B' THEN ' (S2)'
+                        WHEN 'C' THEN ' (S1)'
+                        ELSE ''
+                END
+        ) AS Prodi,
+    f.nama_fakultas AS Unit,
+        '` + domain.CtxDosen + `' AS CodeCtx
+FROM m_dosen d
+LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
+LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
+WHERE d.nidn = ? OR d.nip = ?
+LIMIT 1
+`
+        err = r.dbSimak.WithContext(ctx).
+                Raw(queryDosen, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
+                Scan(&amp;user).Error
+
+        if err == nil &amp;&amp; user.ID != "" </span><span class="cov0" title="0">{
+                return &amp;user, nil
         }</span>
 
-        <span class="cov0" title="0">return &amp;user, nil</span>
+        <span class="cov0" title="0">return nil, gorm.ErrRecordNotFound</span>
 }
 
 func (r *AccountRepository) getSimakMahasiswa(ctx context.Context, nim string) (*domain.AccountDefault, error) <span class="cov0" title="0">{
-
-        var user domain.AccountDefault
         cleanNim := strings.TrimSpace(nim)
+        if cleanNim == "" </span><span class="cov0" title="0">{
+                return nil, gorm.ErrRecordNotFound
+        }</span>
 
-        query := `
+        <span class="cov0" title="0">var user domain.AccountDefault
+
+        queryUser := `
 WITH mahasiswa_cte AS (
     SELECT
         m.nim,
@@ -5778,39 +5822,77 @@ WITH mahasiswa_cte AS (
     LEFT JOIN m_program_studi p ON p.kode_prodi = m.kode_prodi
 )
 SELECT
-        COALESCE(NULLIF(TRIM(m.nim), ''), u.userid, ?) as ID,
+        COALESCE(NULLIF(TRIM(m.nim), ''), u.userid, u.username, ?) as ID,
         "simak" as Resource,
     COALESCE(u.username, m.nim, ?) AS Username,
     u.password AS Password,
     'mahasiswa' AS Level,
-    m.Name AS Name,
-    m.Email AS Email,
-    COALESCE(NULLIF(TRIM(m.nim), ''), ?) AS EmployeeID,
-    m.RefFakultas AS RefFakultas,
-    m.Fakultas AS Fakultas,
-    m.RefProdi AS RefProdi,
-    m.Prodi AS Prodi,
-    NULL AS Unit,
+    COALESCE(NULLIF(TRIM(m.Name), ''), NULLIF(TRIM(u.nama), ''), u.username) AS Name,
+    COALESCE(m.Email, u.email) AS Email,
+    COALESCE(NULLIF(TRIM(m.nim), ''), u.userid, ?) AS EmployeeID,
+    COALESCE(m.RefFakultas, f.kode_fakultas) AS RefFakultas,
+    COALESCE(m.Fakultas, f.nama_fakultas) AS Fakultas,
+    COALESCE(m.RefProdi, pr.kode_prodi) AS RefProdi,
+    COALESCE(m.Prodi, CONCAT(pr.nama_prodi, CASE pr.kode_jenjang WHEN 'J' THEN ' (Profesi)' WHEN 'E' THEN ' (D3)' WHEN 'D' THEN ' (D4)' WHEN 'A' THEN ' (S3)' WHEN 'B' THEN ' (S2)' WHEN 'C' THEN ' (S1)' ELSE '' END)) AS Prodi,
+    COALESCE(f.nama_fakultas, m.Fakultas) AS Unit,
         '` + domain.CtxMahasiswa + `' AS CodeCtx
-FROM mahasiswa_cte m
-LEFT JOIN user u ON (u.userid = m.nim OR u.username = m.nim) AND u.level = "MAHASISWA"
-WHERE m.nim = ? OR u.userid = ? OR u.username = ?
+FROM user u
+LEFT JOIN mahasiswa_cte m ON (m.nim = u.userid OR m.nim = u.username)
+LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas
+LEFT JOIN m_program_studi pr ON pr.kode_prodi = u.prodi
+WHERE (u.userid = ? OR u.username = ?) AND (u.level = "MAHASISWA" OR u.level = "mahasiswa")
 LIMIT 1
 `
-
         err := r.dbSimak.WithContext(ctx).
-                Raw(query, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
+                Raw(queryUser, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
                 Scan(&amp;user).Error
 
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+        if err == nil &amp;&amp; user.ID != "" </span><span class="cov0" title="0">{
+                return &amp;user, nil
         }</span>
 
-        <span class="cov0" title="0">if user.ID == "" </span><span class="cov0" title="0">{
-                return nil, gorm.ErrRecordNotFound
+        <span class="cov0" title="0">queryMahasiswa := `
+SELECT
+        COALESCE(NULLIF(TRIM(m.nim), ''), ?) as ID,
+        "simak" as Resource,
+    COALESCE(m.nim, ?) AS Username,
+    '' AS Password,
+    'mahasiswa' AS Level,
+    CAST(m.nama_mahasiswa AS CHAR(255)) AS Name,
+    CAST(NULLIF(TRIM(m.email), '') AS CHAR(255)) AS Email,
+    COALESCE(NULLIF(TRIM(m.nim), ''), ?) AS EmployeeID,
+    f.kode_fakultas AS RefFakultas,
+    f.nama_fakultas AS Fakultas,
+    p.kode_prodi AS RefProdi,
+    CONCAT(
+                p.nama_prodi,
+                CASE p.kode_jenjang
+                        WHEN 'J' THEN ' (Profesi)'
+                        WHEN 'E' THEN ' (D3)'
+                        WHEN 'D' THEN ' (D4)'
+                        WHEN 'A' THEN ' (S3)'
+                        WHEN 'B' THEN ' (S2)'
+                        WHEN 'C' THEN ' (S1)'
+                        ELSE ''
+                END
+        ) AS Prodi,
+    f.nama_fakultas AS Unit,
+        '` + domain.CtxMahasiswa + `' AS CodeCtx
+FROM m_mahasiswa m
+LEFT JOIN m_fakultas f ON f.kode_fakultas = m.kode_fak
+LEFT JOIN m_program_studi p ON p.kode_prodi = m.kode_prodi
+WHERE m.nim = ?
+LIMIT 1
+`
+        err = r.dbSimak.WithContext(ctx).
+                Raw(queryMahasiswa, cleanNim, cleanNim, cleanNim, cleanNim).
+                Scan(&amp;user).Error
+
+        if err == nil &amp;&amp; user.ID != "" </span><span class="cov0" title="0">{
+                return &amp;user, nil
         }</span>
 
-        <span class="cov0" title="0">return &amp;user, nil</span>
+        <span class="cov0" title="0">return nil, gorm.ErrRecordNotFound</span>
 }
 
 func (r *AccountRepository) getSimpeg(ctx context.Context, nip *string, nidn *string) (*domain.AccountDefault, error) <span class="cov0" title="0">{
