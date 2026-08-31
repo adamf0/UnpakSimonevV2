@@ -269,19 +269,19 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 	}
 
 	// Fallback: Return standard SSO account definitions for allowedGroups so UI dropdown is always populated
-	log.Printf("[LdapRepository] Returning fallback SSO account definitions for groups: %v", allowedGroups)
+	// log.Printf("[LdapRepository] Returning fallback SSO account definitions for groups: %v", allowedGroups)
 	var fallbackUsers []domainaccount.AccountLdap
-	for _, grp := range allowedGroups {
-		fallbackUsers = append(fallbackUsers, domainaccount.AccountLdap{
-			DN:           fmt.Sprintf("CN=%s,OU=users,DC=unpak,DC=ac,DC=id", grp),
-			Username:     grp,
-			Name:         strings.Title(strings.ReplaceAll(grp, "_", " ")),
-			Email:        fmt.Sprintf("%s@unpak.ac.id", grp),
-			EmployeeID:   grp,
-			Groups:       []string{grp},
-			MatchedGroup: grp,
-		})
-	}
+	// for _, grp := range allowedGroups {
+	// 	fallbackUsers = append(fallbackUsers, domainaccount.AccountLdap{
+	// 		DN:           fmt.Sprintf("CN=%s,OU=users,DC=unpak,DC=ac,DC=id", grp),
+	// 		Username:     grp,
+	// 		Name:         strings.Title(strings.ReplaceAll(grp, "_", " ")),
+	// 		Email:        fmt.Sprintf("%s@unpak.ac.id", grp),
+	// 		EmployeeID:   grp,
+	// 		Groups:       []string{grp},
+	// 		MatchedGroup: grp,
+	// 	})
+	// }
 
 	return fallbackUsers, nil
 }
