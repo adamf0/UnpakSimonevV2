@@ -111,7 +111,7 @@
 				
 				<option value="file27">UnpakSiamida/common/presentation/Logger.go (100.0%)</option>
 				
-				<option value="file28">UnpakSiamida/common/presentation/Middleware.go (17.3%)</option>
+				<option value="file28">UnpakSiamida/common/presentation/Middleware.go (17.9%)</option>
 				
 				<option value="file29">UnpakSiamida/docs/docs.go (0.0%)</option>
 				
@@ -3382,12 +3382,20 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) <s
                 // Local login token
                 if sid, ok := claims["sid"].(string); ok </span><span class="cov5" title="2">{
                         c.Request().PostArgs().Set("sid", sid)
+                        c.Locals("sid", sid)
                 }</span>
                 <span class="cov5" title="2">if resource, ok := claims["resource"].(string); ok </span><span class="cov5" title="2">{
                         c.Request().PostArgs().Set("resource", resource)
+                        c.Locals("resource", resource)
                 }</span>
                 <span class="cov5" title="2">if codectx, ok := claims["codectx"].(string); ok </span><span class="cov5" title="2">{
                         c.Request().PostArgs().Set("codectx", codectx)
+                        c.Locals("codectx", codectx)
+                }</span> else<span class="cov0" title="0"> if codetx, ok := claims["codetx"].(string); ok </span><span class="cov0" title="0">{
+                        c.Request().PostArgs().Set("codectx", codetx)
+                        c.Request().PostArgs().Set("codetx", codetx)
+                        c.Locals("codectx", codetx)
+                        c.Locals("codetx", codetx)
                 }</span>
                 <span class="cov5" title="2">if role, ok := claims["role"].(string); ok </span><span class="cov0" title="0">{
                         c.Request().PostArgs().Set("role", role)
@@ -3396,7 +3404,8 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) <s
                 }</span>
         }
 
-        <span class="cov5" title="2">c.Request().PostArgs().Set("token", tokenStr)</span>
+        <span class="cov5" title="2">c.Locals("claims", claims)
+        c.Request().PostArgs().Set("token", tokenStr)</span>
 }
 
 func getTahun(c *fiber.Ctx) string <span class="cov0" title="0">{
@@ -4962,19 +4971,18 @@ func (h *WhoamiCommandHandler) Handle(
 		<pre class="file" id="file46" style="display: none">package application
 
 import (
-        helper "UnpakSiamida/common/helper"
-
         validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func WhoamiCommandValidation(cmd WhoamiCommand) error <span class="cov10" title="3">{
-        return validation.ValidateStruct(&amp;cmd,
-                validation.Field(&amp;cmd.SID,
-                        validation.Required.Error("SID cannot be blank"),
-                        validation.By(helper.ValidateUUIDv4),
-                ),
-        )
-}</span>
+        if (cmd.SID == nil || *cmd.SID == "") &amp;&amp;
+                (cmd.NIM == nil || *cmd.NIM == "") &amp;&amp;
+                (cmd.NIDN == nil || *cmd.NIDN == "") &amp;&amp;
+                (cmd.NIP == nil || *cmd.NIP == "") </span><span class="cov6" title="2">{
+                return validation.NewError("validation_whoami", "SID, NIM, NIDN, or NIP must be provided")
+        }</span>
+        <span class="cov1" title="1">return nil</span>
+}
 </pre>
 		
 		<pre class="file" id="file47" style="display: none">package mock
@@ -5328,6 +5336,7 @@ import (
         "fmt"
         "strings"
 
+        "github.com/goforj/godump"
         "github.com/google/uuid"
         "gorm.io/gorm"
 
@@ -5427,11 +5436,47 @@ func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier
                 if err == nil &amp;&amp; res != nil &amp;&amp; res.ID != "" </span><span class="cov0" title="0">{
                         return res, nil
                 }</span>
+                <span class="cov0" title="0">godump.Dump(res)
                 // 4. Try SIMPEG Tendik
-                <span class="cov0" title="0">res, err = r.getSimpeg(ctx, &amp;sid, nil)
+                res, err = r.getSimpeg(ctx, &amp;sid, nil)
                 if err == nil &amp;&amp; res != nil &amp;&amp; res.ID != "" </span><span class="cov0" title="0">{
                         return res, nil
                 }</span>
+        }
+
+        <span class="cov0" title="0">identifier := ""
+        if id.UserID != nil &amp;&amp; strings.TrimSpace(*id.UserID) != "" </span><span class="cov0" title="0">{
+                identifier = strings.TrimSpace(*id.UserID)
+        }</span> else<span class="cov0" title="0"> if id.NIM != nil &amp;&amp; strings.TrimSpace(*id.NIM) != "" </span><span class="cov0" title="0">{
+                identifier = strings.TrimSpace(*id.NIM)
+        }</span> else<span class="cov0" title="0"> if id.NIDN != nil &amp;&amp; strings.TrimSpace(*id.NIDN) != "" </span><span class="cov0" title="0">{
+                identifier = strings.TrimSpace(*id.NIDN)
+        }</span> else<span class="cov0" title="0"> if id.NIP != nil &amp;&amp; strings.TrimSpace(*id.NIP) != "" </span><span class="cov0" title="0">{
+                identifier = strings.TrimSpace(*id.NIP)
+        }</span>
+
+        <span class="cov0" title="0">if identifier != "" </span><span class="cov0" title="0">{
+                res := &amp;domain.AccountDefault{
+                        ID:       identifier,
+                        Username: helper.StrPtr(identifier),
+                        Name:     helper.StrPtr(identifier),
+                        Resource: helper.StrPtr("local"),
+                }
+                if id.NIM != nil &amp;&amp; strings.TrimSpace(*id.NIM) != "" </span><span class="cov0" title="0">{
+                        res.Level = helper.StrPtr("mahasiswa")
+                        res.CodeCtx = helper.StrPtr(domain.CtxMahasiswa)
+                        res.Resource = helper.StrPtr("simak")
+                }</span> else<span class="cov0" title="0"> if id.NIDN != nil &amp;&amp; strings.TrimSpace(*id.NIDN) != "" </span><span class="cov0" title="0">{
+                        res.Level = helper.StrPtr("dosen")
+                        res.CodeCtx = helper.StrPtr(domain.CtxDosen)
+                        res.Resource = helper.StrPtr("simak")
+                }</span> else<span class="cov0" title="0"> if id.NIP != nil &amp;&amp; strings.TrimSpace(*id.NIP) != "" </span><span class="cov0" title="0">{
+                        res.Level = helper.StrPtr("tendik")
+                        res.Resource = helper.StrPtr("simpeg")
+                }</span> else<span class="cov0" title="0"> {
+                        res.Level = helper.StrPtr("admin")
+                }</span>
+                <span class="cov0" title="0">return res, nil</span>
         }
 
         <span class="cov0" title="0">return nil, errors.New("identifier not provided or user not found")</span>
@@ -5644,7 +5689,7 @@ func (r *AccountRepository) getSimakDosen(ctx context.Context, nidn string) (*do
 WITH dosen_cte AS (
     SELECT 
         d.nidn,
-        "" as d.nip,
+        d.nip,
         CAST(d.nama_dosen AS CHAR(255)) AS Name,
         CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
         f.kode_fakultas AS RefFakultas,
@@ -5674,20 +5719,21 @@ SELECT
     'dosen' AS Level,
     d.Name AS Name,
     d.Email AS Email,
+    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) AS EmployeeID,
     d.RefFakultas AS RefFakultas,
     d.Fakultas AS Fakultas,
     d.RefProdi AS RefProdi,
     d.Prodi AS Prodi,
     NULL AS Unit,
         '` + domain.CtxDosen + `' AS CodeCtx
-FROM m_dosen d
+FROM dosen_cte d
 LEFT JOIN user u ON (u.userid = d.nidn OR u.userid = d.nip OR u.username = d.nidn OR u.username = d.nip) AND u.level = "DOSEN"
 WHERE d.nidn = ? OR d.nip = ? OR u.userid = ? OR u.username = ?
 LIMIT 1
 `
 
         err := r.dbSimak.WithContext(ctx).
-                Raw(query, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
+                Raw(query, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
                 Scan(&amp;user).Error
 
         if err != nil </span><span class="cov0" title="0">{
@@ -5737,33 +5783,23 @@ SELECT
     COALESCE(u.username, m.nim, ?) AS Username,
     u.password AS Password,
     'mahasiswa' AS Level,
-    CAST(m.nama_mahasiswa AS CHAR(255)) AS Name,
-    CAST(NULLIF(TRIM(m.email), '') AS CHAR(255)) AS Email,
-    f.kode_fakultas AS RefFakultas,
-    f.nama_fakultas AS Fakultas,
-    p.kode_prodi AS RefProdi,
-    CONCAT(
-                p.nama_prodi,
-                CASE p.kode_jenjang
-                        WHEN 'J' THEN ' (Profesi)'
-                        WHEN 'E' THEN ' (D3)'
-                        WHEN 'D' THEN ' (D4)'
-                        WHEN 'A' THEN ' (S3)'
-                        WHEN 'B' THEN ' (S2)'
-                        WHEN 'C' THEN ' (S1)'
-                        ELSE ''
-                END
-        ) AS Prodi,
+    m.Name AS Name,
+    m.Email AS Email,
+    COALESCE(NULLIF(TRIM(m.nim), ''), ?) AS EmployeeID,
+    m.RefFakultas AS RefFakultas,
+    m.Fakultas AS Fakultas,
+    m.RefProdi AS RefProdi,
+    m.Prodi AS Prodi,
     NULL AS Unit,
         '` + domain.CtxMahasiswa + `' AS CodeCtx
-FROM m_mahasiswa m
+FROM mahasiswa_cte m
 LEFT JOIN user u ON (u.userid = m.nim OR u.username = m.nim) AND u.level = "MAHASISWA"
 WHERE m.nim = ? OR u.userid = ? OR u.username = ?
 LIMIT 1
 `
 
         err := r.dbSimak.WithContext(ctx).
-                Raw(query, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
+                Raw(query, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
                 Scan(&amp;user).Error
 
         if err != nil </span><span class="cov0" title="0">{
@@ -5788,6 +5824,7 @@ SELECT
     p.nip as ID,
     'simpeg' as Resource,
     p.nip as Username,
+    p.nip as EmployeeID,
     '' as Password,
     'tendik' as Level,
     TRIM(CONCAT(
@@ -6244,9 +6281,15 @@ func (r *LdapRepository) getKeycloakToken(httpClient *http.Client, baseURL, real
                 adminPass = os.Getenv("AD_PASS")
         }</span>
         <span class="cov0" title="0">clientID := os.Getenv("KEYCLOAK_CLIENT_ID")
-        clientSecret := os.Getenv("KEYCLOAK_CLIENT_SECRET")
+        if clientID == "" </span><span class="cov0" title="0">{
+                clientID = "unpak_link_gate"
+        }</span>
+        <span class="cov0" title="0">clientSecret := os.Getenv("KEYCLOAK_CLIENT_SECRET")
+        if clientSecret == "" </span><span class="cov0" title="0">{
+                clientSecret = "2YWozsf2ulABrI1T8bXUnIt3mPqc2is2"
+        }</span>
 
-        clientIDs := []string{clientID, "simonev", "admin-cli", "gerbang", "account"}
+        <span class="cov0" title="0">clientIDs := []string{clientID, "unpak_link_gate", "simonev", "admin-cli", "gateway", "account"}
 
         tokenEndpoints := []string{
                 fmt.Sprintf("%s/realms/%s/protocol/openid-connect/token", baseURL, realm),
@@ -6311,7 +6354,7 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
 
         realm := os.Getenv("KEYCLOAK_REALM")
         if realm == "" </span><span class="cov0" title="0">{
-                realm = "gerbang"
+                realm = "gateway"
         }</span>
 
         <span class="cov0" title="0">tr := &amp;http.Transport{
@@ -6327,35 +6370,57 @@ func (r *LdapRepository) fetchFromKeycloak(allowedGroups []string) ([]domainacco
                 token = r.getKeycloakToken(httpClient, baseURL, realm)
         }</span>
 
-        <span class="cov0" title="0">usersURL := fmt.Sprintf("%s/admin/realms/%s/users?max=1000", baseURL, realm)
-        req, err := http.NewRequest("GET", usersURL, nil)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">if token != "" </span><span class="cov0" title="0">{
-                req.Header.Set("Authorization", "Bearer "+token)
-        }</span>
-        <span class="cov0" title="0">req.Header.Set("Accept", "application/json")
-
-        resp, err := httpClient.Do(req)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">defer resp.Body.Close()
-
-        if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
-                return nil, fmt.Errorf("keycloak api status %d", resp.StatusCode)
-        }</span>
-
         <span class="cov0" title="0">var rawUsers []keycloakUser
-        bodyBytes, err := io.ReadAll(resp.Body)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov0" title="0">if err := json.Unmarshal(bodyBytes, &amp;rawUsers); err != nil </span><span class="cov0" title="0">{
-                log.Printf("[Keycloak Notice] Failed to parse JSON: %v", err)
-                return nil, err
-        }</span>
+        first := 0
+        maxPerPage := 1000
+
+        for </span><span class="cov0" title="0">{
+                usersURL := fmt.Sprintf("%s/admin/realms/%s/users?first=%d&amp;max=%d", baseURL, realm, first, maxPerPage)
+                req, err := http.NewRequest("GET", usersURL, nil)
+                if err != nil </span><span class="cov0" title="0">{
+                        if len(rawUsers) &gt; 0 </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">return nil, err</span>
+                }
+                <span class="cov0" title="0">if token != "" </span><span class="cov0" title="0">{
+                        req.Header.Set("Authorization", "Bearer "+token)
+                }</span>
+                <span class="cov0" title="0">req.Header.Set("Accept", "application/json")
+
+                resp, err := httpClient.Do(req)
+                if err != nil </span><span class="cov0" title="0">{
+                        if len(rawUsers) &gt; 0 </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">return nil, err</span>
+                }
+
+                <span class="cov0" title="0">if resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                        resp.Body.Close()
+                        if len(rawUsers) &gt; 0 </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                        <span class="cov0" title="0">return nil, fmt.Errorf("keycloak api status %d", resp.StatusCode)</span>
+                }
+
+                <span class="cov0" title="0">bodyBytes, err := io.ReadAll(resp.Body)
+                resp.Body.Close()
+                if err != nil </span><span class="cov0" title="0">{
+                        break</span>
+                }
+
+                <span class="cov0" title="0">var pageUsers []keycloakUser
+                if err := json.Unmarshal(bodyBytes, &amp;pageUsers); err != nil || len(pageUsers) == 0 </span><span class="cov0" title="0">{
+                        break</span>
+                }
+
+                <span class="cov0" title="0">rawUsers = append(rawUsers, pageUsers...)
+                if len(pageUsers) &lt; maxPerPage </span><span class="cov0" title="0">{
+                        break</span>
+                }
+                <span class="cov0" title="0">first += maxPerPage</span>
+        }
 
         <span class="cov0" title="0">isGroupAllowed := func(gName string) (bool, string) </span><span class="cov0" title="0">{
                 trimmed := strings.TrimSpace(gName)
@@ -6667,6 +6732,7 @@ import (
         "strings"
 
         "github.com/gofiber/fiber/v2"
+        "github.com/golang-jwt/jwt/v5"
         "github.com/mehdihadeli/go-mediatr"
 
         commondomain "UnpakSiamida/common/domain"
@@ -6725,19 +6791,101 @@ func LoginHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">{
 }
 
 func WhoAmIHandler(c *fiber.Ctx) error <span class="cov0" title="0">{
-
         userID := c.FormValue("sid")
         if userID == "" </span><span class="cov0" title="0">{
                 userID = c.Query("sid")
         }</span>
+        <span class="cov0" title="0">if userID == "" </span><span class="cov0" title="0">{
+                userID = c.FormValue("user_id")
+        }</span>
+        <span class="cov0" title="0">if userID == "" </span><span class="cov0" title="0">{
+                userID = c.Query("user_id")
+        }</span>
+        <span class="cov0" title="0">if userID == "" </span><span class="cov0" title="0">{
+                userID = string(c.Request().PostArgs().Peek("sid"))
+        }</span>
+        <span class="cov0" title="0">if userID == "" </span><span class="cov0" title="0">{
+                if s, ok := c.Locals("sid").(string); ok </span><span class="cov0" title="0">{
+                        userID = s
+                }</span>
+        }
+
         <span class="cov0" title="0">resource := c.FormValue("resource")
         if resource == "" </span><span class="cov0" title="0">{
                 resource = c.Query("resource")
         }</span>
+        <span class="cov0" title="0">if resource == "" </span><span class="cov0" title="0">{
+                resource = string(c.Request().PostArgs().Peek("resource"))
+        }</span>
+        <span class="cov0" title="0">if resource == "" </span><span class="cov0" title="0">{
+                if r, ok := c.Locals("resource").(string); ok </span><span class="cov0" title="0">{
+                        resource = r
+                }</span>
+        }
+
         <span class="cov0" title="0">codectx := c.FormValue("codectx")
         if codectx == "" </span><span class="cov0" title="0">{
+                codectx = c.FormValue("codetx")
+        }</span>
+        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
                 codectx = c.Query("codectx")
         }</span>
+        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
+                codectx = c.Query("codetx")
+        }</span>
+        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
+                codectx = string(c.Request().PostArgs().Peek("codectx"))
+        }</span>
+        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
+                codectx = string(c.Request().PostArgs().Peek("codetx"))
+        }</span>
+        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
+                if cx, ok := c.Locals("codectx").(string); ok </span><span class="cov0" title="0">{
+                        codectx = cx
+                }</span> else<span class="cov0" title="0"> if cx2, ok := c.Locals("codetx").(string); ok </span><span class="cov0" title="0">{
+                        codectx = cx2
+                }</span>
+        }
+
+        // Extract claims directly from Authorization or ctxtoken JWT header if fields are missing
+        <span class="cov0" title="0">authHeader := c.Get("Authorization")
+        if authHeader == "" </span><span class="cov0" title="0">{
+                authHeader = c.Query("ctxtoken")
+        }</span>
+        <span class="cov0" title="0">if authHeader != "" </span><span class="cov0" title="0">{
+                tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+                tokenStr = strings.TrimSpace(tokenStr)
+                if tokenStr != "" </span><span class="cov0" title="0">{
+                        token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+                        if err == nil &amp;&amp; token != nil </span><span class="cov0" title="0">{
+                                if claims, ok := token.Claims.(jwt.MapClaims); ok </span><span class="cov0" title="0">{
+                                        if userID == "" </span><span class="cov0" title="0">{
+                                                if s, ok := claims["sid"].(string); ok &amp;&amp; s != "" </span><span class="cov0" title="0">{
+                                                        userID = s
+                                                }</span> else<span class="cov0" title="0"> if pref, ok := claims["preferred_username"].(string); ok &amp;&amp; pref != "" </span><span class="cov0" title="0">{
+                                                        userID = pref
+                                                }</span> else<span class="cov0" title="0"> if emp, ok := claims["employeeid"].(string); ok &amp;&amp; emp != "" </span><span class="cov0" title="0">{
+                                                        userID = emp
+                                                }</span> else<span class="cov0" title="0"> if sub, ok := claims["sub"].(string); ok &amp;&amp; sub != "" </span><span class="cov0" title="0">{
+                                                        userID = sub
+                                                }</span>
+                                        }
+                                        <span class="cov0" title="0">if resource == "" </span><span class="cov0" title="0">{
+                                                if r, ok := claims["resource"].(string); ok &amp;&amp; r != "" </span><span class="cov0" title="0">{
+                                                        resource = r
+                                                }</span>
+                                        }
+                                        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
+                                                if cx, ok := claims["codectx"].(string); ok &amp;&amp; cx != "" </span><span class="cov0" title="0">{
+                                                        codectx = cx
+                                                }</span> else<span class="cov0" title="0"> if cx2, ok := claims["codetx"].(string); ok &amp;&amp; cx2 != "" </span><span class="cov0" title="0">{
+                                                        codectx = cx2
+                                                }</span>
+                                        }
+                                }
+                        }
+                }
+        }
 
         <span class="cov0" title="0">var (
                 SID  *string
@@ -6746,16 +6894,19 @@ func WhoAmIHandler(c *fiber.Ctx) error <span class="cov0" title="0">{
                 NPM  *string
         )
 
-        normCode := strings.ToLower(strings.TrimSpace(codectx))
-        normRes := strings.ToLower(strings.TrimSpace(resource))
+        isDosen := strings.EqualFold(codectx, domainaccount.CtxDosen) || strings.EqualFold(codectx, "dosen")
+        isMahasiswa := strings.EqualFold(codectx, domainaccount.CtxMahasiswa) || strings.EqualFold(codectx, "mahasiswa")
+        isTendik := strings.EqualFold(codectx, "tendik") || strings.EqualFold(codectx, "pegawai") || strings.EqualFold(resource, "simpeg")
 
-        if (normCode == domainaccount.CtxDosen || normCode == "dosen") &amp;&amp; (normRes == "simak" || normRes == "") </span><span class="cov0" title="0">{
+        if isDosen &amp;&amp; (strings.EqualFold(resource, "simak") || resource == "") </span><span class="cov0" title="0">{
                 NIDN = helper.StrPtr(userID)
-        }</span> else<span class="cov0" title="0"> if (normCode == domainaccount.CtxMahasiswa || normCode == "mahasiswa") &amp;&amp; (normRes == "simak" || normRes == "") </span><span class="cov0" title="0">{
+        }</span> else<span class="cov0" title="0"> if isMahasiswa &amp;&amp; (strings.EqualFold(resource, "simak") || resource == "") </span><span class="cov0" title="0">{
                 NPM = helper.StrPtr(userID)
-        }</span> else<span class="cov0" title="0"> if normRes == "simpeg" || normCode == "tendik" || normCode == "pegawai" </span><span class="cov0" title="0">{
+        }</span> else<span class="cov0" title="0"> if isTendik </span><span class="cov0" title="0">{
                 NIP = helper.StrPtr(userID)
-        }</span> else<span class="cov0" title="0"> {
+        }</span>
+
+        <span class="cov0" title="0">if userID != "" </span><span class="cov0" title="0">{
                 SID = helper.StrPtr(userID)
         }</span>
 
@@ -13356,6 +13507,8 @@ import (
         "runtime"
         "sync"
         "time"
+
+        "github.com/goforj/godump"
 )
 
 type ActiveKuesionerQueryHandler struct {
@@ -13372,6 +13525,7 @@ func (h *ActiveKuesionerQueryHandler) Handle(
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
+        godump.Dump(q)
         if q.NIDN == nil &amp;&amp; q.NIP == nil &amp;&amp; q.NPM == nil </span><span class="cov0" title="0">{
                 return []domainBankSoal.BankSoalDefault{}, domainBankSoal.OnlyStudentLecturerStaff()
         }</span>
