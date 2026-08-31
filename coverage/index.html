@@ -5644,7 +5644,7 @@ func (r *AccountRepository) getSimakDosen(ctx context.Context, nidn string) (*do
 WITH dosen_cte AS (
     SELECT 
         d.nidn,
-        d.nip,
+        "" as d.nip,
         CAST(d.nama_dosen AS CHAR(255)) AS Name,
         CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
         f.kode_fakultas AS RefFakultas,
@@ -5737,12 +5737,23 @@ SELECT
     COALESCE(u.username, m.nim, ?) AS Username,
     u.password AS Password,
     'mahasiswa' AS Level,
-    m.Name AS Name,
-    m.Email AS Email,
-    m.RefFakultas AS RefFakultas,
-    m.Fakultas AS Fakultas,
-    m.RefProdi AS RefProdi,
-    m.Prodi AS Prodi,
+    CAST(m.nama_mahasiswa AS CHAR(255)) AS Name,
+    CAST(NULLIF(TRIM(m.email), '') AS CHAR(255)) AS Email,
+    f.kode_fakultas AS RefFakultas,
+    f.nama_fakultas AS Fakultas,
+    p.kode_prodi AS RefProdi,
+    CONCAT(
+                p.nama_prodi,
+                CASE p.kode_jenjang
+                        WHEN 'J' THEN ' (Profesi)'
+                        WHEN 'E' THEN ' (D3)'
+                        WHEN 'D' THEN ' (D4)'
+                        WHEN 'A' THEN ' (S3)'
+                        WHEN 'B' THEN ' (S2)'
+                        WHEN 'C' THEN ' (S1)'
+                        ELSE ''
+                END
+        ) AS Prodi,
     NULL AS Unit,
         '` + domain.CtxMahasiswa + `' AS CodeCtx
 FROM m_mahasiswa m
