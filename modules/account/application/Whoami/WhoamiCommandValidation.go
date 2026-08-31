@@ -1,16 +1,15 @@
 package application
 
 import (
-	helper "UnpakSiamida/common/helper"
-
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 func WhoamiCommandValidation(cmd WhoamiCommand) error {
-	return validation.ValidateStruct(&cmd,
-		validation.Field(&cmd.SID,
-			validation.Required.Error("SID cannot be blank"),
-			validation.By(helper.ValidateUUIDv4),
-		),
-	)
+	if (cmd.SID == nil || *cmd.SID == "") &&
+		(cmd.NIM == nil || *cmd.NIM == "") &&
+		(cmd.NIDN == nil || *cmd.NIDN == "") &&
+		(cmd.NIP == nil || *cmd.NIP == "") {
+		return validation.NewError("validation_whoami", "SID, NIM, NIDN, or NIP must be provided")
+	}
+	return nil
 }

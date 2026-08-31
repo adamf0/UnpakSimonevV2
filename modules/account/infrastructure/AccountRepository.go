@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goforj/godump"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -108,11 +109,47 @@ func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier
 		if err == nil && res != nil && res.ID != "" {
 			return res, nil
 		}
+		godump.Dump(res)
 		// 4. Try SIMPEG Tendik
 		res, err = r.getSimpeg(ctx, &sid, nil)
 		if err == nil && res != nil && res.ID != "" {
 			return res, nil
 		}
+	}
+
+	identifier := ""
+	if id.UserID != nil && strings.TrimSpace(*id.UserID) != "" {
+		identifier = strings.TrimSpace(*id.UserID)
+	} else if id.NIM != nil && strings.TrimSpace(*id.NIM) != "" {
+		identifier = strings.TrimSpace(*id.NIM)
+	} else if id.NIDN != nil && strings.TrimSpace(*id.NIDN) != "" {
+		identifier = strings.TrimSpace(*id.NIDN)
+	} else if id.NIP != nil && strings.TrimSpace(*id.NIP) != "" {
+		identifier = strings.TrimSpace(*id.NIP)
+	}
+
+	if identifier != "" {
+		res := &domain.AccountDefault{
+			ID:       identifier,
+			Username: helper.StrPtr(identifier),
+			Name:     helper.StrPtr(identifier),
+			Resource: helper.StrPtr("local"),
+		}
+		if id.NIM != nil && strings.TrimSpace(*id.NIM) != "" {
+			res.Level = helper.StrPtr("mahasiswa")
+			res.CodeCtx = helper.StrPtr(domain.CtxMahasiswa)
+			res.Resource = helper.StrPtr("simak")
+		} else if id.NIDN != nil && strings.TrimSpace(*id.NIDN) != "" {
+			res.Level = helper.StrPtr("dosen")
+			res.CodeCtx = helper.StrPtr(domain.CtxDosen)
+			res.Resource = helper.StrPtr("simak")
+		} else if id.NIP != nil && strings.TrimSpace(*id.NIP) != "" {
+			res.Level = helper.StrPtr("tendik")
+			res.Resource = helper.StrPtr("simpeg")
+		} else {
+			res.Level = helper.StrPtr("admin")
+		}
+		return res, nil
 	}
 
 	return nil, errors.New("identifier not provided or user not found")
@@ -355,20 +392,21 @@ SELECT
     'dosen' AS Level,
     d.Name AS Name,
     d.Email AS Email,
+    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) AS EmployeeID,
     d.RefFakultas AS RefFakultas,
     d.Fakultas AS Fakultas,
     d.RefProdi AS RefProdi,
     d.Prodi AS Prodi,
     NULL AS Unit,
 	'` + domain.CtxDosen + `' AS CodeCtx
-FROM m_dosen d
+FROM dosen_cte d
 LEFT JOIN user u ON (u.userid = d.nidn OR u.userid = d.nip OR u.username = d.nidn OR u.username = d.nip) AND u.level = "DOSEN"
 WHERE d.nidn = ? OR d.nip = ? OR u.userid = ? OR u.username = ?
 LIMIT 1
 `
 
 	err := r.dbSimak.WithContext(ctx).
-		Raw(query, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
+		Raw(query, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
 		Scan(&user).Error
 
 	if err != nil {
@@ -420,20 +458,21 @@ SELECT
     'mahasiswa' AS Level,
     m.Name AS Name,
     m.Email AS Email,
+    COALESCE(NULLIF(TRIM(m.nim), ''), ?) AS EmployeeID,
     m.RefFakultas AS RefFakultas,
     m.Fakultas AS Fakultas,
     m.RefProdi AS RefProdi,
     m.Prodi AS Prodi,
     NULL AS Unit,
 	'` + domain.CtxMahasiswa + `' AS CodeCtx
-FROM m_mahasiswa m
+FROM mahasiswa_cte m
 LEFT JOIN user u ON (u.userid = m.nim OR u.username = m.nim) AND u.level = "MAHASISWA"
 WHERE m.nim = ? OR u.userid = ? OR u.username = ?
 LIMIT 1
 `
 
 	err := r.dbSimak.WithContext(ctx).
-		Raw(query, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
+		Raw(query, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim, cleanNim).
 		Scan(&user).Error
 
 	if err != nil {
@@ -458,6 +497,7 @@ SELECT
     p.nip as ID,
     'simpeg' as Resource,
     p.nip as Username,
+    p.nip as EmployeeID,
     '' as Password,
     'tendik' as Level,
     TRIM(CONCAT(

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/mehdihadeli/go-mediatr"
 
 	commondomain "UnpakSiamida/common/domain"
@@ -63,18 +64,100 @@ func LoginHandlerfunc(c *fiber.Ctx) error {
 }
 
 func WhoAmIHandler(c *fiber.Ctx) error {
-
 	userID := c.FormValue("sid")
 	if userID == "" {
 		userID = c.Query("sid")
 	}
+	if userID == "" {
+		userID = c.FormValue("user_id")
+	}
+	if userID == "" {
+		userID = c.Query("user_id")
+	}
+	if userID == "" {
+		userID = string(c.Request().PostArgs().Peek("sid"))
+	}
+	if userID == "" {
+		if s, ok := c.Locals("sid").(string); ok {
+			userID = s
+		}
+	}
+
 	resource := c.FormValue("resource")
 	if resource == "" {
 		resource = c.Query("resource")
 	}
+	if resource == "" {
+		resource = string(c.Request().PostArgs().Peek("resource"))
+	}
+	if resource == "" {
+		if r, ok := c.Locals("resource").(string); ok {
+			resource = r
+		}
+	}
+
 	codectx := c.FormValue("codectx")
 	if codectx == "" {
+		codectx = c.FormValue("codetx")
+	}
+	if codectx == "" {
 		codectx = c.Query("codectx")
+	}
+	if codectx == "" {
+		codectx = c.Query("codetx")
+	}
+	if codectx == "" {
+		codectx = string(c.Request().PostArgs().Peek("codectx"))
+	}
+	if codectx == "" {
+		codectx = string(c.Request().PostArgs().Peek("codetx"))
+	}
+	if codectx == "" {
+		if cx, ok := c.Locals("codectx").(string); ok {
+			codectx = cx
+		} else if cx2, ok := c.Locals("codetx").(string); ok {
+			codectx = cx2
+		}
+	}
+
+	// Extract claims directly from Authorization or ctxtoken JWT header if fields are missing
+	authHeader := c.Get("Authorization")
+	if authHeader == "" {
+		authHeader = c.Query("ctxtoken")
+	}
+	if authHeader != "" {
+		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+		tokenStr = strings.TrimSpace(tokenStr)
+		if tokenStr != "" {
+			token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
+			if err == nil && token != nil {
+				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					if userID == "" {
+						if s, ok := claims["sid"].(string); ok && s != "" {
+							userID = s
+						} else if pref, ok := claims["preferred_username"].(string); ok && pref != "" {
+							userID = pref
+						} else if emp, ok := claims["employeeid"].(string); ok && emp != "" {
+							userID = emp
+						} else if sub, ok := claims["sub"].(string); ok && sub != "" {
+							userID = sub
+						}
+					}
+					if resource == "" {
+						if r, ok := claims["resource"].(string); ok && r != "" {
+							resource = r
+						}
+					}
+					if codectx == "" {
+						if cx, ok := claims["codectx"].(string); ok && cx != "" {
+							codectx = cx
+						} else if cx2, ok := claims["codetx"].(string); ok && cx2 != "" {
+							codectx = cx2
+						}
+					}
+				}
+			}
+		}
 	}
 
 	var (
@@ -84,16 +167,19 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 		NPM  *string
 	)
 
-	normCode := strings.ToLower(strings.TrimSpace(codectx))
-	normRes := strings.ToLower(strings.TrimSpace(resource))
+	isDosen := strings.EqualFold(codectx, domainaccount.CtxDosen) || strings.EqualFold(codectx, "dosen")
+	isMahasiswa := strings.EqualFold(codectx, domainaccount.CtxMahasiswa) || strings.EqualFold(codectx, "mahasiswa")
+	isTendik := strings.EqualFold(codectx, "tendik") || strings.EqualFold(codectx, "pegawai") || strings.EqualFold(resource, "simpeg")
 
-	if (normCode == domainaccount.CtxDosen || normCode == "dosen") && (normRes == "simak" || normRes == "") {
+	if isDosen && (strings.EqualFold(resource, "simak") || resource == "") {
 		NIDN = helper.StrPtr(userID)
-	} else if (normCode == domainaccount.CtxMahasiswa || normCode == "mahasiswa") && (normRes == "simak" || normRes == "") {
+	} else if isMahasiswa && (strings.EqualFold(resource, "simak") || resource == "") {
 		NPM = helper.StrPtr(userID)
-	} else if normRes == "simpeg" || normCode == "tendik" || normCode == "pegawai" {
+	} else if isTendik {
 		NIP = helper.StrPtr(userID)
-	} else {
+	}
+
+	if userID != "" {
 		SID = helper.StrPtr(userID)
 	}
 

@@ -168,7 +168,7 @@ func NewMySQLSimpeg() (*gorm.DB, error) {
 	return dbSimpeg, err
 }
 
-// @title UnpakSiamidaV2 API
+// @title UnpakSimonevV2 API
 // @version 1.0
 // @description All Module Siamida
 // @host 127.0.0.1:3000
