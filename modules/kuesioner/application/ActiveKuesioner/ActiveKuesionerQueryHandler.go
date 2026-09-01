@@ -9,8 +9,6 @@ import (
 	"runtime"
 	"sync"
 	"time"
-
-	"github.com/goforj/godump"
 )
 
 type ActiveKuesionerQueryHandler struct {
@@ -27,7 +25,7 @@ func (h *ActiveKuesionerQueryHandler) Handle(
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	godump.Dump(q)
+	// godump.Dump(q)
 	if q.NIDN == nil && q.NIP == nil && q.NPM == nil {
 		return []domainBankSoal.BankSoalDefault{}, domainBankSoal.OnlyStudentLecturerStaff()
 	}

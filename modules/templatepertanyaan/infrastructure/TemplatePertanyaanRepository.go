@@ -111,6 +111,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+		Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
+		Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,

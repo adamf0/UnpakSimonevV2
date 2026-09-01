@@ -49,7 +49,11 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
 		return nil, err
 	}
 
-	bankSoal, err := h.RepoBankSoal.GetDefaultByKuesioner(ctx, bankUUID)
+	fakultas := helper.NullableString(q.Fakultas)
+	prodi := helper.NullableString(q.Prodi)
+	unit := helper.NullableString(q.Unit)
+
+	bankSoal, err := h.RepoBankSoal.GetDefaultByKuesioner(ctx, bankUUID, fakultas, prodi, unit)
 	if err != nil {
 		return nil, err
 	}
@@ -63,6 +67,7 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
 	totalMap, err := h.RepoJawaban.GetTotalInputByKuesionerIDs(
 		ctx,
 		[]uint{kuesionerActive.Id},
+		bankSoal.TargetPertanyaan,
 	)
 	if err != nil {
 		return nil, err
@@ -70,6 +75,8 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
 
 	if total, ok := totalMap[kuesionerActive.UUID.String()]; ok {
 		bankSoal.TotalInput = total
+	} else {
+		bankSoal.TotalInput = 0
 	}
 
 	return bankSoal, nil

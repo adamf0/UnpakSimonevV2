@@ -62,7 +62,7 @@ func TestUpdateBankSoalCommandHandler_Handle(t *testing.T) {
 	t.Run("repo update error", func(t *testing.T) {
 		repo := &mock.MockRepository{
 			GetByUuidFunc: func(ctx context.Context, uid uuid.UUID) (*domain.BankSoal, error) {
-				return &domain.BankSoal{UUID: validUUID}, nil
+				return &domain.BankSoal{UUID: validUUID, Peruntukan: "mahasiswa"}, nil
 			},
 			UpdateFunc: func(ctx context.Context, banksoal *domain.BankSoal) error {
 				return errors.New("update error")
@@ -70,10 +70,11 @@ func TestUpdateBankSoalCommandHandler_Handle(t *testing.T) {
 		}
 		handler := &UpdateBankSoalCommandHandler{Repo: repo}
 		cmd := UpdateBankSoalCommand{
-			Uuid:     validUUID.String(),
-			Judul:    "Updated Judul",
-			Resource: "local",
-			SID:      "sid-123",
+			Uuid:       validUUID.String(),
+			Judul:      "Updated Judul",
+			Peruntukan: "mahasiswa",
+			Resource:   "local",
+			SID:        "sid-123",
 		}
 		res, err := handler.Handle(context.Background(), cmd)
 		assert.Error(t, err)
@@ -83,7 +84,7 @@ func TestUpdateBankSoalCommandHandler_Handle(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := &mock.MockRepository{
 			GetByUuidFunc: func(ctx context.Context, uid uuid.UUID) (*domain.BankSoal, error) {
-				return &domain.BankSoal{UUID: validUUID}, nil
+				return &domain.BankSoal{UUID: validUUID, Peruntukan: "mahasiswa"}, nil
 			},
 			UpdateFunc: func(ctx context.Context, banksoal *domain.BankSoal) error {
 				assert.Equal(t, "Updated Judul", banksoal.Judul)
@@ -92,10 +93,11 @@ func TestUpdateBankSoalCommandHandler_Handle(t *testing.T) {
 		}
 		handler := &UpdateBankSoalCommandHandler{Repo: repo}
 		cmd := UpdateBankSoalCommand{
-			Uuid:     validUUID.String(),
-			Judul:    "Updated Judul",
-			Resource: "local",
-			SID:      "sid-123",
+			Uuid:       validUUID.String(),
+			Judul:      "Updated Judul",
+			Peruntukan: "mahasiswa",
+			Resource:   "local",
+			SID:        "sid-123",
 		}
 		res, err := handler.Handle(context.Background(), cmd)
 		assert.NoError(t, err)

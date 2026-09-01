@@ -14,7 +14,7 @@ type MockRepository struct {
 	CountCopyFunc             func(ctx context.Context, judul string) (int, error)
 	GetByUuidFunc             func(ctx context.Context, uid uuid.UUID) (*domain.BankSoal, error)
 	GetDefaultByUuidFunc      func(ctx context.Context, uid uuid.UUID) (*domain.BankSoalDefault, error)
-	GetDefaultByKuesionerFunc func(ctx context.Context, uid uuid.UUID) (*domain.BankSoalDefault, error)
+	GetDefaultByKuesionerFunc func(ctx context.Context, uid uuid.UUID, userTarget ...string) (*domain.BankSoalDefault, error)
 	GetAllFunc                func(
 		ctx context.Context,
 		search string,
@@ -63,9 +63,9 @@ func (m *MockRepository) GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*
 	return nil, nil
 }
 
-func (m *MockRepository) GetDefaultByKuesioner(ctx context.Context, uid uuid.UUID) (*domain.BankSoalDefault, error) {
+func (m *MockRepository) GetDefaultByKuesioner(ctx context.Context, uid uuid.UUID, userTarget ...string) (*domain.BankSoalDefault, error) {
 	if m.GetDefaultByKuesionerFunc != nil {
-		return m.GetDefaultByKuesionerFunc(ctx, uid)
+		return m.GetDefaultByKuesionerFunc(ctx, uid, userTarget...)
 	}
 	return nil, nil
 }

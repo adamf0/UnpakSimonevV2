@@ -13,6 +13,7 @@ type BankSoalDefault struct {
 	Content          *string
 	Deskripsi        *string
 	Semester         *string
+	Peruntukan       string
 	TanggalMulai     *time.Time
 	TanggalAkhir     *time.Time
 	CreatedBy        *string

@@ -13,12 +13,12 @@ type JWTService struct {
 }
 
 func GenerateToken(sid string, resource string, codectx *string) (string, string, error) {
-	// Access token (15 menit)
+	// Access token (24 jam)
 	accessClaims := jwt.MapClaims{
 		"sid":      sid,
 		"resource": resource,
 		"codectx":  StringValue(codectx),
-		"exp":      time.Now().Add(1 * 24 * time.Hour).Unix(),
+		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	}
 	accessJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
 	accessTokenStr, err := accessJWT.SignedString(jwtSecret)

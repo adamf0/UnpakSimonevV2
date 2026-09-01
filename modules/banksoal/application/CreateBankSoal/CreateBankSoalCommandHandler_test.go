@@ -16,12 +16,13 @@ func TestCreateBankSoalCommandHandler_Handle(t *testing.T) {
 		repo := &mock.MockRepository{}
 		handler := &CreateBankSoalCommandHandler{Repo: repo}
 		cmd := CreateBankSoalCommand{
-			Judul:     "Test Judul",
-			Content:   "Test Content",
-			Deskripsi: "Test Deskripsi",
-			Semester:  "Gasal",
-			Resource:  "not-local",
-			SID:       "sid-123",
+			Judul:      "Test Judul",
+			Content:    "Test Content",
+			Deskripsi:  "Test Deskripsi",
+			Semester:   "Gasal",
+			Peruntukan: "mahasiswa",
+			Resource:   "not-local",
+			SID:        "sid-123",
 		}
 		res, err := handler.Handle(context.Background(), cmd)
 		assert.Error(t, err)
@@ -36,12 +37,13 @@ func TestCreateBankSoalCommandHandler_Handle(t *testing.T) {
 		}
 		handler := &CreateBankSoalCommandHandler{Repo: repo}
 		cmd := CreateBankSoalCommand{
-			Judul:     "Test Judul",
-			Content:   "Test Content",
-			Deskripsi: "Test Deskripsi",
-			Semester:  "Gasal",
-			Resource:  "local",
-			SID:       "sid-123",
+			Judul:      "Test Judul",
+			Content:    "Test Content",
+			Deskripsi:  "Test Deskripsi",
+			Semester:   "Gasal",
+			Peruntukan: "mahasiswa",
+			Resource:   "local",
+			SID:        "sid-123",
 		}
 		res, err := handler.Handle(context.Background(), cmd)
 		assert.Error(t, err)
@@ -56,12 +58,13 @@ func TestCreateBankSoalCommandHandler_Handle(t *testing.T) {
 		}
 		handler := &CreateBankSoalCommandHandler{Repo: repo}
 		cmd := CreateBankSoalCommand{
-			Judul:     "Test Judul",
-			Content:   "Test Content",
-			Deskripsi: "Test Deskripsi",
-			Semester:  "Gasal",
-			Resource:  "local",
-			SID:       "sid-123",
+			Judul:      "Test Judul",
+			Content:    "Test Content",
+			Deskripsi:  "Test Deskripsi",
+			Semester:   "Gasal",
+			Peruntukan: "mahasiswa",
+			Resource:   "local",
+			SID:        "sid-123",
 		}
 		res, err := handler.Handle(context.Background(), cmd)
 		assert.NoError(t, err)

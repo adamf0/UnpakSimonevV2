@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -16,6 +17,7 @@ type IKuesionerJawabanRepository interface {
 	GetTotalInputByKuesionerIDs(
 		ctx context.Context,
 		ids []uint,
+		targetUUIDs ...[]uuid.UUID,
 	) (map[string]uint, error)
 	GetAllByKuesioner(
 		ctx context.Context,

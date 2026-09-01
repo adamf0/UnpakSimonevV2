@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -177,6 +178,7 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 			b.content AS Content,
 			b.deskripsi AS Deskripsi,
 			b.semester AS Semester,
+			b.peruntukan as Peruntukan,
 			b.tanggal_mulai AS TanggalMulai,
 			b.tanggal_akhir AS TanggalAkhir,
 			b.createdBy AS CreatedBy,
@@ -275,6 +277,7 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 func (r *BankSoalRepository) GetDefaultByKuesioner(
 	ctx context.Context,
 	id uuid.UUID,
+	userTarget ...string,
 ) (*domainbanksoal.BankSoalDefault, error) {
 
 	var row domainbanksoal.BankSoalDefault
@@ -334,6 +337,7 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 			b.content as Content,
 			b.deskripsi as Deskripsi,
 			b.semester as Semester,
+			b.peruntukan as Peruntukan,
 			b.tanggal_mulai as TanggalMulai,
 			b.tanggal_akhir as TanggalAkhir,
 			b.createdBy as CreatedBy,
@@ -444,6 +448,180 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 				row.TargetPertanyaan = append(row.TargetPertanyaan, u)
 			}
 		}
+	}
+
+	// =========================
+	// FILTER TARGET PERTANYAAN BY USER TARGET & ACTIVE TIME
+	// =========================
+	if len(userTarget) > 0 && len(row.TargetPertanyaan) > 0 {
+		userFak := ""
+		userPro := ""
+		userUni := ""
+
+		for i, t := range userTarget {
+			v := strings.ToLower(strings.TrimSpace(t))
+			if v == "" {
+				continue
+			}
+			if i == 0 {
+				userFak = v
+			} else if i == 1 {
+				userPro = v
+			} else if i == 2 {
+				userUni = v
+			}
+		}
+
+		isDateActive := func(start, end *time.Time) bool {
+			if start == nil || end == nil {
+				return false
+			}
+			now := time.Now()
+			return (now.After(*start) || now.Equal(*start)) && (now.Before(*end) || now.Equal(*end))
+		}
+
+		isFakMatch := func(itemFakCode, itemFakName string) bool {
+			if userFak == "" && userUni == "" {
+				return false
+			}
+			c := strings.ToLower(strings.TrimSpace(itemFakCode))
+			n := strings.ToLower(strings.TrimSpace(itemFakName))
+
+			if c != "" {
+				if userFak != "" && (c == userFak || strings.Contains(c, userFak) || strings.Contains(userFak, c)) {
+					return true
+				}
+				if userUni != "" && (c == userUni || strings.Contains(c, userUni) || strings.Contains(userUni, c)) {
+					return true
+				}
+			}
+			if n != "" {
+				if userFak != "" && (n == userFak || strings.Contains(n, userFak) || strings.Contains(userFak, n)) {
+					return true
+				}
+				if userUni != "" && (n == userUni || strings.Contains(n, userUni) || strings.Contains(userUni, n)) {
+					return true
+				}
+			}
+			return false
+		}
+
+		isProMatch := func(itemProCode, itemProName string) bool {
+			if userPro == "" {
+				return false
+			}
+			c := strings.ToLower(strings.TrimSpace(itemProCode))
+			n := strings.ToLower(strings.TrimSpace(itemProName))
+
+			if c != "" && (c == userPro || strings.Contains(c, userPro) || strings.Contains(userPro, c)) {
+				return true
+			}
+			if n != "" && (n == userPro || strings.Contains(n, userPro) || strings.Contains(userPro, n)) {
+				return true
+			}
+			return false
+		}
+
+		isMainActive := isDateActive(row.TanggalMulai, row.TanggalAkhir)
+
+		hasFakExt := false
+		isFakExtActive := false
+
+		hasProExt := false
+		isProExtActive := false
+
+		for _, ext := range row.ListExt {
+			role := strings.ToLower(ext.Role)
+			if role == "fakultas" || strings.Contains(role, "fakultas") || ext.KodeFakultas != "" || ext.NamaFakultas != "" {
+				if isFakMatch(ext.KodeFakultas, ext.NamaFakultas) {
+					hasFakExt = true
+					if isDateActive(ext.TanggalMulai, ext.TanggalAkhir) {
+						isFakExtActive = true
+					}
+				}
+			}
+
+			if role == "prodi" || strings.Contains(role, "prodi") || ext.KodeProdi != "" || ext.NamaProdi != "" {
+				if isProMatch(ext.KodeProdi, ext.NamaProdi) {
+					hasProExt = true
+					if isDateActive(ext.TanggalMulai, ext.TanggalAkhir) {
+						isProExtActive = true
+					}
+				}
+			}
+		}
+
+		isAdminTimeActive := isMainActive
+
+		isFakultasTimeActive := isMainActive
+		if hasFakExt {
+			isFakultasTimeActive = isFakExtActive
+		}
+
+		isProdiTimeActive := isMainActive
+		if hasProExt {
+			isProdiTimeActive = isProExtActive
+		}
+
+		type QuestionRow struct {
+			UUID         uuid.UUID `gorm:"column:uuid"`
+			CreatedBy    string    `gorm:"column:CreatedBy"`
+			CreatedByRef string    `gorm:"column:CreatedByRef"`
+			Fakultas     string    `gorm:"column:Fakultas"`
+			Prodi        string    `gorm:"column:Prodi"`
+		}
+
+		var qRows []QuestionRow
+		r.db.WithContext(ctx).
+			Table("template_pertanyaanv2 a").
+			Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+			Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas OR f.nama_fakultas = u.fakultas").
+			Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi OR p.nama_prodi = u.prodi").
+			Select(`
+				a.uuid as uuid,
+				CASE
+					WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
+					WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
+					WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+					WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+					ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
+				END as CreatedBy,
+				a.createdByRef as CreatedByRef,
+				COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas, '') as Fakultas,
+				COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi, '') as Prodi
+			`).
+			Where("a.id_bank_soal = ?", row.Id).
+			Where("a.deleted_at IS NULL").
+			Where("a.status = ?", "active").
+			Find(&qRows)
+
+		filteredUUIDs := make([]uuid.UUID, 0)
+		for _, q := range qRows {
+			cb := strings.ToLower(q.CreatedBy)
+			qFak := strings.ToLower(strings.TrimSpace(q.Fakultas))
+			qPro := strings.ToLower(strings.TrimSpace(q.Prodi))
+
+			isFak := strings.Contains(cb, "fakultas") || qFak != ""
+			isPro := strings.Contains(cb, "prodi") || qPro != ""
+
+			if isPro {
+				if isProdiTimeActive && isProMatch(qPro, "") {
+					filteredUUIDs = append(filteredUUIDs, q.UUID)
+				}
+			} else if isFak {
+				if isFakultasTimeActive && isFakMatch(qFak, "") {
+					filteredUUIDs = append(filteredUUIDs, q.UUID)
+				}
+			} else {
+				// Admin question -> applies to all if admin time is active
+				if isAdminTimeActive {
+					filteredUUIDs = append(filteredUUIDs, q.UUID)
+				}
+			}
+		}
+
+		row.TargetPertanyaan = filteredUUIDs
+		row.TotalPertanyaan = uint(len(filteredUUIDs))
 	}
 
 	return &row, nil
@@ -564,6 +742,7 @@ func (r *BankSoalRepository) GetAll(
 			b.content as Content,
 			b.deskripsi as Deskripsi,
 			b.semester as Semester,
+			b.peruntukan as Peruntukan,
 			b.tanggal_mulai as TanggalMulai,
 			b.tanggal_akhir as TanggalAkhir,
 			b.createdBy as CreatedBy,

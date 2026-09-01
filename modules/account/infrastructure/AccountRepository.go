@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/goforj/godump"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -109,7 +108,6 @@ func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier
 		if err == nil && res != nil && res.ID != "" {
 			return res, nil
 		}
-		godump.Dump(res)
 		// 4. Try SIMPEG Tendik
 		res, err = r.getSimpeg(ctx, &sid, nil)
 		if err == nil && res != nil && res.ID != "" {

@@ -4,6 +4,7 @@ import (
 	domainkuesioner "UnpakSiamida/modules/kuesioner/domain"
 	"context"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -20,24 +21,41 @@ func NewKuesionerJawabanRepository(db *gorm.DB) domainkuesioner.IKuesionerJawaba
 // TX SUPPORT
 // ===============================
 func (r *KuesionerJawabanRepository) WithTx(tx any) domainkuesioner.IKuesionerJawabanRepository {
-	return &KuesionerJawabanRepository{
-		db: tx.(*gorm.DB),
+	if gormTx, ok := tx.(*gorm.DB); ok {
+		return &KuesionerJawabanRepository{db: gormTx}
 	}
+	return r
 }
 
 func (r *KuesionerJawabanRepository) BeginTx(ctx context.Context) (*gorm.DB, error) {
-	return r.db.WithContext(ctx).Begin(), nil
+	tx := r.db.WithContext(ctx).Begin()
+	return tx, tx.Error
 }
 
 // ===============================
-// GET ALL BY KUESIONER UUID
+// READ / WRITE
 // ===============================
+func (r *KuesionerJawabanRepository) GetByPertanyaanAndUser(
+	ctx context.Context,
+	pertanyaanID uint,
+	sid string,
+	resource string,
+) ([]domainkuesioner.KuesionerJawaban, error) {
+
+	var list []domainkuesioner.KuesionerJawaban
+	err := r.db.WithContext(ctx).
+		Where("id_template_pertanyaan = ? AND createdByRef = ? AND createdBy = ?", pertanyaanID, sid, resource).
+		Find(&list).Error
+
+	return list, err
+}
+
 func (r *KuesionerJawabanRepository) GetAllByKuesioner(
 	ctx context.Context,
 	uuidkuesioner string,
 ) ([]domainkuesioner.KuesionerJawabanDefault, error) {
 
-	results := make([]domainkuesioner.KuesionerJawabanDefault, 0)
+	var list []domainkuesioner.KuesionerJawabanDefault
 
 	err := r.db.WithContext(ctx).
 		Table("kuesioner_jawabanv2 kj").
@@ -61,48 +79,15 @@ func (r *KuesionerJawabanRepository) GetAllByKuesioner(
 		Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban").
 		Where("k.uuid = ?", uuidkuesioner).
 		Order("kj.id ASC").
-		Scan(&results).Error
+		Find(&list).Error
 
-	if err != nil {
-		return nil, err
-	}
-
-	return results, nil
+	return list, err
 }
 
-// ===============================
-// GET BY PERTANYAAN + USER
-// ===============================
-func (r *KuesionerJawabanRepository) GetByPertanyaanAndUser(
-	ctx context.Context,
-	pertanyaanID uint,
-	sid string,
-	resource string,
-) ([]domainkuesioner.KuesionerJawaban, error) {
-
-	results := make([]domainkuesioner.KuesionerJawaban, 0)
-
-	err := r.db.WithContext(ctx).
-		Where("id_template_pertanyaan = ?", pertanyaanID).
-		Where("createdByRef = ?", sid).
-		Where("createdBy = ?", resource).
-		Find(&results).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return results, nil
-}
-
-// ===============================
-// CREATE
-// ===============================
 func (r *KuesionerJawabanRepository) Create(
 	ctx context.Context,
 	data *domainkuesioner.KuesionerJawaban,
 ) error {
-
 	return r.db.WithContext(ctx).
 		Clauses(clause.OnConflict{
 			Columns: []clause.Column{
@@ -119,14 +104,10 @@ func (r *KuesionerJawabanRepository) Create(
 		Create(data).Error
 }
 
-// ===============================
-// DELETE
-// ===============================
 func (r *KuesionerJawabanRepository) Delete(
 	ctx context.Context,
 	id uint,
 ) error {
-
 	return r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&domainkuesioner.KuesionerJawaban{}).Error
@@ -135,6 +116,7 @@ func (r *KuesionerJawabanRepository) Delete(
 func (r *KuesionerJawabanRepository) GetTotalInputByKuesionerIDs(
 	ctx context.Context,
 	ids []uint,
+	targetUUIDs ...[]uuid.UUID,
 ) (map[string]uint, error) {
 
 	type row struct {
@@ -144,15 +126,24 @@ func (r *KuesionerJawabanRepository) GetTotalInputByKuesionerIDs(
 
 	var rows []row
 
-	// Subquery: hitung 1 row per pertanyaan unik per kuesioner
-	subQuery := r.db.
+	if len(targetUUIDs) > 0 && len(targetUUIDs[0]) == 0 {
+		return map[string]uint{}, nil
+	}
+
+	q := r.db.
 		Table("kuesioner_jawabanv2 kj").
 		Select("k.uuid AS uuid").
 		Joins("JOIN kuesionerv2 k ON kj.id_kuesioner = k.id").
 		Joins("JOIN template_pilihanv2 tp on kj.id_template_jawaban = tp.id").
 		Where("kj.id_kuesioner IN ?", ids).
-		Where("tp.deleted_at IS NULL").
-		Group("k.uuid, kj.id_template_pertanyaan")
+		Where("tp.deleted_at IS NULL")
+
+	if len(targetUUIDs) > 0 && len(targetUUIDs[0]) > 0 {
+		q = q.Joins("JOIN template_pertanyaanv2 tp2 ON kj.id_template_pertanyaan = tp2.id").
+			Where("tp2.uuid IN ?", targetUUIDs[0])
+	}
+
+	subQuery := q.Group("k.uuid, kj.id_template_pertanyaan")
 
 	// Main query: hitung total pertanyaan per kuesioner
 	err := r.db.WithContext(ctx).

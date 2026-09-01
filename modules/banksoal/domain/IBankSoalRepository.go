@@ -12,7 +12,7 @@ type IBankSoalRepository interface {
 	CountCopy(ctx context.Context, judul string) (int, error)
 	GetByUuid(ctx context.Context, uid uuid.UUID) (*BankSoal, error)
 	GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*BankSoalDefault, error)
-	GetDefaultByKuesioner(ctx context.Context, uid uuid.UUID) (*BankSoalDefault, error)
+	GetDefaultByKuesioner(ctx context.Context, uid uuid.UUID, userTarget ...string) (*BankSoalDefault, error)
 	GetAll(
 		ctx context.Context,
 		search string,

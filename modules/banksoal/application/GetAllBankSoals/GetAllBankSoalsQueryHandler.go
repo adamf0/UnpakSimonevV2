@@ -6,6 +6,8 @@ import (
 	domainBankSoal "UnpakSiamida/modules/banksoal/domain"
 	"context"
 	"time"
+
+	"github.com/goforj/godump"
 )
 
 type GetAllBankSoalsQueryHandler struct {
@@ -19,6 +21,7 @@ func (h *GetAllBankSoalsQueryHandler) Handle(
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
+	godump.Dump(q)
 	if q.NIDN != nil || q.NIP != nil || q.NPM != nil {
 		return commondomain.Paged[domainBankSoal.BankSoalDefault]{}, domainBankSoal.OnlyAdminFacultyStudyProgram()
 	}

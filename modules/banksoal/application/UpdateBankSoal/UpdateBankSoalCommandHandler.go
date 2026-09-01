@@ -51,6 +51,7 @@ func (h *UpdateBankSoalCommandHandler) Handle(
 		helper.StrPtr(cmd.Content),
 		helper.StrPtr(cmd.Deskripsi),
 		helper.StrPtr(cmd.Semester),
+		cmd.Peruntukan,
 		cmd.Resource, //local, simak, simpeg
 		cmd.SID,
 	)

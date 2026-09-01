@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/goforj/godump"
 	"github.com/mehdihadeli/go-mediatr"
 
 	commondomain "UnpakSiamida/common/domain"
@@ -38,6 +39,7 @@ import (
 //@param content formData string true "Content"
 //@param deskripsi formData string true "Deskripsi"
 //@param semester formData string true "Semester"
+//@param peruntukan formData string true "Peruntukan"
 //@param tanggal_mulai formData string true "TanggalMulai"
 //@param tanggal_akhir formData string true "TanggalAkhir"
 // @Produce json
@@ -54,16 +56,18 @@ func CreateBankSoalHandlerfunc(c *fiber.Ctx) error {
 	Content := c.FormValue("content")
 	Deskripsi := c.FormValue("deskripsi")
 	Semester := c.FormValue("semester")
+	Peruntukan := c.FormValue("peruntukan")
 	SID := c.FormValue("sid")
 	Resource := c.FormValue("resource")
 
 	cmd := CreateBankSoal.CreateBankSoalCommand{
-		Judul:     Judul,
-		Content:   Content,
-		Deskripsi: Deskripsi,
-		Semester:  Semester,
-		SID:       SID,
-		Resource:  Resource,
+		Judul:      Judul,
+		Content:    Content,
+		Deskripsi:  Deskripsi,
+		Semester:   Semester,
+		Peruntukan: Peruntukan,
+		SID:        SID,
+		Resource:   Resource,
 	}
 
 	uuid, err := mediatr.Send[CreateBankSoal.CreateBankSoalCommand, string](context.Background(), cmd)
@@ -128,6 +132,7 @@ func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error {
 // @param content formData string true "Content"
 // @param deskripsi formData string true "Deskripsi"
 // @param semester formData string true "Semester"
+// @param peruntukan formData string true "Peruntukan"
 // @param tanggal_mulai formData string true "TanggalMulai"
 // @param tanggal_akhir formData string true "TanggalAkhir"
 // @Produce json
@@ -144,17 +149,19 @@ func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error {
 	Content := c.FormValue("content")
 	Deskripsi := c.FormValue("deskripsi")
 	Semester := c.FormValue("semester")
+	Peruntukan := c.FormValue("peruntukan")
 	SID := c.FormValue("sid")
 	Resource := c.FormValue("resource")
 
 	cmd := UpdateBankSoal.UpdateBankSoalCommand{
-		Uuid:      uuid,
-		Judul:     Judul,
-		Content:   Content,
-		Deskripsi: Deskripsi,
-		Semester:  Semester,
-		SID:       SID,
-		Resource:  Resource,
+		Uuid:       uuid,
+		Judul:      Judul,
+		Content:    Content,
+		Deskripsi:  Deskripsi,
+		Semester:   Semester,
+		Peruntukan: Peruntukan,
+		SID:        SID,
+		Resource:   Resource,
 	}
 
 	updatedID, err := mediatr.Send[UpdateBankSoal.UpdateBankSoalCommand, string](context.Background(), cmd)
@@ -492,6 +499,7 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 	if role == "" {
 		role = c.FormValue("level")
 	}
+	godump.Dump(c.FormValue("level"), c.FormValue("role"))
 
 	if role == "adm_simonev_fakultas" {
 		role = "fakultas"

@@ -58,3 +58,7 @@ func InvalidDateRange() domain.Error {
 func InvalidOwner() domain.Error {
 	return domain.NotFoundError("BankSoal.InvalidOwner", "only lpm / fakultas / prodi can create bank soal")
 }
+
+func InvalidType() domain.Error {
+	return domain.NotFoundError("BankSoal.InvalidType", "invalid peruntukan")
+}

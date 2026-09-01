@@ -8,10 +8,11 @@ import (
 
 func TestCreateBankSoalCommandValidation(t *testing.T) {
 	cmd := CreateBankSoalCommand{
-		Judul:    "Soal UTS",
-		Semester: "202401",
-		SID:      "sid-1",
-		Resource: "lpm",
+		Judul:      "Soal UTS",
+		Semester:   "202401",
+		Peruntukan: "mahasiswa",
+		SID:        "sid-1",
+		Resource:   "lpm",
 	}
 
 	// Success case
@@ -26,4 +27,9 @@ func TestCreateBankSoalCommandValidation(t *testing.T) {
 	cmdFailSemester := cmd
 	cmdFailSemester.Semester = ""
 	assert.Error(t, CreateBankSoalCommandValidation(cmdFailSemester))
+
+	// Fail on empty Peruntukan
+	cmdFailPeruntukan := cmd
+	cmdFailPeruntukan.Peruntukan = ""
+	assert.Error(t, CreateBankSoalCommandValidation(cmdFailPeruntukan))
 }

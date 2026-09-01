@@ -21,6 +21,7 @@ type BankSoal struct {
 	Semester     *string    `gorm:"column:semester"`
 	TanggalMulai *time.Time `gorm:"column:tanggal_mulai"`
 	TanggalAkhir *time.Time `gorm:"column:tanggal_akhir"`
+	Peruntukan   string     `gorm:"column:peruntukan"`
 	CreatedBy    *string    `gorm:"column:createdBy"`
 	CreatedByRef *string    `gorm:"column:createdByRef"`
 	DeletedAt    *time.Time `gorm:"column:deleted_at"`
@@ -37,11 +38,15 @@ func NewBankSoal(
 	content *string,
 	deskripsi *string,
 	semester *string,
+	peruntukan string,
 	createdby string, //lpm, fakultas, prodi
 	createdbyref string,
 ) common.ResultValue[*BankSoal] {
 	if createdby != "local" {
 		return common.FailureValue[*BankSoal](InvalidOwner())
+	}
+	if peruntukan != "mahasiswa" && peruntukan != "dosen" && peruntukan != "tendik" {
+		return common.FailureValue[*BankSoal](InvalidType())
 	}
 
 	aktivitasproker := &BankSoal{
@@ -50,6 +55,7 @@ func NewBankSoal(
 		Content:      content,
 		Deskripsi:    deskripsi,
 		Semester:     semester,
+		Peruntukan:   peruntukan,
 		Status:       "draf",
 		CreatedBy:    helper.StrPtr(createdby),
 		CreatedByRef: helper.StrPtr(createdbyref),
@@ -66,6 +72,7 @@ func UpdateBankSoal(
 	content *string,
 	deskripsi *string,
 	semester *string,
+	peruntukan string,
 	createdby string, //lpm, fakultas, prodi
 	createdbyref string,
 ) common.ResultValue[*BankSoal] {
@@ -82,10 +89,15 @@ func UpdateBankSoal(
 		return common.FailureValue[*BankSoal](InvalidOwner())
 	}
 
+	if peruntukan != "mahasiswa" && peruntukan != "dosen" && peruntukan != "tendik" {
+		return common.FailureValue[*BankSoal](InvalidType())
+	}
+
 	prev.Judul = judul
 	prev.Content = content
 	prev.Deskripsi = deskripsi
 	prev.Semester = semester
+	prev.Peruntukan = peruntukan
 	prev.CreatedBy = helper.StrPtr(createdby)
 	prev.CreatedByRef = helper.StrPtr(createdbyref)
 

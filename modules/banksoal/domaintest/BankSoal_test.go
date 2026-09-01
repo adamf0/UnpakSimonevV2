@@ -19,44 +19,44 @@ func TestBankSoal_TableName(t *testing.T) {
 
 func TestBankSoal_New(t *testing.T) {
 	// Success case
-	res := domain.NewBankSoal("Judul Soal", helper.StrPtr("content"), helper.StrPtr("deskripsi"), helper.StrPtr("20241"), "local", "ref-123")
+	res := domain.NewBankSoal("Judul Soal", helper.StrPtr("content"), helper.StrPtr("deskripsi"), helper.StrPtr("20241"), "mahasiswa", "local", "ref-123")
 	assert.True(t, res.IsSuccess)
 	assert.NotNil(t, res.Value)
 	assert.Equal(t, "Judul Soal", res.Value.Judul)
 	assert.Equal(t, "draf", res.Value.Status)
 
 	// Failure case: invalid owner
-	resFail := domain.NewBankSoal("Judul Soal", nil, nil, nil, "invalid-owner", "ref-123")
+	resFail := domain.NewBankSoal("Judul Soal", nil, nil, nil, "mahasiswa", "invalid-owner", "ref-123")
 	assert.False(t, resFail.IsSuccess)
 	assert.Equal(t, domain.InvalidOwner(), resFail.Error)
 }
 
 func TestBankSoal_Update(t *testing.T) {
-	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "local", "ref-123").Value
+	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "mahasiswa", "local", "ref-123").Value
 
 	// Success case
-	res := domain.UpdateBankSoal(bs, bs.UUID, "Updated Title", helper.StrPtr("new content"), nil, nil, "local", "ref-123")
+	res := domain.UpdateBankSoal(bs, bs.UUID, "Updated Title", helper.StrPtr("new content"), nil, nil, "mahasiswa", "local", "ref-123")
 	assert.True(t, res.IsSuccess)
 	assert.Equal(t, "Updated Title", res.Value.Judul)
 
 	// Failure case: Nil object
-	resNil := domain.UpdateBankSoal(nil, bs.UUID, "Updated Title", nil, nil, nil, "local", "ref-123")
+	resNil := domain.UpdateBankSoal(nil, bs.UUID, "Updated Title", nil, nil, nil, "mahasiswa", "local", "ref-123")
 	assert.False(t, resNil.IsSuccess)
 	assert.Equal(t, domain.EmptyData(), resNil.Error)
 
 	// Failure case: UUID mismatch
-	resMismatch := domain.UpdateBankSoal(bs, uuid.New(), "Updated Title", nil, nil, nil, "local", "ref-123")
+	resMismatch := domain.UpdateBankSoal(bs, uuid.New(), "Updated Title", nil, nil, nil, "mahasiswa", "local", "ref-123")
 	assert.False(t, resMismatch.IsSuccess)
 	assert.Equal(t, domain.InvalidData(), resMismatch.Error)
 
 	// Failure case: Invalid owner
-	resOwner := domain.UpdateBankSoal(bs, bs.UUID, "Updated Title", nil, nil, nil, "invalid-owner", "ref-123")
+	resOwner := domain.UpdateBankSoal(bs, bs.UUID, "Updated Title", nil, nil, nil, "mahasiswa", "invalid-owner", "ref-123")
 	assert.False(t, resOwner.IsSuccess)
 	assert.Equal(t, domain.InvalidOwner(), resOwner.Error)
 }
 
 func TestBankSoal_UpdateTime(t *testing.T) {
-	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "local", "ref-123").Value
+	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "mahasiswa", "local", "ref-123").Value
 
 	// Success case
 	start := "2024-01-01"
@@ -99,7 +99,7 @@ func TestBankSoal_UpdateTime(t *testing.T) {
 }
 
 func TestBankSoal_DeleteRestoreResetTime(t *testing.T) {
-	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "local", "ref-123").Value
+	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "mahasiswa", "local", "ref-123").Value
 
 	// Delete
 	resDel := domain.DeleteBankSoal(bs)
@@ -127,7 +127,7 @@ func TestBankSoal_DeleteRestoreResetTime(t *testing.T) {
 }
 
 func TestBankSoal_ChangeStatus(t *testing.T) {
-	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "local", "ref-123").Value
+	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "mahasiswa", "local", "ref-123").Value
 
 	// Success status
 	res := domain.ChangeStatus(bs, "active")
@@ -144,7 +144,7 @@ func TestBankSoal_ChangeStatus(t *testing.T) {
 }
 
 func TestBankSoal_Copy(t *testing.T) {
-	bs := domain.NewBankSoal("Original", nil, nil, nil, "local", "ref-123").Value
+	bs := domain.NewBankSoal("Original", nil, nil, nil, "mahasiswa", "local", "ref-123").Value
 
 	// Copy count = 0
 	resCopy1 := domain.CopyBankSoal(bs, 0, "local", "ref-123")
@@ -161,7 +161,7 @@ func TestBankSoal_Copy(t *testing.T) {
 }
 
 func TestBankSoalExt_AddTimeBankSoalExt(t *testing.T) {
-	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "local", "ref-123").Value
+	bs := domain.NewBankSoal("Judul Soal", nil, nil, nil, "mahasiswa", "local", "ref-123").Value
 	bs.ID = 12
 
 	start := "2024-05-01"
