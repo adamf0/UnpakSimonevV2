@@ -261,7 +261,7 @@
 				
 				<option value="file102">UnpakSiamida/modules/kategori/application/UpdateKategori/UpdateKategoriCommandValidation.go (100.0%)</option>
 				
-				<option value="file103">UnpakSiamida/modules/kategori/application/UpdateKategori/UpdateKategoriOrderCommandHandler.go (84.5%)</option>
+				<option value="file103">UnpakSiamida/modules/kategori/application/UpdateKategori/UpdateKategoriOrderCommandHandler.go (84.3%)</option>
 				
 				<option value="file104">UnpakSiamida/modules/kategori/application/mock/kategori_repository.go (0.0%)</option>
 				
@@ -1568,12 +1568,12 @@ type JWTService struct {
 }
 
 func GenerateToken(sid string, resource string, codectx *string) (string, string, error) <span class="cov0" title="0">{
-        // Access token (15 menit)
+        // Access token (24 jam)
         accessClaims := jwt.MapClaims{
                 "sid":      sid,
                 "resource": resource,
                 "codectx":  StringValue(codectx),
-                "exp":      time.Now().Add(1 * 24 * time.Hour).Unix(),
+                "exp":      time.Now().Add(24 * time.Hour).Unix(),
         }
         accessJWT := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
         accessTokenStr, err := accessJWT.SignedString(jwtSecret)
@@ -5336,7 +5336,6 @@ import (
         "fmt"
         "strings"
 
-        "github.com/goforj/godump"
         "github.com/google/uuid"
         "gorm.io/gorm"
 
@@ -5436,9 +5435,8 @@ func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier
                 if err == nil &amp;&amp; res != nil &amp;&amp; res.ID != "" </span><span class="cov0" title="0">{
                         return res, nil
                 }</span>
-                <span class="cov0" title="0">godump.Dump(res)
                 // 4. Try SIMPEG Tendik
-                res, err = r.getSimpeg(ctx, &amp;sid, nil)
+                <span class="cov0" title="0">res, err = r.getSimpeg(ctx, &amp;sid, nil)
                 if err == nil &amp;&amp; res != nil &amp;&amp; res.ID != "" </span><span class="cov0" title="0">{
                         return res, nil
                 }</span>
@@ -7380,6 +7378,7 @@ func (h *CreateBankSoalCommandHandler) Handle(
                 helper.StrPtr(cmd.Content),
                 helper.StrPtr(cmd.Deskripsi),
                 helper.StrPtr(cmd.Semester),
+                cmd.Peruntukan,
                 cmd.Resource, //local, simak, simpeg
                 cmd.SID,
         )
@@ -7403,7 +7402,7 @@ import (
         validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
-func CreateBankSoalCommandValidation(cmd CreateBankSoalCommand) error <span class="cov10" title="3">{
+func CreateBankSoalCommandValidation(cmd CreateBankSoalCommand) error <span class="cov10" title="4">{
         return validation.ValidateStruct(&amp;cmd,
                 validation.Field(&amp;cmd.Judul,
                         validation.Required.Error("Judul cannot be blank"),
@@ -7416,6 +7415,9 @@ func CreateBankSoalCommandValidation(cmd CreateBankSoalCommand) error <span clas
                 // ),
                 validation.Field(&amp;cmd.Semester,
                         validation.Required.Error("Semester cannot be blank"),
+                ),
+                validation.Field(&amp;cmd.Peruntukan,
+                        validation.Required.Error("Peruntukan cannot be blank"),
                 ),
                 validation.Field(&amp;cmd.SID,
                         validation.Required.Error("SID cannot be blank"),
@@ -7665,6 +7667,8 @@ import (
         domainBankSoal "UnpakSiamida/modules/banksoal/domain"
         "context"
         "time"
+
+        "github.com/goforj/godump"
 )
 
 type GetAllBankSoalsQueryHandler struct {
@@ -7678,6 +7682,7 @@ func (h *GetAllBankSoalsQueryHandler) Handle(
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
+        godump.Dump(q)
         if q.NIDN != nil || q.NIP != nil || q.NPM != nil </span><span class="cov7" title="3">{
                 return commondomain.Paged[domainBankSoal.BankSoalDefault]{}, domainBankSoal.OnlyAdminFacultyStudyProgram()
         }</span>
@@ -8198,6 +8203,7 @@ func (h *UpdateBankSoalCommandHandler) Handle(
                 helper.StrPtr(cmd.Content),
                 helper.StrPtr(cmd.Deskripsi),
                 helper.StrPtr(cmd.Semester),
+                cmd.Peruntukan,
                 cmd.Resource, //local, simak, simpeg
                 cmd.SID,
         )
@@ -8245,6 +8251,9 @@ func UpdateBankSoalCommandValidation(cmd UpdateBankSoalCommand) error <span clas
                 validation.Field(&amp;cmd.Semester,
                         validation.Required.Error("Semester cannot be blank"),
                 ),
+                validation.Field(&amp;cmd.Peruntukan,
+                        validation.Required.Error("Peruntukan cannot be blank"),
+                ),
                 validation.Field(&amp;cmd.SID,
                         validation.Required.Error("SID cannot be blank"),
                 ),
@@ -8271,7 +8280,7 @@ type MockRepository struct {
         CountCopyFunc             func(ctx context.Context, judul string) (int, error)
         GetByUuidFunc             func(ctx context.Context, uid uuid.UUID) (*domain.BankSoal, error)
         GetDefaultByUuidFunc      func(ctx context.Context, uid uuid.UUID) (*domain.BankSoalDefault, error)
-        GetDefaultByKuesionerFunc func(ctx context.Context, uid uuid.UUID) (*domain.BankSoalDefault, error)
+        GetDefaultByKuesionerFunc func(ctx context.Context, uid uuid.UUID, userTarget ...string) (*domain.BankSoalDefault, error)
         GetAllFunc                func(
                 ctx context.Context,
                 search string,
@@ -8320,9 +8329,9 @@ func (m *MockRepository) GetDefaultByUuid(ctx context.Context, uid uuid.UUID) (*
         <span class="cov0" title="0">return nil, nil</span>
 }
 
-func (m *MockRepository) GetDefaultByKuesioner(ctx context.Context, uid uuid.UUID) (*domain.BankSoalDefault, error) <span class="cov0" title="0">{
+func (m *MockRepository) GetDefaultByKuesioner(ctx context.Context, uid uuid.UUID, userTarget ...string) (*domain.BankSoalDefault, error) <span class="cov0" title="0">{
         if m.GetDefaultByKuesionerFunc != nil </span><span class="cov0" title="0">{
-                return m.GetDefaultByKuesionerFunc(ctx, uid)
+                return m.GetDefaultByKuesionerFunc(ctx, uid, userTarget...)
         }</span>
         <span class="cov0" title="0">return nil, nil</span>
 }
@@ -8441,6 +8450,7 @@ type BankSoal struct {
         Semester     *string    `gorm:"column:semester"`
         TanggalMulai *time.Time `gorm:"column:tanggal_mulai"`
         TanggalAkhir *time.Time `gorm:"column:tanggal_akhir"`
+        Peruntukan   string     `gorm:"column:peruntukan"`
         CreatedBy    *string    `gorm:"column:createdBy"`
         CreatedByRef *string    `gorm:"column:createdByRef"`
         DeletedAt    *time.Time `gorm:"column:deleted_at"`
@@ -8457,11 +8467,15 @@ func NewBankSoal(
         content *string,
         deskripsi *string,
         semester *string,
+        peruntukan string,
         createdby string, //lpm, fakultas, prodi
         createdbyref string,
 ) common.ResultValue[*BankSoal] <span class="cov0" title="0">{
         if createdby != "local" </span><span class="cov0" title="0">{
                 return common.FailureValue[*BankSoal](InvalidOwner())
+        }</span>
+        <span class="cov0" title="0">if peruntukan != "mahasiswa" &amp;&amp; peruntukan != "dosen" &amp;&amp; peruntukan != "tendik" </span><span class="cov0" title="0">{
+                return common.FailureValue[*BankSoal](InvalidType())
         }</span>
 
         <span class="cov0" title="0">aktivitasproker := &amp;BankSoal{
@@ -8470,6 +8484,7 @@ func NewBankSoal(
                 Content:      content,
                 Deskripsi:    deskripsi,
                 Semester:     semester,
+                Peruntukan:   peruntukan,
                 Status:       "draf",
                 CreatedBy:    helper.StrPtr(createdby),
                 CreatedByRef: helper.StrPtr(createdbyref),
@@ -8486,6 +8501,7 @@ func UpdateBankSoal(
         content *string,
         deskripsi *string,
         semester *string,
+        peruntukan string,
         createdby string, //lpm, fakultas, prodi
         createdbyref string,
 ) common.ResultValue[*BankSoal] <span class="cov0" title="0">{
@@ -8502,10 +8518,15 @@ func UpdateBankSoal(
                 return common.FailureValue[*BankSoal](InvalidOwner())
         }</span>
 
+        <span class="cov0" title="0">if peruntukan != "mahasiswa" &amp;&amp; peruntukan != "dosen" &amp;&amp; peruntukan != "tendik" </span><span class="cov0" title="0">{
+                return common.FailureValue[*BankSoal](InvalidType())
+        }</span>
+
         <span class="cov0" title="0">prev.Judul = judul
         prev.Content = content
         prev.Deskripsi = deskripsi
         prev.Semester = semester
+        prev.Peruntukan = peruntukan
         prev.CreatedBy = helper.StrPtr(createdby)
         prev.CreatedByRef = helper.StrPtr(createdbyref)
 
@@ -8743,6 +8764,10 @@ func InvalidDateRange() domain.Error <span class="cov0" title="0">{
 func InvalidOwner() domain.Error <span class="cov0" title="0">{
         return domain.NotFoundError("BankSoal.InvalidOwner", "only lpm / fakultas / prodi can create bank soal")
 }</span>
+
+func InvalidType() domain.Error <span class="cov0" title="0">{
+        return domain.NotFoundError("BankSoal.InvalidType", "invalid peruntukan")
+}</span>
 </pre>
 		
 		<pre class="file" id="file79" style="display: none">package domain
@@ -8978,6 +9003,7 @@ import (
         "errors"
         "fmt"
         "strings"
+        "time"
 
         "github.com/google/uuid"
         "gorm.io/gorm"
@@ -9147,6 +9173,7 @@ func (r *BankSoalRepository) GetDefaultByUuid(
                         b.content AS Content,
                         b.deskripsi AS Deskripsi,
                         b.semester AS Semester,
+                        b.peruntukan as Peruntukan,
                         b.tanggal_mulai AS TanggalMulai,
                         b.tanggal_akhir AS TanggalAkhir,
                         b.createdBy AS CreatedBy,
@@ -9245,6 +9272,7 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 func (r *BankSoalRepository) GetDefaultByKuesioner(
         ctx context.Context,
         id uuid.UUID,
+        userTarget ...string,
 ) (*domainbanksoal.BankSoalDefault, error) <span class="cov0" title="0">{
 
         var row domainbanksoal.BankSoalDefault
@@ -9304,6 +9332,7 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
                         b.content as Content,
                         b.deskripsi as Deskripsi,
                         b.semester as Semester,
+                        b.peruntukan as Peruntukan,
                         b.tanggal_mulai as TanggalMulai,
                         b.tanggal_akhir as TanggalAkhir,
                         b.createdBy as CreatedBy,
@@ -9414,6 +9443,180 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
                                 row.TargetPertanyaan = append(row.TargetPertanyaan, u)
                         }</span>
                 }
+        }
+
+        // =========================
+        // FILTER TARGET PERTANYAAN BY USER TARGET &amp; ACTIVE TIME
+        // =========================
+        <span class="cov0" title="0">if len(userTarget) &gt; 0 &amp;&amp; len(row.TargetPertanyaan) &gt; 0 </span><span class="cov0" title="0">{
+                userFak := ""
+                userPro := ""
+                userUni := ""
+
+                for i, t := range userTarget </span><span class="cov0" title="0">{
+                        v := strings.ToLower(strings.TrimSpace(t))
+                        if v == "" </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">if i == 0 </span><span class="cov0" title="0">{
+                                userFak = v
+                        }</span> else<span class="cov0" title="0"> if i == 1 </span><span class="cov0" title="0">{
+                                userPro = v
+                        }</span> else<span class="cov0" title="0"> if i == 2 </span><span class="cov0" title="0">{
+                                userUni = v
+                        }</span>
+                }
+
+                <span class="cov0" title="0">isDateActive := func(start, end *time.Time) bool </span><span class="cov0" title="0">{
+                        if start == nil || end == nil </span><span class="cov0" title="0">{
+                                return false
+                        }</span>
+                        <span class="cov0" title="0">now := time.Now()
+                        return (now.After(*start) || now.Equal(*start)) &amp;&amp; (now.Before(*end) || now.Equal(*end))</span>
+                }
+
+                <span class="cov0" title="0">isFakMatch := func(itemFakCode, itemFakName string) bool </span><span class="cov0" title="0">{
+                        if userFak == "" &amp;&amp; userUni == "" </span><span class="cov0" title="0">{
+                                return false
+                        }</span>
+                        <span class="cov0" title="0">c := strings.ToLower(strings.TrimSpace(itemFakCode))
+                        n := strings.ToLower(strings.TrimSpace(itemFakName))
+
+                        if c != "" </span><span class="cov0" title="0">{
+                                if userFak != "" &amp;&amp; (c == userFak || strings.Contains(c, userFak) || strings.Contains(userFak, c)) </span><span class="cov0" title="0">{
+                                        return true
+                                }</span>
+                                <span class="cov0" title="0">if userUni != "" &amp;&amp; (c == userUni || strings.Contains(c, userUni) || strings.Contains(userUni, c)) </span><span class="cov0" title="0">{
+                                        return true
+                                }</span>
+                        }
+                        <span class="cov0" title="0">if n != "" </span><span class="cov0" title="0">{
+                                if userFak != "" &amp;&amp; (n == userFak || strings.Contains(n, userFak) || strings.Contains(userFak, n)) </span><span class="cov0" title="0">{
+                                        return true
+                                }</span>
+                                <span class="cov0" title="0">if userUni != "" &amp;&amp; (n == userUni || strings.Contains(n, userUni) || strings.Contains(userUni, n)) </span><span class="cov0" title="0">{
+                                        return true
+                                }</span>
+                        }
+                        <span class="cov0" title="0">return false</span>
+                }
+
+                <span class="cov0" title="0">isProMatch := func(itemProCode, itemProName string) bool </span><span class="cov0" title="0">{
+                        if userPro == "" </span><span class="cov0" title="0">{
+                                return false
+                        }</span>
+                        <span class="cov0" title="0">c := strings.ToLower(strings.TrimSpace(itemProCode))
+                        n := strings.ToLower(strings.TrimSpace(itemProName))
+
+                        if c != "" &amp;&amp; (c == userPro || strings.Contains(c, userPro) || strings.Contains(userPro, c)) </span><span class="cov0" title="0">{
+                                return true
+                        }</span>
+                        <span class="cov0" title="0">if n != "" &amp;&amp; (n == userPro || strings.Contains(n, userPro) || strings.Contains(userPro, n)) </span><span class="cov0" title="0">{
+                                return true
+                        }</span>
+                        <span class="cov0" title="0">return false</span>
+                }
+
+                <span class="cov0" title="0">isMainActive := isDateActive(row.TanggalMulai, row.TanggalAkhir)
+
+                hasFakExt := false
+                isFakExtActive := false
+
+                hasProExt := false
+                isProExtActive := false
+
+                for _, ext := range row.ListExt </span><span class="cov0" title="0">{
+                        role := strings.ToLower(ext.Role)
+                        if role == "fakultas" || strings.Contains(role, "fakultas") || ext.KodeFakultas != "" || ext.NamaFakultas != "" </span><span class="cov0" title="0">{
+                                if isFakMatch(ext.KodeFakultas, ext.NamaFakultas) </span><span class="cov0" title="0">{
+                                        hasFakExt = true
+                                        if isDateActive(ext.TanggalMulai, ext.TanggalAkhir) </span><span class="cov0" title="0">{
+                                                isFakExtActive = true
+                                        }</span>
+                                }
+                        }
+
+                        <span class="cov0" title="0">if role == "prodi" || strings.Contains(role, "prodi") || ext.KodeProdi != "" || ext.NamaProdi != "" </span><span class="cov0" title="0">{
+                                if isProMatch(ext.KodeProdi, ext.NamaProdi) </span><span class="cov0" title="0">{
+                                        hasProExt = true
+                                        if isDateActive(ext.TanggalMulai, ext.TanggalAkhir) </span><span class="cov0" title="0">{
+                                                isProExtActive = true
+                                        }</span>
+                                }
+                        }
+                }
+
+                <span class="cov0" title="0">isAdminTimeActive := isMainActive
+
+                isFakultasTimeActive := isMainActive
+                if hasFakExt </span><span class="cov0" title="0">{
+                        isFakultasTimeActive = isFakExtActive
+                }</span>
+
+                <span class="cov0" title="0">isProdiTimeActive := isMainActive
+                if hasProExt </span><span class="cov0" title="0">{
+                        isProdiTimeActive = isProExtActive
+                }</span>
+
+                <span class="cov0" title="0">type QuestionRow struct {
+                        UUID         uuid.UUID `gorm:"column:uuid"`
+                        CreatedBy    string    `gorm:"column:CreatedBy"`
+                        CreatedByRef string    `gorm:"column:CreatedByRef"`
+                        Fakultas     string    `gorm:"column:Fakultas"`
+                        Prodi        string    `gorm:"column:Prodi"`
+                }
+
+                var qRows []QuestionRow
+                r.db.WithContext(ctx).
+                        Table("template_pertanyaanv2 a").
+                        Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+                        Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas OR f.nama_fakultas = u.fakultas").
+                        Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi OR p.nama_prodi = u.prodi").
+                        Select(`
+                                a.uuid as uuid,
+                                CASE
+                                        WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
+                                        WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
+                                        WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+                                        WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+                                        ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
+                                END as CreatedBy,
+                                a.createdByRef as CreatedByRef,
+                                COALESCE(NULLIF(TRIM(a.fakultas), ''), f.nama_fakultas, f.kode_fakultas, u.fakultas, '') as Fakultas,
+                                COALESCE(NULLIF(TRIM(a.prodi), ''), p.nama_prodi, p.kode_prodi, u.prodi, '') as Prodi
+                        `).
+                        Where("a.id_bank_soal = ?", row.Id).
+                        Where("a.deleted_at IS NULL").
+                        Where("a.status = ?", "active").
+                        Find(&amp;qRows)
+
+                filteredUUIDs := make([]uuid.UUID, 0)
+                for _, q := range qRows </span><span class="cov0" title="0">{
+                        cb := strings.ToLower(q.CreatedBy)
+                        qFak := strings.ToLower(strings.TrimSpace(q.Fakultas))
+                        qPro := strings.ToLower(strings.TrimSpace(q.Prodi))
+
+                        isFak := strings.Contains(cb, "fakultas") || qFak != ""
+                        isPro := strings.Contains(cb, "prodi") || qPro != ""
+
+                        if isPro </span><span class="cov0" title="0">{
+                                if isProdiTimeActive &amp;&amp; isProMatch(qPro, "") </span><span class="cov0" title="0">{
+                                        filteredUUIDs = append(filteredUUIDs, q.UUID)
+                                }</span>
+                        } else<span class="cov0" title="0"> if isFak </span><span class="cov0" title="0">{
+                                if isFakultasTimeActive &amp;&amp; isFakMatch(qFak, "") </span><span class="cov0" title="0">{
+                                        filteredUUIDs = append(filteredUUIDs, q.UUID)
+                                }</span>
+                        } else<span class="cov0" title="0"> {
+                                // Admin question -&gt; applies to all if admin time is active
+                                if isAdminTimeActive </span><span class="cov0" title="0">{
+                                        filteredUUIDs = append(filteredUUIDs, q.UUID)
+                                }</span>
+                        }
+                }
+
+                <span class="cov0" title="0">row.TargetPertanyaan = filteredUUIDs
+                row.TotalPertanyaan = uint(len(filteredUUIDs))</span>
         }
 
         <span class="cov0" title="0">return &amp;row, nil</span>
@@ -9534,6 +9737,7 @@ func (r *BankSoalRepository) GetAll(
                         b.content as Content,
                         b.deskripsi as Deskripsi,
                         b.semester as Semester,
+                        b.peruntukan as Peruntukan,
                         b.tanggal_mulai as TanggalMulai,
                         b.tanggal_akhir as TanggalAkhir,
                         b.createdBy as CreatedBy,
@@ -10017,6 +10221,7 @@ import (
         "strings"
 
         "github.com/gofiber/fiber/v2"
+        "github.com/goforj/godump"
         "github.com/mehdihadeli/go-mediatr"
 
         commondomain "UnpakSiamida/common/domain"
@@ -10049,6 +10254,7 @@ import (
 //@param content formData string true "Content"
 //@param deskripsi formData string true "Deskripsi"
 //@param semester formData string true "Semester"
+//@param peruntukan formData string true "Peruntukan"
 //@param tanggal_mulai formData string true "TanggalMulai"
 //@param tanggal_akhir formData string true "TanggalAkhir"
 // @Produce json
@@ -10065,16 +10271,18 @@ func CreateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">
         Content := c.FormValue("content")
         Deskripsi := c.FormValue("deskripsi")
         Semester := c.FormValue("semester")
+        Peruntukan := c.FormValue("peruntukan")
         SID := c.FormValue("sid")
         Resource := c.FormValue("resource")
 
         cmd := CreateBankSoal.CreateBankSoalCommand{
-                Judul:     Judul,
-                Content:   Content,
-                Deskripsi: Deskripsi,
-                Semester:  Semester,
-                SID:       SID,
-                Resource:  Resource,
+                Judul:      Judul,
+                Content:    Content,
+                Deskripsi:  Deskripsi,
+                Semester:   Semester,
+                Peruntukan: Peruntukan,
+                SID:        SID,
+                Resource:   Resource,
         }
 
         uuid, err := mediatr.Send[CreateBankSoal.CreateBankSoalCommand, string](context.Background(), cmd)
@@ -10139,6 +10347,7 @@ func ChangeTimeBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title=
 // @param content formData string true "Content"
 // @param deskripsi formData string true "Deskripsi"
 // @param semester formData string true "Semester"
+// @param peruntukan formData string true "Peruntukan"
 // @param tanggal_mulai formData string true "TanggalMulai"
 // @param tanggal_akhir formData string true "TanggalAkhir"
 // @Produce json
@@ -10155,17 +10364,19 @@ func UpdateBankSoalHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0">
         Content := c.FormValue("content")
         Deskripsi := c.FormValue("deskripsi")
         Semester := c.FormValue("semester")
+        Peruntukan := c.FormValue("peruntukan")
         SID := c.FormValue("sid")
         Resource := c.FormValue("resource")
 
         cmd := UpdateBankSoal.UpdateBankSoalCommand{
-                Uuid:      uuid,
-                Judul:     Judul,
-                Content:   Content,
-                Deskripsi: Deskripsi,
-                Semester:  Semester,
-                SID:       SID,
-                Resource:  Resource,
+                Uuid:       uuid,
+                Judul:      Judul,
+                Content:    Content,
+                Deskripsi:  Deskripsi,
+                Semester:   Semester,
+                Peruntukan: Peruntukan,
+                SID:        SID,
+                Resource:   Resource,
         }
 
         updatedID, err := mediatr.Send[UpdateBankSoal.UpdateBankSoalCommand, string](context.Background(), cmd)
@@ -10503,8 +10714,9 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0"
         if role == "" </span><span class="cov0" title="0">{
                 role = c.FormValue("level")
         }</span>
+        <span class="cov0" title="0">godump.Dump(c.FormValue("level"), c.FormValue("role"))
 
-        <span class="cov0" title="0">if role == "adm_simonev_fakultas" </span><span class="cov0" title="0">{
+        if role == "adm_simonev_fakultas" </span><span class="cov0" title="0">{
                 role = "fakultas"
                 nip = ""
                 nidn = ""
@@ -11750,7 +11962,6 @@ import (
         "time"
 
         "github.com/bytedance/sonic"
-        "github.com/goforj/godump"
 )
 
 type UpdateKategoriOrderCommandHandler struct {
@@ -11833,8 +12044,8 @@ func (h *UpdateKategoriOrderCommandHandler) Handle(
                 })</span>
         }
 
-        <span class="cov1" title="1">godump.Dump(updates)
-        err = h.Repo.UpdateParentBatch(ctx, updates)
+        // godump.Dump(updates)
+        <span class="cov1" title="1">err = h.Repo.UpdateParentBatch(ctx, updates)
         if err != nil </span>{<span class="cov0" title="0">
 
         }</span>
@@ -13341,8 +13552,6 @@ import (
         "runtime"
         "sync"
         "time"
-
-        "github.com/goforj/godump"
 )
 
 type ActiveKuesionerQueryHandler struct {
@@ -13359,7 +13568,7 @@ func (h *ActiveKuesionerQueryHandler) Handle(
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
-        godump.Dump(q)
+        // godump.Dump(q)
         if q.NIDN == nil &amp;&amp; q.NIP == nil &amp;&amp; q.NPM == nil </span><span class="cov0" title="0">{
                 return []domainBankSoal.BankSoalDefault{}, domainBankSoal.OnlyStudentLecturerStaff()
         }</span>
@@ -13544,7 +13753,11 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">bankSoal, err := h.RepoBankSoal.GetDefaultByKuesioner(ctx, bankUUID)
+        <span class="cov0" title="0">fakultas := helper.NullableString(q.Fakultas)
+        prodi := helper.NullableString(q.Prodi)
+        unit := helper.NullableString(q.Unit)
+
+        bankSoal, err := h.RepoBankSoal.GetDefaultByKuesioner(ctx, bankUUID, fakultas, prodi, unit)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
@@ -13558,6 +13771,7 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
         totalMap, err := h.RepoJawaban.GetTotalInputByKuesionerIDs(
                 ctx,
                 []uint{kuesionerActive.Id},
+                bankSoal.TargetPertanyaan,
         )
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
@@ -13565,6 +13779,8 @@ func (h *ActiveKuesionerSingleQueryHandler) Handle(
 
         <span class="cov0" title="0">if total, ok := totalMap[kuesionerActive.UUID.String()]; ok </span><span class="cov0" title="0">{
                 bankSoal.TotalInput = total
+        }</span> else<span class="cov0" title="0"> {
+                bankSoal.TotalInput = 0
         }</span>
 
         <span class="cov0" title="0">return bankSoal, nil</span>
@@ -14770,6 +14986,7 @@ import (
         domainkuesioner "UnpakSiamida/modules/kuesioner/domain"
         "context"
 
+        "github.com/google/uuid"
         "gorm.io/gorm"
         "gorm.io/gorm/clause"
 )
@@ -14786,24 +15003,41 @@ func NewKuesionerJawabanRepository(db *gorm.DB) domainkuesioner.IKuesionerJawaba
 // TX SUPPORT
 // ===============================
 func (r *KuesionerJawabanRepository) WithTx(tx any) domainkuesioner.IKuesionerJawabanRepository <span class="cov0" title="0">{
-        return &amp;KuesionerJawabanRepository{
-                db: tx.(*gorm.DB),
-        }
-}</span>
+        if gormTx, ok := tx.(*gorm.DB); ok </span><span class="cov0" title="0">{
+                return &amp;KuesionerJawabanRepository{db: gormTx}
+        }</span>
+        <span class="cov0" title="0">return r</span>
+}
 
 func (r *KuesionerJawabanRepository) BeginTx(ctx context.Context) (*gorm.DB, error) <span class="cov0" title="0">{
-        return r.db.WithContext(ctx).Begin(), nil
+        tx := r.db.WithContext(ctx).Begin()
+        return tx, tx.Error
 }</span>
 
 // ===============================
-// GET ALL BY KUESIONER UUID
+// READ / WRITE
 // ===============================
+func (r *KuesionerJawabanRepository) GetByPertanyaanAndUser(
+        ctx context.Context,
+        pertanyaanID uint,
+        sid string,
+        resource string,
+) ([]domainkuesioner.KuesionerJawaban, error) <span class="cov0" title="0">{
+
+        var list []domainkuesioner.KuesionerJawaban
+        err := r.db.WithContext(ctx).
+                Where("id_template_pertanyaan = ? AND createdByRef = ? AND createdBy = ?", pertanyaanID, sid, resource).
+                Find(&amp;list).Error
+
+        return list, err
+}</span>
+
 func (r *KuesionerJawabanRepository) GetAllByKuesioner(
         ctx context.Context,
         uuidkuesioner string,
 ) ([]domainkuesioner.KuesionerJawabanDefault, error) <span class="cov0" title="0">{
 
-        results := make([]domainkuesioner.KuesionerJawabanDefault, 0)
+        var list []domainkuesioner.KuesionerJawabanDefault
 
         err := r.db.WithContext(ctx).
                 Table("kuesioner_jawabanv2 kj").
@@ -14827,48 +15061,15 @@ func (r *KuesionerJawabanRepository) GetAllByKuesioner(
                 Joins("LEFT JOIN template_pilihanv2 tj ON tj.id = kj.id_template_jawaban").
                 Where("k.uuid = ?", uuidkuesioner).
                 Order("kj.id ASC").
-                Scan(&amp;results).Error
+                Find(&amp;list).Error
 
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
+        return list, err
+}</span>
 
-        <span class="cov0" title="0">return results, nil</span>
-}
-
-// ===============================
-// GET BY PERTANYAAN + USER
-// ===============================
-func (r *KuesionerJawabanRepository) GetByPertanyaanAndUser(
-        ctx context.Context,
-        pertanyaanID uint,
-        sid string,
-        resource string,
-) ([]domainkuesioner.KuesionerJawaban, error) <span class="cov0" title="0">{
-
-        results := make([]domainkuesioner.KuesionerJawaban, 0)
-
-        err := r.db.WithContext(ctx).
-                Where("id_template_pertanyaan = ?", pertanyaanID).
-                Where("createdByRef = ?", sid).
-                Where("createdBy = ?", resource).
-                Find(&amp;results).Error
-
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-
-        <span class="cov0" title="0">return results, nil</span>
-}
-
-// ===============================
-// CREATE
-// ===============================
 func (r *KuesionerJawabanRepository) Create(
         ctx context.Context,
         data *domainkuesioner.KuesionerJawaban,
 ) error <span class="cov0" title="0">{
-
         return r.db.WithContext(ctx).
                 Clauses(clause.OnConflict{
                         Columns: []clause.Column{
@@ -14885,14 +15086,10 @@ func (r *KuesionerJawabanRepository) Create(
                 Create(data).Error
 }</span>
 
-// ===============================
-// DELETE
-// ===============================
 func (r *KuesionerJawabanRepository) Delete(
         ctx context.Context,
         id uint,
 ) error <span class="cov0" title="0">{
-
         return r.db.WithContext(ctx).
                 Where("id = ?", id).
                 Delete(&amp;domainkuesioner.KuesionerJawaban{}).Error
@@ -14901,6 +15098,7 @@ func (r *KuesionerJawabanRepository) Delete(
 func (r *KuesionerJawabanRepository) GetTotalInputByKuesionerIDs(
         ctx context.Context,
         ids []uint,
+        targetUUIDs ...[]uuid.UUID,
 ) (map[string]uint, error) <span class="cov0" title="0">{
 
         type row struct {
@@ -14910,15 +15108,24 @@ func (r *KuesionerJawabanRepository) GetTotalInputByKuesionerIDs(
 
         var rows []row
 
-        // Subquery: hitung 1 row per pertanyaan unik per kuesioner
-        subQuery := r.db.
+        if len(targetUUIDs) &gt; 0 &amp;&amp; len(targetUUIDs[0]) == 0 </span><span class="cov0" title="0">{
+                return map[string]uint{}, nil
+        }</span>
+
+        <span class="cov0" title="0">q := r.db.
                 Table("kuesioner_jawabanv2 kj").
                 Select("k.uuid AS uuid").
                 Joins("JOIN kuesionerv2 k ON kj.id_kuesioner = k.id").
                 Joins("JOIN template_pilihanv2 tp on kj.id_template_jawaban = tp.id").
                 Where("kj.id_kuesioner IN ?", ids).
-                Where("tp.deleted_at IS NULL").
-                Group("k.uuid, kj.id_template_pertanyaan")
+                Where("tp.deleted_at IS NULL")
+
+        if len(targetUUIDs) &gt; 0 &amp;&amp; len(targetUUIDs[0]) &gt; 0 </span><span class="cov0" title="0">{
+                q = q.Joins("JOIN template_pertanyaanv2 tp2 ON kj.id_template_pertanyaan = tp2.id").
+                        Where("tp2.uuid IN ?", targetUUIDs[0])
+        }</span>
+
+        <span class="cov0" title="0">subQuery := q.Group("k.uuid, kj.id_template_pertanyaan")
 
         // Main query: hitung total pertanyaan per kuesioner
         err := r.db.WithContext(ctx).
@@ -20201,6 +20408,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
                 Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
                 Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
                 Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+                Joins("LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas").
+                Joins("LEFT JOIN m_program_studi p ON p.kode_prodi = u.prodi").
                 Select(`
                         a.id as ID,
                         a.uuid as UUID,

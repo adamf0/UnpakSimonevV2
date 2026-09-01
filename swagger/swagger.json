@@ -512,6 +512,13 @@
                     },
                     {
                         "type": "string",
+                        "description": "Peruntukan",
+                        "name": "peruntukan",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
                         "description": "TanggalMulai",
                         "name": "tanggal_mulai",
                         "in": "formData",
@@ -2176,6 +2183,9 @@
                 "judul": {
                     "type": "string"
                 },
+                "peruntukan": {
+                    "type": "string"
+                },
                 "semester": {
                     "type": "string"
                 },
@@ -2230,6 +2240,9 @@
                     "type": "string"
                 },
                 "namaProdi": {
+                    "type": "string"
+                },
+                "peruntukan": {
                     "type": "string"
                 },
                 "role": {
