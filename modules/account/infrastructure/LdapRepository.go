@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -60,12 +61,12 @@ func (r *LdapRepository) Connect() (*ldap.Conn, error) {
 func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainaccount.AccountLdap, error) {
 	if len(allowedGroups) == 0 {
 		allowedGroups = []string{
+			"adm_simonev_prodi",
+			"adm_simonev_fakultas",
 			"adm_simonev",
+			"adm_pusat",
 			"admin",
 			"superadmin",
-			"adm_pusat",
-			"adm_simonev_fakultas",
-			"adm_simonev_prodi",
 		}
 	}
 
@@ -83,14 +84,58 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 		seen := make(map[string]bool)
 		cnRegex := regexp.MustCompile(`(?i)CN=([^,]+)`)
 
-		isGroupAllowed := func(groupName string) (bool, string) {
-			trimmed := strings.TrimSpace(groupName)
-			for _, allowed := range allowedGroups {
-				if strings.EqualFold(trimmed, allowed) || strings.Contains(strings.ToLower(trimmed), "simonev") {
-					return true, allowed
+		// Helper to select matched group according to explicit priority order:
+		// 1. adm_simonev_prodi
+		// 2. adm_simonev_fakultas
+		// 3. adm_simonev
+		// 4. adm_pusat
+		getMatchedGroup := func(userGroups []string) string {
+			priorityOrder := []string{
+				"adm_simonev_prodi",
+				"adm_simonev_fakultas",
+				"adm_simonev",
+				"adm_pusat",
+			}
+
+			var targets []string
+			seenTarget := make(map[string]bool)
+
+			for _, p := range priorityOrder {
+				targets = append(targets, p)
+				seenTarget[strings.ToLower(p)] = true
+			}
+
+			for _, grp := range allowedGroups {
+				gClean := strings.TrimSpace(grp)
+				gLower := strings.ToLower(gClean)
+				if gLower != "" && !seenTarget[gLower] {
+					targets = append(targets, gClean)
+					seenTarget[gLower] = true
 				}
 			}
-			return false, ""
+
+			for _, target := range targets {
+				targetLower := strings.ToLower(strings.TrimSpace(target))
+				for _, ug := range userGroups {
+					ugClean := strings.TrimSpace(ug)
+					ugLower := strings.ToLower(ugClean)
+					if ugLower == targetLower || strings.HasPrefix(ugLower, targetLower) {
+						return target
+					}
+				}
+			}
+
+			for _, ug := range userGroups {
+				ugLower := strings.ToLower(strings.TrimSpace(ug))
+				if strings.Contains(ugLower, "simonev") {
+					return ug
+				}
+			}
+
+			if len(allowedGroups) > 0 {
+				return allowedGroups[0]
+			}
+			return ""
 		}
 
 		// Search users directly in Active Directory
@@ -139,18 +184,18 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 
 				rawMemberOf := uEntry.GetAttributeValues("memberOf")
 				var userGroups []string
-				matchedGroup := allowedGroups[0]
 
 				for _, m := range rawMemberOf {
 					matches := cnRegex.FindStringSubmatch(m)
 					if len(matches) > 1 {
-						gName := matches[1]
-						userGroups = append(userGroups, gName)
-						if ok, match := isGroupAllowed(gName); ok {
-							matchedGroup = match
+						gName := strings.TrimSpace(matches[1])
+						if gName != "" {
+							userGroups = append(userGroups, gName)
 						}
 					}
 				}
+
+				matchedGroup := getMatchedGroup(userGroups)
 
 				result = append(result, domainaccount.AccountLdap{
 					DN:           uEntry.DN,
@@ -236,18 +281,31 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 
 					rawMemberOf := uEntry.GetAttributeValues("memberOf")
 					var userGroups []string
-					matchedGroup := grpCN
 
 					for _, m := range rawMemberOf {
 						matches := cnRegex.FindStringSubmatch(m)
 						if len(matches) > 1 {
-							gName := matches[1]
-							userGroups = append(userGroups, gName)
-							if ok, match := isGroupAllowed(gName); ok {
-								matchedGroup = match
+							gName := strings.TrimSpace(matches[1])
+							if gName != "" {
+								userGroups = append(userGroups, gName)
 							}
 						}
 					}
+
+					if grpCN != "" {
+						hasGrpCN := false
+						for _, ug := range userGroups {
+							if strings.EqualFold(ug, grpCN) {
+								hasGrpCN = true
+								break
+							}
+						}
+						if !hasGrpCN {
+							userGroups = append(userGroups, grpCN)
+						}
+					}
+
+					matchedGroup := getMatchedGroup(userGroups)
 
 					result = append(result, domainaccount.AccountLdap{
 						DN:           uEntry.DN,
@@ -263,25 +321,37 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 		}
 
 		if len(result) > 0 {
+			// Sort results by matched_group priority rank, then by name
+			groupRank := func(grp string) int {
+				grpLower := strings.ToLower(strings.TrimSpace(grp))
+				switch {
+				case grpLower == "adm_simonev_prodi" || strings.HasPrefix(grpLower, "adm_simonev_prodi"):
+					return 1
+				case grpLower == "adm_simonev_fakultas" || strings.HasPrefix(grpLower, "adm_simonev_fakultas"):
+					return 2
+				case grpLower == "adm_simonev" || strings.HasPrefix(grpLower, "adm_simonev"):
+					return 3
+				case grpLower == "adm_pusat" || strings.HasPrefix(grpLower, "adm_pusat"):
+					return 4
+				default:
+					return 5
+				}
+			}
+
+			sort.SliceStable(result, func(i, j int) bool {
+				rI := groupRank(result[i].MatchedGroup)
+				rJ := groupRank(result[j].MatchedGroup)
+				if rI != rJ {
+					return rI < rJ
+				}
+				return strings.ToLower(result[i].Name) < strings.ToLower(result[j].Name)
+			})
+
 			log.Printf("[LdapRepository] Successfully fetched %d users from Active Directory LDAP (%s)", len(result), os.Getenv("AD_SERVER"))
 			return result, nil
 		}
 	}
 
-	// Fallback: Return standard SSO account definitions for allowedGroups so UI dropdown is always populated
-	// log.Printf("[LdapRepository] Returning fallback SSO account definitions for groups: %v", allowedGroups)
 	var fallbackUsers []domainaccount.AccountLdap
-	// for _, grp := range allowedGroups {
-	// 	fallbackUsers = append(fallbackUsers, domainaccount.AccountLdap{
-	// 		DN:           fmt.Sprintf("CN=%s,OU=users,DC=unpak,DC=ac,DC=id", grp),
-	// 		Username:     grp,
-	// 		Name:         strings.Title(strings.ReplaceAll(grp, "_", " ")),
-	// 		Email:        fmt.Sprintf("%s@unpak.ac.id", grp),
-	// 		EmployeeID:   grp,
-	// 		Groups:       []string{grp},
-	// 		MatchedGroup: grp,
-	// 	})
-	// }
-
 	return fallbackUsers, nil
 }

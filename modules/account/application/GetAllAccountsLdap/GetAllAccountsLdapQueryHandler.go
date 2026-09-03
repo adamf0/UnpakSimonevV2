@@ -24,12 +24,12 @@ func (h *GetAllAccountsLdapQueryHandler) Handle(
 	targetGroups := q.Groups
 	if len(targetGroups) == 0 {
 		targetGroups = []string{
+			"adm_simonev_prodi",
+			"adm_simonev_fakultas",
 			"adm_simonev",
+			"adm_pusat",
 			"admin",
 			"superadmin",
-			"adm_pusat",
-			"adm_simonev_fakultas",
-			"adm_simonev_prodi",
 		}
 	}
 
