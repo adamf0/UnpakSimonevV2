@@ -4609,12 +4609,12 @@ func (h *GetAllAccountsLdapQueryHandler) Handle(
         targetGroups := q.Groups
         if len(targetGroups) == 0 </span><span class="cov8" title="1">{
                 targetGroups = []string{
+                        "adm_simonev_prodi",
+                        "adm_simonev_fakultas",
                         "adm_simonev",
+                        "adm_pusat",
                         "admin",
                         "superadmin",
-                        "adm_pusat",
-                        "adm_simonev_fakultas",
-                        "adm_simonev_prodi",
                 }
         }</span>
 
@@ -6278,6 +6278,7 @@ import (
         "net"
         "os"
         "regexp"
+        "sort"
         "strings"
         "time"
 
@@ -6330,12 +6331,12 @@ func (r *LdapRepository) Connect() (*ldap.Conn, error) <span class="cov0" title=
 func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainaccount.AccountLdap, error) <span class="cov0" title="0">{
         if len(allowedGroups) == 0 </span><span class="cov0" title="0">{
                 allowedGroups = []string{
+                        "adm_simonev_prodi",
+                        "adm_simonev_fakultas",
                         "adm_simonev",
+                        "adm_pusat",
                         "admin",
                         "superadmin",
-                        "adm_pusat",
-                        "adm_simonev_fakultas",
-                        "adm_simonev_prodi",
                 }
         }</span>
 
@@ -6353,14 +6354,58 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
                 seen := make(map[string]bool)
                 cnRegex := regexp.MustCompile(`(?i)CN=([^,]+)`)
 
-                isGroupAllowed := func(groupName string) (bool, string) </span><span class="cov0" title="0">{
-                        trimmed := strings.TrimSpace(groupName)
-                        for _, allowed := range allowedGroups </span><span class="cov0" title="0">{
-                                if strings.EqualFold(trimmed, allowed) || strings.Contains(strings.ToLower(trimmed), "simonev") </span><span class="cov0" title="0">{
-                                        return true, allowed
+                // Helper to select matched group according to explicit priority order:
+                // 1. adm_simonev_prodi
+                // 2. adm_simonev_fakultas
+                // 3. adm_simonev
+                // 4. adm_pusat
+                getMatchedGroup := func(userGroups []string) string </span><span class="cov0" title="0">{
+                        priorityOrder := []string{
+                                "adm_simonev_prodi",
+                                "adm_simonev_fakultas",
+                                "adm_simonev",
+                                "adm_pusat",
+                        }
+
+                        var targets []string
+                        seenTarget := make(map[string]bool)
+
+                        for _, p := range priorityOrder </span><span class="cov0" title="0">{
+                                targets = append(targets, p)
+                                seenTarget[strings.ToLower(p)] = true
+                        }</span>
+
+                        <span class="cov0" title="0">for _, grp := range allowedGroups </span><span class="cov0" title="0">{
+                                gClean := strings.TrimSpace(grp)
+                                gLower := strings.ToLower(gClean)
+                                if gLower != "" &amp;&amp; !seenTarget[gLower] </span><span class="cov0" title="0">{
+                                        targets = append(targets, gClean)
+                                        seenTarget[gLower] = true
                                 }</span>
                         }
-                        <span class="cov0" title="0">return false, ""</span>
+
+                        <span class="cov0" title="0">for _, target := range targets </span><span class="cov0" title="0">{
+                                targetLower := strings.ToLower(strings.TrimSpace(target))
+                                for _, ug := range userGroups </span><span class="cov0" title="0">{
+                                        ugClean := strings.TrimSpace(ug)
+                                        ugLower := strings.ToLower(ugClean)
+                                        if ugLower == targetLower || strings.HasPrefix(ugLower, targetLower) </span><span class="cov0" title="0">{
+                                                return target
+                                        }</span>
+                                }
+                        }
+
+                        <span class="cov0" title="0">for _, ug := range userGroups </span><span class="cov0" title="0">{
+                                ugLower := strings.ToLower(strings.TrimSpace(ug))
+                                if strings.Contains(ugLower, "simonev") </span><span class="cov0" title="0">{
+                                        return ug
+                                }</span>
+                        }
+
+                        <span class="cov0" title="0">if len(allowedGroups) &gt; 0 </span><span class="cov0" title="0">{
+                                return allowedGroups[0]
+                        }</span>
+                        <span class="cov0" title="0">return ""</span>
                 }
 
                 // Search users directly in Active Directory
@@ -6409,20 +6454,20 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 
                                 <span class="cov0" title="0">rawMemberOf := uEntry.GetAttributeValues("memberOf")
                                 var userGroups []string
-                                matchedGroup := allowedGroups[0]
 
                                 for _, m := range rawMemberOf </span><span class="cov0" title="0">{
                                         matches := cnRegex.FindStringSubmatch(m)
                                         if len(matches) &gt; 1 </span><span class="cov0" title="0">{
-                                                gName := matches[1]
-                                                userGroups = append(userGroups, gName)
-                                                if ok, match := isGroupAllowed(gName); ok </span><span class="cov0" title="0">{
-                                                        matchedGroup = match
+                                                gName := strings.TrimSpace(matches[1])
+                                                if gName != "" </span><span class="cov0" title="0">{
+                                                        userGroups = append(userGroups, gName)
                                                 }</span>
                                         }
                                 }
 
-                                <span class="cov0" title="0">result = append(result, domainaccount.AccountLdap{
+                                <span class="cov0" title="0">matchedGroup := getMatchedGroup(userGroups)
+
+                                result = append(result, domainaccount.AccountLdap{
                                         DN:           uEntry.DN,
                                         Username:     username,
                                         Name:         name,
@@ -6506,20 +6551,33 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
 
                                         <span class="cov0" title="0">rawMemberOf := uEntry.GetAttributeValues("memberOf")
                                         var userGroups []string
-                                        matchedGroup := grpCN
 
                                         for _, m := range rawMemberOf </span><span class="cov0" title="0">{
                                                 matches := cnRegex.FindStringSubmatch(m)
                                                 if len(matches) &gt; 1 </span><span class="cov0" title="0">{
-                                                        gName := matches[1]
-                                                        userGroups = append(userGroups, gName)
-                                                        if ok, match := isGroupAllowed(gName); ok </span><span class="cov0" title="0">{
-                                                                matchedGroup = match
+                                                        gName := strings.TrimSpace(matches[1])
+                                                        if gName != "" </span><span class="cov0" title="0">{
+                                                                userGroups = append(userGroups, gName)
                                                         }</span>
                                                 }
                                         }
 
-                                        <span class="cov0" title="0">result = append(result, domainaccount.AccountLdap{
+                                        <span class="cov0" title="0">if grpCN != "" </span><span class="cov0" title="0">{
+                                                hasGrpCN := false
+                                                for _, ug := range userGroups </span><span class="cov0" title="0">{
+                                                        if strings.EqualFold(ug, grpCN) </span><span class="cov0" title="0">{
+                                                                hasGrpCN = true
+                                                                break</span>
+                                                        }
+                                                }
+                                                <span class="cov0" title="0">if !hasGrpCN </span><span class="cov0" title="0">{
+                                                        userGroups = append(userGroups, grpCN)
+                                                }</span>
+                                        }
+
+                                        <span class="cov0" title="0">matchedGroup := getMatchedGroup(userGroups)
+
+                                        result = append(result, domainaccount.AccountLdap{
                                                 DN:           uEntry.DN,
                                                 Username:     username,
                                                 Name:         name,
@@ -6533,26 +6591,38 @@ func (r *LdapRepository) GetAccountsByGroups(allowedGroups []string) ([]domainac
                 }
 
                 <span class="cov0" title="0">if len(result) &gt; 0 </span><span class="cov0" title="0">{
-                        log.Printf("[LdapRepository] Successfully fetched %d users from Active Directory LDAP (%s)", len(result), os.Getenv("AD_SERVER"))
-                        return result, nil
-                }</span>
+                        // Sort results by matched_group priority rank, then by name
+                        groupRank := func(grp string) int </span><span class="cov0" title="0">{
+                                grpLower := strings.ToLower(strings.TrimSpace(grp))
+                                switch </span>{
+                                case grpLower == "adm_simonev_prodi" || strings.HasPrefix(grpLower, "adm_simonev_prodi"):<span class="cov0" title="0">
+                                        return 1</span>
+                                case grpLower == "adm_simonev_fakultas" || strings.HasPrefix(grpLower, "adm_simonev_fakultas"):<span class="cov0" title="0">
+                                        return 2</span>
+                                case grpLower == "adm_simonev" || strings.HasPrefix(grpLower, "adm_simonev"):<span class="cov0" title="0">
+                                        return 3</span>
+                                case grpLower == "adm_pusat" || strings.HasPrefix(grpLower, "adm_pusat"):<span class="cov0" title="0">
+                                        return 4</span>
+                                default:<span class="cov0" title="0">
+                                        return 5</span>
+                                }
+                        }
+
+                        <span class="cov0" title="0">sort.SliceStable(result, func(i, j int) bool </span><span class="cov0" title="0">{
+                                rI := groupRank(result[i].MatchedGroup)
+                                rJ := groupRank(result[j].MatchedGroup)
+                                if rI != rJ </span><span class="cov0" title="0">{
+                                        return rI &lt; rJ
+                                }</span>
+                                <span class="cov0" title="0">return strings.ToLower(result[i].Name) &lt; strings.ToLower(result[j].Name)</span>
+                        })
+
+                        <span class="cov0" title="0">log.Printf("[LdapRepository] Successfully fetched %d users from Active Directory LDAP (%s)", len(result), os.Getenv("AD_SERVER"))
+                        return result, nil</span>
+                }
         }
 
-        // Fallback: Return standard SSO account definitions for allowedGroups so UI dropdown is always populated
-        // log.Printf("[LdapRepository] Returning fallback SSO account definitions for groups: %v", allowedGroups)
         <span class="cov0" title="0">var fallbackUsers []domainaccount.AccountLdap
-        // for _, grp := range allowedGroups {
-        //         fallbackUsers = append(fallbackUsers, domainaccount.AccountLdap{
-        //                 DN:           fmt.Sprintf("CN=%s,OU=users,DC=unpak,DC=ac,DC=id", grp),
-        //                 Username:     grp,
-        //                 Name:         strings.Title(strings.ReplaceAll(grp, "_", " ")),
-        //                 Email:        fmt.Sprintf("%s@unpak.ac.id", grp),
-        //                 EmployeeID:   grp,
-        //                 Groups:       []string{grp},
-        //                 MatchedGroup: grp,
-        //         })
-        // }
-
         return fallbackUsers, nil</span>
 }
 </pre>
