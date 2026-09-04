@@ -363,7 +363,6 @@ func (r *AccountRepository) getSimakDosen(ctx context.Context, nidn string) (*do
 WITH dosen_cte AS (
     SELECT 
         d.nidn,
-        d.nip,
         CAST(d.nama_dosen AS CHAR(255)) AS Name,
         CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
         f.kode_fakultas AS RefFakultas,
@@ -386,14 +385,14 @@ WITH dosen_cte AS (
     LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
 )
 SELECT
-	COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), u.userid, u.username, ?) as ID,
+	COALESCE(NULLIF(TRIM(d.nidn), ''), u.userid, u.username, ?) as ID,
 	"simak" as Resource,
-    COALESCE(u.username, d.nidn, d.nip, ?) AS Username,
+    COALESCE(u.username, d.nidn, ?) AS Username,
     u.password AS Password,
     'dosen' AS Level,
     COALESCE(NULLIF(TRIM(d.Name), ''), NULLIF(TRIM(u.nama), ''), u.username) AS Name,
     COALESCE(d.Email, u.email) AS Email,
-    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), u.userid, ?) AS EmployeeID,
+    COALESCE(NULLIF(TRIM(d.nidn), ''), u.userid, ?) AS EmployeeID,
     COALESCE(d.RefFakultas, f.kode_fakultas) AS RefFakultas,
     COALESCE(d.Fakultas, f.nama_fakultas) AS Fakultas,
     COALESCE(d.RefProdi, pr.kode_prodi) AS RefProdi,
@@ -401,7 +400,7 @@ SELECT
     COALESCE(f.nama_fakultas, d.Fakultas) AS Unit,
 	'` + domain.CtxDosen + `' AS CodeCtx
 FROM user u
-LEFT JOIN dosen_cte d ON (d.nidn = u.userid OR d.nip = u.userid OR d.nidn = u.username OR d.nip = u.username)
+LEFT JOIN dosen_cte d ON (d.nidn = u.userid OR d.nidn = u.username)
 LEFT JOIN m_fakultas f ON f.kode_fakultas = u.fakultas
 LEFT JOIN m_program_studi pr ON pr.kode_prodi = u.prodi
 WHERE (u.userid = ? OR u.username = ?) AND (u.level = "DOSEN" OR u.level = "dosen")
@@ -417,14 +416,14 @@ LIMIT 1
 
 	queryDosen := `
 SELECT
-	COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) as ID,
+	COALESCE(NULLIF(TRIM(d.nidn), ''), ?) as ID,
 	"simak" as Resource,
-    COALESCE(d.nidn, d.nip, ?) AS Username,
+    COALESCE(d.nidn, ?) AS Username,
     '' AS Password,
     'dosen' AS Level,
     CAST(d.nama_dosen AS CHAR(255)) AS Name,
     CAST(NULLIF(TRIM(d.email), '') AS CHAR(255)) AS Email,
-    COALESCE(NULLIF(TRIM(d.nidn), ''), NULLIF(TRIM(d.nip), ''), ?) AS EmployeeID,
+    COALESCE(NULLIF(TRIM(d.nidn), ''), ?) AS EmployeeID,
     f.kode_fakultas AS RefFakultas,
     f.nama_fakultas AS Fakultas,
     p.kode_prodi AS RefProdi,
@@ -445,11 +444,11 @@ SELECT
 FROM m_dosen d
 LEFT JOIN m_fakultas f ON f.kode_fakultas = d.kode_fak
 LEFT JOIN m_program_studi p ON p.kode_prodi = d.kode_prodi
-WHERE d.nidn = ? OR d.nip = ?
+WHERE d.nidn = ?
 LIMIT 1
 `
 	err = r.dbSimak.WithContext(ctx).
-		Raw(queryDosen, cleanNidn, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
+		Raw(queryDosen, cleanNidn, cleanNidn, cleanNidn, cleanNidn).
 		Scan(&user).Error
 
 	if err == nil && user.ID != "" {
