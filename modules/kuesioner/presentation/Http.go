@@ -91,8 +91,30 @@ func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error {
 	Jawaban := c.FormValue("jawaban")
 
 	SID := c.FormValue("sid")
+	if SID == "" {
+		if s, ok := c.Locals("sid").(string); ok {
+			SID = s
+		}
+	}
+
 	Resource := c.FormValue("resource")
+	if Resource == "" {
+		Resource = c.FormValue("source")
+		if Resource == "" {
+			if r, ok := c.Locals("resource").(string); ok {
+				Resource = r
+			} else if s, ok := c.Locals("source").(string); ok {
+				Resource = s
+			}
+		}
+	}
+
 	CodeCtx := c.FormValue("codectx")
+	if CodeCtx == "" {
+		if cc, ok := c.Locals("codectx").(string); ok {
+			CodeCtx = cc
+		}
+	}
 
 	cmd := SaveKuesionerJawaban.SaveKuesionerJawabanCommand{
 		UuidKuesioner:  UuidKuesioner,

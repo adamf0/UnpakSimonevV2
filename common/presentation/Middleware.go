@@ -445,6 +445,7 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
 		}
 
 		c.Request().PostArgs().Set("sid", employeeId)
+		c.Locals("sid", employeeId)
 
 		var allGroups []string
 		if groupRaw, ok := claims["group"].([]interface{}); ok {
@@ -518,8 +519,13 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
 		}
 
 		c.Request().PostArgs().Set("source", source)
+		c.Request().PostArgs().Set("resource", source)
 		c.Request().PostArgs().Set("codectx", codectx)
 		c.Request().PostArgs().Set("role", role)
+		c.Locals("source", source)
+		c.Locals("resource", source)
+		c.Locals("codectx", codectx)
+		c.Locals("role", role)
 	} else {
 		// Local login token
 		if sid, ok := claims["sid"].(string); ok {
