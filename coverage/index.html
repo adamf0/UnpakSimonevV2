@@ -111,7 +111,7 @@
 				
 				<option value="file27">UnpakSiamida/common/presentation/Logger.go (100.0%)</option>
 				
-				<option value="file28">UnpakSiamida/common/presentation/Middleware.go (17.9%)</option>
+				<option value="file28">UnpakSiamida/common/presentation/Middleware.go (17.6%)</option>
 				
 				<option value="file29">UnpakSiamida/docs/docs.go (0.0%)</option>
 				
@@ -3303,6 +3303,7 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) <s
                 }
 
                 <span class="cov0" title="0">c.Request().PostArgs().Set("sid", employeeId)
+                c.Locals("sid", employeeId)
 
                 var allGroups []string
                 if groupRaw, ok := claims["group"].([]interface{}); ok </span><span class="cov0" title="0">{
@@ -3376,8 +3377,13 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) <s
                 }</span>
 
                 <span class="cov0" title="0">c.Request().PostArgs().Set("source", source)
+                c.Request().PostArgs().Set("resource", source)
                 c.Request().PostArgs().Set("codectx", codectx)
-                c.Request().PostArgs().Set("role", role)</span>
+                c.Request().PostArgs().Set("role", role)
+                c.Locals("source", source)
+                c.Locals("resource", source)
+                c.Locals("codectx", codectx)
+                c.Locals("role", role)</span>
         } else<span class="cov5" title="2"> {
                 // Local login token
                 if sid, ok := claims["sid"].(string); ok </span><span class="cov5" title="2">{
@@ -16161,10 +16167,32 @@ func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error <span class="cov0" titl
         Jawaban := c.FormValue("jawaban")
 
         SID := c.FormValue("sid")
-        Resource := c.FormValue("resource")
-        CodeCtx := c.FormValue("codectx")
+        if SID == "" </span><span class="cov0" title="0">{
+                if s, ok := c.Locals("sid").(string); ok </span><span class="cov0" title="0">{
+                        SID = s
+                }</span>
+        }
 
-        cmd := SaveKuesionerJawaban.SaveKuesionerJawabanCommand{
+        <span class="cov0" title="0">Resource := c.FormValue("resource")
+        if Resource == "" </span><span class="cov0" title="0">{
+                Resource = c.FormValue("source")
+                if Resource == "" </span><span class="cov0" title="0">{
+                        if r, ok := c.Locals("resource").(string); ok </span><span class="cov0" title="0">{
+                                Resource = r
+                        }</span> else<span class="cov0" title="0"> if s, ok := c.Locals("source").(string); ok </span><span class="cov0" title="0">{
+                                Resource = s
+                        }</span>
+                }
+        }
+
+        <span class="cov0" title="0">CodeCtx := c.FormValue("codectx")
+        if CodeCtx == "" </span><span class="cov0" title="0">{
+                if cc, ok := c.Locals("codectx").(string); ok </span><span class="cov0" title="0">{
+                        CodeCtx = cc
+                }</span>
+        }
+
+        <span class="cov0" title="0">cmd := SaveKuesionerJawaban.SaveKuesionerJawabanCommand{
                 UuidKuesioner:  UuidKuesioner,
                 UuidPertanyaan: UuidPertanyaan,
                 Jawaban:        Jawaban,
