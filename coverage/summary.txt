@@ -163,13 +163,13 @@ UnpakSiamida/common/presentation/Middleware.go:838:															multiUnescape	
 UnpakSiamida/common/presentation/Middleware.go:850:															ipInNets					0.0%
 UnpakSiamida/common/presentation/Middleware.go:859:															SmartCompress					80.0%
 UnpakSiamida/docs/docs.go:194:																		init						0.0%
-UnpakSiamida/main.go:76:																		mustStart					0.0%
-UnpakSiamida/main.go:95:																		NewMySQL					0.0%
-UnpakSiamida/main.go:120:																		NewMySQLSimak					0.0%
-UnpakSiamida/main.go:145:																		NewMySQLSimpeg					0.0%
-UnpakSiamida/main.go:175:																		main						0.0%
-UnpakSiamida/main.go:369:																		NewValidationBehavior				0.0%
-UnpakSiamida/main.go:373:																		Handle						0.0%
+UnpakSiamida/main.go:75:																		mustStart					0.0%
+UnpakSiamida/main.go:94:																		NewMySQL					0.0%
+UnpakSiamida/main.go:119:																		NewMySQLSimak					0.0%
+UnpakSiamida/main.go:144:																		NewMySQLSimpeg					0.0%
+UnpakSiamida/main.go:174:																		main						0.0%
+UnpakSiamida/main.go:347:																		NewValidationBehavior				0.0%
+UnpakSiamida/main.go:351:																		Handle						0.0%
 UnpakSiamida/modules/account/application/CreateAccount/CreateAccountCommandHandler.go:14:										Handle						88.9%
 UnpakSiamida/modules/account/application/CreateAccount/CreateAccountCommandValidation.go:7:										CreateAccountCommandValidation			100.0%
 UnpakSiamida/modules/account/application/DeleteAccount/DeleteAccountCommandHandler.go:17:										Handle						95.0%
@@ -652,4 +652,4 @@ UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:393:													Ge
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:427:													GetAllTemplatePertanyaansHandlerfunc		0.0%
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:498:													SetupUuidTemplatePertanyaansHandlerfunc		0.0%
 UnpakSiamida/modules/templatepertanyaan/presentation/Http.go:509:													ModuleTemplatePertanyaan			0.0%
-total:																					(statements)					20.6%
+total:																					(statements)					20.7%

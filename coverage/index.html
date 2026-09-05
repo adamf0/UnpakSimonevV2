@@ -3936,7 +3936,6 @@ import (
         "errors"
         "log"
         "os"
-        "strings"
         "sync"
         "time"
         _ "time/tzdata"
@@ -4118,33 +4117,12 @@ func main() <span class="cov0" title="0">{
         })
         app.Use(recover.New())
 
-        origins := os.Getenv("ALLOWED_ORIGINS")
-
         app.Use(cors.New(cors.Config{
                 AllowOriginsFunc: func(origin string) bool </span><span class="cov0" title="0">{
-                        if origin == "" </span><span class="cov0" title="0">{
-                                return true // curl / postman / internal
-                        }</span>
-
-                        // Allow all localhost / 127.0.0.1 ports for local dev
-                        <span class="cov0" title="0">if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") || strings.HasPrefix(origin, "https://localhost:") </span><span class="cov0" title="0">{
-                                return true
-                        }</span>
-
-                        <span class="cov0" title="0">if origins == "" </span><span class="cov0" title="0">{
-                                return true
-                        }</span>
-
-                        <span class="cov0" title="0">allowed := strings.Split(origins, ",")
-                        for _, o := range allowed </span><span class="cov0" title="0">{
-                                if strings.TrimSpace(o) == origin </span><span class="cov0" title="0">{
-                                        return true
-                                }</span>
-                        }
-                        <span class="cov0" title="0">return false</span>
-                },
+                        return true // Allow all origins (*)
+                }</span>,
                 AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-                AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+                AllowHeaders:     "*",
                 AllowCredentials: true,
         }))
 
