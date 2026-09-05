@@ -5,15 +5,17 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"sync"
 	"time"
 	_ "time/tzdata"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 	"github.com/mehdihadeli/go-mediatr"
 
-	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 
@@ -185,31 +187,35 @@ func main() {
 	})
 	app.Use(recover.New())
 
-	// origins := os.Getenv("ALLOWED_ORIGINS")
+	origins := os.Getenv("ALLOWED_ORIGINS")
 
-	// app.Use(cors.New(cors.Config{
-	// 	AllowOriginsFunc: func(origin string) bool {
-	// 		if origin == "" {
-	// 			return true // curl / postman / internal
-	// 		}
+	app.Use(cors.New(cors.Config{
+		AllowOriginsFunc: func(origin string) bool {
+			if origin == "" {
+				return true // curl / postman / internal
+			}
 
-	// 		// Allow all localhost / 127.0.0.1 ports for local dev
-	// 		if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") {
-	// 			return true
-	// 		}
+			// Allow all localhost / 127.0.0.1 ports for local dev
+			if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") || strings.HasPrefix(origin, "https://localhost:") {
+				return true
+			}
 
-	// 		allowed := strings.Split(origins, ",")
-	// 		for _, o := range allowed {
-	// 			if strings.TrimSpace(o) == origin {
-	// 				return true
-	// 			}
-	// 		}
-	// 		return false
-	// 	},
-	// 	AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-	// 	AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
-	// 	AllowCredentials: true,
-	// }))
+			if origins == "" {
+				return true
+			}
+
+			allowed := strings.Split(origins, ",")
+			for _, o := range allowed {
+				if strings.TrimSpace(o) == origin {
+					return true
+				}
+			}
+			return false
+		},
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+		AllowCredentials: true,
+	}))
 
 	// app.Use(helmet.New(helmet.Config{
 	// 	XSSProtection:             "1; mode=block",

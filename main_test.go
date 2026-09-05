@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	fiberCors "github.com/gofiber/fiber/v2/middleware/cors"
 	"net/http/httptest"
 	commonpresentation "UnpakSiamida/common/presentation"
 )
@@ -95,4 +96,45 @@ func generate(n int) string {
 		b[i] = 'A'
 	}
 	return string(b)
+}
+
+func TestCORSPreflight(t *testing.T) {
+	app := fiber.New()
+	origins := "https://hrportal.unpak.ac.id,https://simonev-lpm.unpak.ac.id,https://api-simonev-lpm.unpak.ac.id"
+
+	app.Use(fiberCors.New(fiberCors.Config{
+		AllowOriginsFunc: func(origin string) bool {
+			if origin == "" {
+				return true
+			}
+			allowed := []string{"https://hrportal.unpak.ac.id", "https://simonev-lpm.unpak.ac.id", "https://api-simonev-lpm.unpak.ac.id"}
+			for _, o := range allowed {
+				if o == origin {
+					return true
+				}
+			}
+			return false
+		},
+		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+		AllowCredentials: true,
+	}))
+
+	req := httptest.NewRequest("OPTIONS", "/api/v2/login", nil)
+	req.Header.Set("Origin", "https://simonev-lpm.unpak.ac.id")
+	req.Header.Set("Access-Control-Request-Method", "POST")
+	req.Header.Set("Access-Control-Request-Headers", "authorization")
+
+	resp, err := app.Test(req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if resp.StatusCode != 204 && resp.StatusCode != 200 {
+		t.Fatalf("got status %d, want 204 or 200", resp.StatusCode)
+	}
+	gotOrigin := resp.Header.Get("Access-Control-Allow-Origin")
+	if gotOrigin != "https://simonev-lpm.unpak.ac.id" {
+		t.Fatalf("got Access-Control-Allow-Origin %q, want %q", gotOrigin, "https://simonev-lpm.unpak.ac.id")
+	}
+	_ = origins
 }

@@ -64,15 +64,11 @@ func DefaultHeaderSecurityConfig() *HeaderSecurityConfig {
 	domains := []string{"simonev.unpak.ac.id", "gerbang.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com", "postman"}
 	if envDomains := os.Getenv("ALLOWED_HOSTS"); envDomains != "" {
 		parts := strings.Split(envDomains, ",")
-		var parsed []string
 		for _, p := range parts {
 			p = strings.TrimSpace(p)
 			if p != "" {
-				parsed = append(parsed, p)
+				domains = append(domains, p)
 			}
-		}
-		if len(parsed) > 0 {
-			domains = parsed
 		}
 	}
 
