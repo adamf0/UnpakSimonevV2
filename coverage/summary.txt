@@ -168,8 +168,8 @@ UnpakSiamida/main.go:96:																		NewMySQL					0.0%
 UnpakSiamida/main.go:121:																		NewMySQLSimak					0.0%
 UnpakSiamida/main.go:146:																		NewMySQLSimpeg					0.0%
 UnpakSiamida/main.go:176:																		main						0.0%
-UnpakSiamida/main.go:363:																		NewValidationBehavior				0.0%
-UnpakSiamida/main.go:367:																		Handle						0.0%
+UnpakSiamida/main.go:366:																		NewValidationBehavior				0.0%
+UnpakSiamida/main.go:370:																		Handle						0.0%
 UnpakSiamida/modules/account/application/CreateAccount/CreateAccountCommandHandler.go:14:										Handle						88.9%
 UnpakSiamida/modules/account/application/CreateAccount/CreateAccountCommandValidation.go:7:										CreateAccountCommandValidation			100.0%
 UnpakSiamida/modules/account/application/DeleteAccount/DeleteAccountCommandHandler.go:17:										Handle						95.0%
