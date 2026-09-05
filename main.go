@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 	"os"
-	"strings"
 	"sync"
 	"time"
 	_ "time/tzdata"
@@ -187,33 +186,12 @@ func main() {
 	})
 	app.Use(recover.New())
 
-	origins := os.Getenv("ALLOWED_ORIGINS")
-
 	app.Use(cors.New(cors.Config{
 		AllowOriginsFunc: func(origin string) bool {
-			if origin == "" {
-				return true // curl / postman / internal
-			}
-
-			// Allow all localhost / 127.0.0.1 ports for local dev
-			if strings.HasPrefix(origin, "http://localhost:") || strings.HasPrefix(origin, "http://127.0.0.1:") || strings.HasPrefix(origin, "https://localhost:") {
-				return true
-			}
-
-			if origins == "" {
-				return true
-			}
-
-			allowed := strings.Split(origins, ",")
-			for _, o := range allowed {
-				if strings.TrimSpace(o) == origin {
-					return true
-				}
-			}
-			return false
+			return true // Allow all origins (*)
 		},
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
+		AllowHeaders:     "*",
 		AllowCredentials: true,
 	}))
 
