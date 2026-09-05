@@ -222,12 +222,15 @@ func main() {
 		ContentSecurityPolicy:     "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'",
 		CrossOriginEmbedderPolicy: "require-corp",
 		CrossOriginOpenerPolicy:   "same-origin",
-		CrossOriginResourcePolicy: "same-origin",
+		CrossOriginResourcePolicy: "cross-origin",
 	}))
 	app.Use(commonpresentation.LoggerMiddleware)
 	app.Use(commonpresentation.HeaderSecurityMiddleware(cfg))
 	app.Use(func(c *fiber.Ctx) error {
 		c.Response().Header.Del("X-Powered-By")
+		c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+		c.Set("Pragma", "no-cache")
+		c.Set("Expires", "0")
 		return c.Next()
 	})
 
