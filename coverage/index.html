@@ -4118,9 +4118,7 @@ func main() <span class="cov0" title="0">{
         app.Use(recover.New())
 
         app.Use(cors.New(cors.Config{
-                AllowOriginsFunc: func(origin string) bool </span><span class="cov0" title="0">{
-                        return true // Allow all origins (*)
-                }</span>,
+                AllowOrigins:     "*",
                 AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
                 AllowHeaders:     "*",
                 AllowCredentials: true,
@@ -4136,7 +4134,7 @@ func main() <span class="cov0" title="0">{
         //         CrossOriginOpenerPolicy:   "same-origin",
         //         CrossOriginResourcePolicy: "cross-origin",
         // }))
-        <span class="cov0" title="0">app.Use(commonpresentation.LoggerMiddleware)
+        app.Use(commonpresentation.LoggerMiddleware)
         app.Use(commonpresentation.HeaderSecurityMiddleware(cfg))
         app.Use(func(c *fiber.Ctx) error </span><span class="cov0" title="0">{
                 c.Response().Header.Del("X-Powered-By")
