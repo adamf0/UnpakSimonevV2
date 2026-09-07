@@ -187,9 +187,7 @@ func main() {
 	app.Use(recover.New())
 
 	app.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(origin string) bool {
-			return true // Allow all origins (*)
-		},
+		AllowOrigins:     "*",
 		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
 		AllowHeaders:     "*",
 		AllowCredentials: true,
