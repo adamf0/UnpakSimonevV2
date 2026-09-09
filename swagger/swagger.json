@@ -2741,6 +2741,9 @@
                 "deletedAt": {
                     "type": "string"
                 },
+                "fakultas": {
+                    "type": "string"
+                },
                 "idBankSoal": {
                     "type": "integer"
                 },
@@ -2751,6 +2754,9 @@
                     "type": "string"
                 },
                 "pertanyaan": {
+                    "type": "string"
+                },
+                "prodi": {
                     "type": "string"
                 },
                 "required": {

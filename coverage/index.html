@@ -95,7 +95,7 @@
 				
 				<option value="file19">UnpakSiamida/common/infrastructure/RedisStore.go (0.0%)</option>
 				
-				<option value="file20">UnpakSiamida/common/infrastructure/ResponseError.go (83.3%)</option>
+				<option value="file20">UnpakSiamida/common/infrastructure/ResponseError.go (84.0%)</option>
 				
 				<option value="file21">UnpakSiamida/common/infrastructure/TelegramClient.go (76.5%)</option>
 				
@@ -111,7 +111,7 @@
 				
 				<option value="file27">UnpakSiamida/common/presentation/Logger.go (100.0%)</option>
 				
-				<option value="file28">UnpakSiamida/common/presentation/Middleware.go (17.8%)</option>
+				<option value="file28">UnpakSiamida/common/presentation/Middleware.go (17.2%)</option>
 				
 				<option value="file29">UnpakSiamida/docs/docs.go (0.0%)</option>
 				
@@ -377,7 +377,7 @@
 				
 				<option value="file160">UnpakSiamida/modules/templatepertanyaan/application/CopyTemplatePertanyaan/CopyTemplatePertanyaanResultCommandHandler.go (100.0%)</option>
 				
-				<option value="file161">UnpakSiamida/modules/templatepertanyaan/application/CreateTemplatePertanyaan/CreateTemplatePertanyaanCommandHandler.go (87.5%)</option>
+				<option value="file161">UnpakSiamida/modules/templatepertanyaan/application/CreateTemplatePertanyaan/CreateTemplatePertanyaanCommandHandler.go (65.1%)</option>
 				
 				<option value="file162">UnpakSiamida/modules/templatepertanyaan/application/CreateTemplatePertanyaan/CreateTemplatePertanyaanCommandValidation.go (100.0%)</option>
 				
@@ -2299,7 +2299,18 @@ func HandleError(c *fiber.Ctx, err error) error <span class="cov4" title="4">{
                 return nil
         }</span>
 
-        <span class="cov3" title="3">trace := getTrace() // ambil trace di semua error
+        <span class="cov3" title="3">origin := c.Get("Origin")
+        if origin == "" </span><span class="cov3" title="3">{
+                origin = "*"
+        }</span>
+        <span class="cov3" title="3">c.Set("Access-Control-Allow-Origin", origin)
+        if origin != "*" </span><span class="cov0" title="0">{
+                c.Set("Access-Control-Allow-Credentials", "true")
+        }</span>
+        <span class="cov3" title="3">c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+        c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, ctxtoken, ctxtahun, *")
+
+        trace := getTrace()
 
         // 1) ResponseError
         var respErr *ResponseError
@@ -2919,7 +2930,7 @@ func DefaultBlacklistedHeaderNames() map[string]bool <span class="cov0" title="0
 }
 
 func DefaultHeaderSecurityConfig() *HeaderSecurityConfig <span class="cov0" title="0">{
-        domains := []string{"simonev.unpak.ac.id", "gerbang.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com", "postman"}
+        domains := []string{"unpak.ac.id", "hrportal.unpak.ac.id", "simonev.unpak.ac.id", "simonev-lpm.unpak.ac.id", "api-simonev-lpm.unpak.ac.id", "gerbang.unpak.ac.id", "sipaksi.unpak.ac.id", "siamida.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com", "postman"}
         if envDomains := os.Getenv("ALLOWED_HOSTS"); envDomains != "" </span><span class="cov0" title="0">{
                 parts := strings.Split(envDomains, ",")
                 for _, p := range parts </span><span class="cov0" title="0">{
@@ -2996,10 +3007,11 @@ func HeaderSecurityMiddleware(cfg *HeaderSecurityConfig) fiber.Handler <span cla
         <span class="cov0" title="0">blocked := parseBlockedCIDRs(cfg.BlockedCIDRs)
 
         return func(c *fiber.Ctx) error </span><span class="cov0" title="0">{
-
                 for name, vals := range c.GetReqHeaders() </span><span class="cov0" title="0">{
-                        for _, val := range vals </span><span class="cov0" title="0">{
+                        lowerName := strings.ToLower(name)
+                        skipDomainCheck := lowerName == "authorization" || lowerName == "cookie" || lowerName == "user-agent" || lowerName == "accept" || lowerName == "content-type" || lowerName == "cache-control"
 
+                        for _, val := range vals </span><span class="cov0" title="0">{
                                 if err := validateHeaderLength(name, val, cfg); err != nil </span><span class="cov0" title="0">{
                                         return badRequest(c, err)
                                 }</span>
@@ -3022,13 +3034,15 @@ func HeaderSecurityMiddleware(cfg *HeaderSecurityConfig) fiber.Handler <span cla
                                         return badRequest(c, err)
                                 }</span>
 
-                                <span class="cov0" title="0">if err := validateURLDomain(decoded, cfg, blocked); err != nil </span><span class="cov0" title="0">{
-                                        return badRequest(c, err)
-                                }</span>
+                                <span class="cov0" title="0">if !skipDomainCheck </span><span class="cov0" title="0">{
+                                        if err := validateURLDomain(decoded, cfg, blocked); err != nil </span><span class="cov0" title="0">{
+                                                return badRequest(c, err)
+                                        }</span>
 
-                                <span class="cov0" title="0">if err := validateHostHeader(name, decoded, cfg); err != nil </span><span class="cov0" title="0">{
-                                        return badRequest(c, err)
-                                }</span>
+                                        <span class="cov0" title="0">if err := validateHostHeader(name, decoded, cfg); err != nil </span><span class="cov0" title="0">{
+                                                return badRequest(c, err)
+                                        }</span>
+                                }
                         }
                 }
 
@@ -3169,8 +3183,18 @@ func validateEmbeddedDomains(c *fiber.Ctx, cfg *HeaderSecurityConfig) error <spa
 // =======================
 
 func badRequest(c *fiber.Ctx, err error) error <span class="cov0" title="0">{
-        return c.Status(400).JSON(err)
-}</span>
+        origin := c.Get("Origin")
+        if origin == "" </span><span class="cov0" title="0">{
+                origin = "*"
+        }</span>
+        <span class="cov0" title="0">c.Set("Access-Control-Allow-Origin", origin)
+        if origin != "*" </span><span class="cov0" title="0">{
+                c.Set("Access-Control-Allow-Credentials", "true")
+        }</span>
+        <span class="cov0" title="0">c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+        c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, ctxtoken, ctxtahun, *")
+        return c.Status(400).JSON(err)</span>
+}
 
 func parseBlockedCIDRs(cidrs []string) []*net.IPNet <span class="cov0" title="0">{
         var blocked []*net.IPNet
@@ -3186,12 +3210,12 @@ func parseBlockedCIDRs(cidrs []string) []*net.IPNet <span class="cov0" title="0"
 func JWTMiddleware() fiber.Handler <span class="cov5" title="2">{
         return func(c *fiber.Ctx) error </span><span class="cov10" title="4">{
                 tokenStr, err := extractBearerToken(c)
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil </span><span class="cov5" title="2">{
                         return err
                 }</span>
 
-                <span class="cov10" title="4">token, err := parseJWT(tokenStr)
-                if err != nil </span><span class="cov5" title="2">{
+                <span class="cov5" title="2">token, err := parseJWT(tokenStr)
+                if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
 
@@ -3213,8 +3237,7 @@ func extractBearerToken(c *fiber.Ctx) (string, error) <span class="cov10" title=
 
         if authHeader == "" &amp;&amp; authQuery == "" </span><span class="cov1" title="1">{
                 log.Println("Authorization header missing")
-                return "", c.Status(400).
-                        JSON(commoninfra.NewResponseError(logCommonRbac, "authorization header missing"))
+                return "", fiber.NewError(fiber.StatusBadRequest, "authorization header missing")
         }</span>
 
         <span class="cov8" title="3">var jwt = authHeader
@@ -3227,8 +3250,7 @@ func extractBearerToken(c *fiber.Ctx) (string, error) <span class="cov10" title=
         <span class="cov8" title="3">parts := strings.Split(jwt, " ")
         if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" </span><span class="cov1" title="1">{
                 log.Println("Invalid authorization header format")
-                return "", c.Status(400).
-                        JSON(commoninfra.NewResponseError(logCommonRbac, "authorization header format must be Bearer token"))
+                return "", fiber.NewError(fiber.StatusBadRequest, "authorization header format must be Bearer token")
         }</span>
 
         <span class="cov5" title="2">token := parts[1]
@@ -3236,8 +3258,8 @@ func extractBearerToken(c *fiber.Ctx) (string, error) <span class="cov10" title=
         return token, nil</span>
 }
 
-func parseJWT(tokenStr string) (*jwt.Token, error) <span class="cov10" title="4">{
-        if tokenStr == "" || tokenStr == "undefined" || tokenStr == "null" </span><span class="cov5" title="2">{
+func parseJWT(tokenStr string) (*jwt.Token, error) <span class="cov5" title="2">{
+        if tokenStr == "" || tokenStr == "undefined" || tokenStr == "null" </span><span class="cov0" title="0">{
                 return nil, fiber.NewError(400, "token authorization header missing or empty")
         }</span>
 
@@ -3281,25 +3303,29 @@ func validateClaims(token *jwt.Token) (jwt.MapClaims, error) <span class="cov5" 
         <span class="cov5" title="2">return claims, nil</span>
 }
 
+func isKeycloakSessionID(str string) bool <span class="cov0" title="0">{
+        return strings.HasPrefix(str, "mIb") || (len(str) &gt; 20 &amp;&amp; !strings.Contains(str, "-") &amp;&amp; !strings.Contains(str, "@"))
+}</span>
+
 func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) <span class="cov5" title="2">{
         iss, _ := claims["iss"].(string)
         employeeId, _ := claims["employeeid"].(string)
 
-        isKeycloak := strings.Contains(iss, "gerbang.unpak.ac.id") || employeeId != ""
+        isKeycloak := strings.Contains(iss, "gerbang.unpak.ac.id") || employeeId != "" || claims["preferred_username"] != nil
 
         if isKeycloak </span><span class="cov0" title="0">{
-                if employeeId == "" </span><span class="cov0" title="0">{
-                        if pref, ok := claims["preferred_username"].(string); ok &amp;&amp; pref != "" </span><span class="cov0" title="0">{
-                                employeeId = pref
-                        }</span> else<span class="cov0" title="0"> if sub, ok := claims["sub"].(string); ok </span><span class="cov0" title="0">{
-                                employeeId = sub
-                        }</span> else<span class="cov0" title="0"> if uName, ok := claims["username"].(string); ok </span><span class="cov0" title="0">{
-                                employeeId = uName
+                if employeeId == "" || isKeycloakSessionID(employeeId) </span><span class="cov0" title="0">{
+                        if emp, ok := claims["employeeid"].(string); ok &amp;&amp; emp != "" </span><span class="cov0" title="0">{
+                                employeeId = emp
+                        }</span> else<span class="cov0" title="0"> if emp2, ok := claims["employee_id"].(string); ok &amp;&amp; emp2 != "" </span><span class="cov0" title="0">{
+                                employeeId = emp2
                         }</span>
                 }
 
                 <span class="cov0" title="0">c.Request().PostArgs().Set("sid", employeeId)
+                c.Request().PostArgs().Set("user_id", employeeId)
                 c.Locals("sid", employeeId)
+                c.Locals("user_id", employeeId)
 
                 var allGroups []string
                 if groupRaw, ok := claims["group"].([]interface{}); ok </span><span class="cov0" title="0">{
@@ -3384,7 +3410,9 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) <s
                 // Local login token
                 if sid, ok := claims["sid"].(string); ok </span><span class="cov5" title="2">{
                         c.Request().PostArgs().Set("sid", sid)
+                        c.Request().PostArgs().Set("user_id", sid)
                         c.Locals("sid", sid)
+                        c.Locals("user_id", sid)
                 }</span>
                 <span class="cov5" title="2">if resource, ok := claims["resource"].(string); ok </span><span class="cov5" title="2">{
                         c.Request().PostArgs().Set("resource", resource)
@@ -3425,10 +3453,18 @@ func RBACMiddleware(whitelist []string, whoamiURL string) fiber.Handler <span cl
                         return err
                 }</span>
 
+                <span class="cov0" title="0">if whoamiURL == "" </span><span class="cov0" title="0">{
+                        whoamiURL = os.Getenv("WHOAMI_URL")
+                }</span>
+
                 <span class="cov0" title="0">user, err := fetchWhoAmI(token, whoamiURL, c)
                 if err != nil </span><span class="cov0" title="0">{
                         return err
                 }</span>
+                <span class="cov0" title="0">if user == nil </span><span class="cov0" title="0">{
+                        return fiber.NewError(fiber.StatusUnauthorized, "user profile invalid")
+                }</span>
+
                 <span class="cov0" title="0">nidn := ""
                 nip := ""
                 npm := ""
@@ -3475,18 +3511,16 @@ func fetchWhoAmI(token, whoamiURL string, c *fiber.Ctx) (*Account, error) <span 
         req, err := http.NewRequest("GET", whoamiURL, nil)
         if err != nil </span><span class="cov0" title="0">{
                 log.Printf("[RBAC] Failed to create request: %v", err)
-                return nil, c.Status(500).
-                        JSON(commoninfra.NewResponseError(logCommonRbac, "Failed to create request: "+err.Error()))
+                return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create whoami request: "+err.Error())
         }</span>
 
         <span class="cov0" title="0">req.Header.Set("Authorization", "Bearer "+token)
 
-        client := &amp;http.Client{}
+        client := &amp;http.Client{Timeout: 5 * time.Second}
         resp, err := client.Do(req)
         if err != nil </span><span class="cov0" title="0">{
                 log.Printf("[RBAC] Failed to call whoami: %v", err)
-                return nil, c.Status(500).
-                        JSON(commoninfra.NewResponseError(logCommonRbac, "Failed to call whoami: "+err.Error()))
+                return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to call whoami: "+err.Error())
         }</span>
         <span class="cov0" title="0">defer resp.Body.Close()
 
@@ -3494,14 +3528,13 @@ func fetchWhoAmI(token, whoamiURL string, c *fiber.Ctx) (*Account, error) <span 
         log.Printf("[RBAC] Whoami response status: %d, body: %s", resp.StatusCode, string(body))
 
         if resp.StatusCode != 200 </span><span class="cov0" title="0">{
-                return nil, handleWhoAmIError(body, c)
+                return nil, fiber.NewError(resp.StatusCode, "Whoami request failed with status: "+string(body))
         }</span>
 
         <span class="cov0" title="0">var user Account
         if err := json.Unmarshal(body, &amp;user); err != nil </span><span class="cov0" title="0">{
                 log.Printf("[RBAC] Failed to parse whoami response: %v", err)
-                return nil, c.Status(400).
-                        JSON(commoninfra.NewResponseError(logCommonRbac, "Failed to parse whoami response"))
+                return nil, fiber.NewError(fiber.StatusBadRequest, "Failed to parse whoami response")
         }</span>
 
         <span class="cov0" title="0">log.Printf("[RBAC] Whoami user: %+v", user)
@@ -3941,7 +3974,6 @@ import (
         _ "time/tzdata"
 
         "github.com/gofiber/fiber/v2"
-        "github.com/gofiber/fiber/v2/middleware/cors"
         "github.com/gofiber/fiber/v2/middleware/recover"
         "github.com/joho/godotenv"
         "github.com/mehdihadeli/go-mediatr"
@@ -4108,23 +4140,59 @@ func main() <span class="cov0" title="0">{
         cfg.ResolveAndCheck = false
 
         app := fiber.New(fiber.Config{
-                // DisableStartupMessage: true,
                 ReadBufferSize: 16 * 1024,
-                // Prefork:        true, // gunakan semua CPU cores
-                ReadTimeout:  120 * time.Second,
-                WriteTimeout: 120 * time.Second,
-                IdleTimeout:  120 * time.Second,
-        })
-        app.Use(recover.New())
+                ReadTimeout:    120 * time.Second,
+                WriteTimeout:   120 * time.Second,
+                IdleTimeout:    120 * time.Second,
+                ErrorHandler: func(c *fiber.Ctx, err error) error </span><span class="cov0" title="0">{
+                        code := fiber.StatusInternalServerError
+                        var e *fiber.Error
+                        if errors.As(err, &amp;e) </span><span class="cov0" title="0">{
+                                code = e.Code
+                        }</span>
 
-        app.Use(cors.New(cors.Config{
-                AllowOriginsFunc: func(origin string) bool </span><span class="cov0" title="0">{
-                        return true // Allow all origins (*)
-                }</span>,
-                AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-                AllowHeaders:     "*",
-                AllowCredentials: true,
-        }))
+                        <span class="cov0" title="0">origin := c.Get("Origin")
+                        if origin != "" </span><span class="cov0" title="0">{
+                                c.Set("Access-Control-Allow-Origin", origin)
+                                c.Set("Access-Control-Allow-Credentials", "true")
+                        }</span> else<span class="cov0" title="0"> {
+                                c.Set("Access-Control-Allow-Origin", "*")
+                        }</span>
+                        <span class="cov0" title="0">c.Set("Access-Control-Allow-Headers", "*")
+                        c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+
+                        return c.Status(code).JSON(fiber.Map{
+                                "Code":    code,
+                                "Message": err.Error(),
+                        })</span>
+                },
+        })
+
+        // 1. Universal CORS Middleware - Absolute top priority for ALL requests (GET, POST, PUT, DELETE, OPTIONS)
+        <span class="cov0" title="0">app.Use(func(c *fiber.Ctx) error </span><span class="cov0" title="0">{
+                origin := c.Get("Origin")
+                if origin == "" </span><span class="cov0" title="0">{
+                        origin = "*"
+                }</span>
+
+                <span class="cov0" title="0">c.Set("Access-Control-Allow-Origin", origin)
+                if origin != "*" </span><span class="cov0" title="0">{
+                        c.Set("Access-Control-Allow-Credentials", "true")
+                }</span>
+                <span class="cov0" title="0">c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+                c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, ctxtoken, ctxtahun, *")
+                c.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+                c.Set("Access-Control-Max-Age", "86400")
+
+                // Instantly respond 204 to OPTIONS preflight without blocking
+                if c.Method() == fiber.MethodOptions </span><span class="cov0" title="0">{
+                        return c.SendStatus(fiber.StatusNoContent)
+                }</span>
+
+                <span class="cov0" title="0">return c.Next()</span>
+        })
+
+        <span class="cov0" title="0">app.Use(recover.New())
 
         // app.Use(helmet.New(helmet.Config{
         //         XSSProtection:             "1; mode=block",
@@ -4133,10 +4201,10 @@ func main() <span class="cov0" title="0">{
         //         ReferrerPolicy:            "no-referrer", // Referrer-Policy
         //         ContentSecurityPolicy:     "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'",
         //         CrossOriginEmbedderPolicy: "require-corp",
-        //         CrossOriginOpenerPolicy:   "same-origin",
+        //         CrossOriginOpenerPolicy:   "cross-origin",
         //         CrossOriginResourcePolicy: "cross-origin",
         // }))
-        <span class="cov0" title="0">app.Use(commonpresentation.LoggerMiddleware)
+        app.Use(commonpresentation.LoggerMiddleware)
         app.Use(commonpresentation.HeaderSecurityMiddleware(cfg))
         app.Use(func(c *fiber.Ctx) error </span><span class="cov0" title="0">{
                 c.Response().Header.Del("X-Powered-By")
@@ -4213,7 +4281,7 @@ func main() <span class="cov0" title="0">{
         }</span>)
 
         <span class="cov0" title="0">mustStart("TemplatePertanyaan Module", func() error </span><span class="cov0" title="0">{
-                return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db, dbSimak)
+                return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db, dbSimpeg, dbSimak)
         }</span>)
 
         <span class="cov0" title="0">mustStart("TemplateJawaban Module", func() error </span><span class="cov0" title="0">{
@@ -4942,7 +5010,7 @@ func (h *WhoamiCommandHandler) Handle(
                 NIP:    cmd.NIP,
                 NIM:    cmd.NIM,
         }
-        user, err := h.Repo.Get(ctx, account)
+        user, err := h.Repo.Get(ctx, account, nil)
         if err != nil </span><span class="cov6" title="2">{
                 if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov1" title="1">{
                         return nil, domainaccount.InvalidCredential()
@@ -4983,7 +5051,7 @@ import (
 
 type MockAccountRepository struct {
         AuthFunc      func(ctx context.Context, username string, password string) (*domainaccount.AccountDefault, error)
-        GetFunc       func(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error)
+        GetFunc       func(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error)
         GetByUuidFunc func(ctx context.Context, uid uuid.UUID) (*domainaccount.Account, error)
         GetAllFunc    func(ctx context.Context, search string, searchFilters []commonDomain.SearchFilter, page, limit *int, deleted bool) ([]domainaccount.Account, int64, error)
         CreateFunc    func(ctx context.Context, account *domainaccount.Account) error
@@ -4999,9 +5067,9 @@ func (m *MockAccountRepository) Auth(ctx context.Context, username string, passw
         <span class="cov0" title="0">return nil, nil</span>
 }
 
-func (m *MockAccountRepository) Get(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error) <span class="cov0" title="0">{
+func (m *MockAccountRepository) Get(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error) <span class="cov0" title="0">{
         if m.GetFunc != nil </span><span class="cov0" title="0">{
-                return m.GetFunc(ctx, id)
+                return m.GetFunc(ctx, id, mode)
         }</span>
         <span class="cov0" title="0">return nil, nil</span>
 }
@@ -5382,12 +5450,23 @@ func (r *AccountRepository) Auth(ctx context.Context, username string, password 
         )
 }
 
-func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier) (*domain.AccountDefault, error) <span class="cov0" title="0">{
+func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier, mode *string) (*domain.AccountDefault, error) <span class="cov0" title="0">{
         if strings.TrimSpace(helper.StringValue(id.NIDN)) != "" </span><span class="cov0" title="0">{
                 res, err := r.getSimakDosen(ctx, helper.StringValue(id.NIDN))
                 if err == nil &amp;&amp; res != nil &amp;&amp; res.ID != "" </span><span class="cov0" title="0">{
-                        return res, nil
-                }</span>
+                        if mode == nil </span><span class="cov0" title="0">{
+                                local, err := r.getDB(ctx, res.ID)
+                                if err == nil </span><span class="cov0" title="0">{
+                                        res.Level = local.Level
+                                        res.Fakultas = local.Fakultas
+                                        res.RefFakultas = local.RefFakultas
+                                        res.Prodi = local.Prodi
+                                        res.RefProdi = local.RefProdi
+                                }</span>
+                        }
+
+                        <span class="cov0" title="0">return res, nil</span>
+                }
         }
 
         <span class="cov0" title="0">if strings.TrimSpace(helper.StringValue(id.NIM)) != "" </span><span class="cov0" title="0">{
@@ -5400,8 +5479,19 @@ func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier
         <span class="cov0" title="0">if strings.TrimSpace(helper.StringValue(id.NIP)) != "" </span><span class="cov0" title="0">{
                 res, err := r.getSimpeg(ctx, id.NIP, id.NIDN)
                 if err == nil &amp;&amp; res != nil &amp;&amp; res.ID != "" </span><span class="cov0" title="0">{
-                        return res, nil
-                }</span>
+                        if mode == nil </span><span class="cov0" title="0">{
+                                local, err := r.getDB(ctx, res.ID)
+                                if err == nil </span><span class="cov0" title="0">{
+                                        res.Level = local.Level
+                                        res.Fakultas = local.Fakultas
+                                        res.RefFakultas = local.RefFakultas
+                                        res.Prodi = local.Prodi
+                                        res.RefProdi = local.RefProdi
+                                }</span>
+                        }
+
+                        <span class="cov0" title="0">return res, nil</span>
+                }
         }
 
         <span class="cov0" title="0">if strings.TrimSpace(helper.StringValue(id.UserID)) != "" </span><span class="cov0" title="0">{
@@ -6619,7 +6709,6 @@ import (
         "strings"
 
         "github.com/gofiber/fiber/v2"
-        "github.com/golang-jwt/jwt/v5"
         "github.com/mehdihadeli/go-mediatr"
 
         commondomain "UnpakSiamida/common/domain"
@@ -6734,44 +6823,15 @@ func WhoAmIHandler(c *fiber.Ctx) error <span class="cov0" title="0">{
                 }</span>
         }
 
-        // Extract claims directly from Authorization or ctxtoken JWT header if fields are missing
-        <span class="cov0" title="0">authHeader := c.Get("Authorization")
-        if authHeader == "" </span><span class="cov0" title="0">{
-                authHeader = c.Query("ctxtoken")
+        <span class="cov0" title="0">isKeycloakSessionID := func(str string) bool </span><span class="cov0" title="0">{
+                return strings.HasPrefix(str, "mIb") || (len(str) &gt; 20 &amp;&amp; !strings.Contains(str, "-") &amp;&amp; !strings.Contains(str, "@"))
         }</span>
-        <span class="cov0" title="0">if authHeader != "" </span><span class="cov0" title="0">{
-                tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-                tokenStr = strings.TrimSpace(tokenStr)
-                if tokenStr != "" </span><span class="cov0" title="0">{
-                        token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
-                        if err == nil &amp;&amp; token != nil </span><span class="cov0" title="0">{
-                                if claims, ok := token.Claims.(jwt.MapClaims); ok </span><span class="cov0" title="0">{
-                                        if userID == "" </span><span class="cov0" title="0">{
-                                                if s, ok := claims["sid"].(string); ok &amp;&amp; s != "" </span><span class="cov0" title="0">{
-                                                        userID = s
-                                                }</span> else<span class="cov0" title="0"> if pref, ok := claims["preferred_username"].(string); ok &amp;&amp; pref != "" </span><span class="cov0" title="0">{
-                                                        userID = pref
-                                                }</span> else<span class="cov0" title="0"> if emp, ok := claims["employeeid"].(string); ok &amp;&amp; emp != "" </span><span class="cov0" title="0">{
-                                                        userID = emp
-                                                }</span> else<span class="cov0" title="0"> if sub, ok := claims["sub"].(string); ok &amp;&amp; sub != "" </span><span class="cov0" title="0">{
-                                                        userID = sub
-                                                }</span>
-                                        }
-                                        <span class="cov0" title="0">if resource == "" </span><span class="cov0" title="0">{
-                                                if r, ok := claims["resource"].(string); ok &amp;&amp; r != "" </span><span class="cov0" title="0">{
-                                                        resource = r
-                                                }</span>
-                                        }
-                                        <span class="cov0" title="0">if codectx == "" </span><span class="cov0" title="0">{
-                                                if cx, ok := claims["codectx"].(string); ok &amp;&amp; cx != "" </span><span class="cov0" title="0">{
-                                                        codectx = cx
-                                                }</span> else<span class="cov0" title="0"> if cx2, ok := claims["codetx"].(string); ok &amp;&amp; cx2 != "" </span><span class="cov0" title="0">{
-                                                        codectx = cx2
-                                                }</span>
-                                        }
-                                }
-                        }
-                }
+        <span class="cov0" title="0">if userID == "" || isKeycloakSessionID(userID) </span><span class="cov0" title="0">{
+                if s, ok := c.Locals("sid").(string); ok &amp;&amp; s != "" &amp;&amp; !isKeycloakSessionID(s) </span><span class="cov0" title="0">{
+                        userID = s
+                }</span> else<span class="cov0" title="0"> if u, ok := c.Locals("user_id").(string); ok &amp;&amp; u != "" &amp;&amp; !isKeycloakSessionID(u) </span><span class="cov0" title="0">{
+                        userID = u
+                }</span>
         }
 
         <span class="cov0" title="0">var (
@@ -7722,8 +7782,6 @@ import (
         domainBankSoal "UnpakSiamida/modules/banksoal/domain"
         "context"
         "time"
-
-        "github.com/goforj/godump"
 )
 
 type GetAllBankSoalsQueryHandler struct {
@@ -7733,16 +7791,15 @@ type GetAllBankSoalsQueryHandler struct {
 func (h *GetAllBankSoalsQueryHandler) Handle(
         ctx context.Context,
         q GetAllBankSoalsQuery,
-) (commondomain.Paged[domainBankSoal.BankSoalDefault], error) <span class="cov10" title="5">{
+) (commondomain.Paged[domainBankSoal.BankSoalDefault], error) <span class="cov10" title="2">{
         ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
         defer cancel()
 
-        godump.Dump(q)
-        if q.NIDN != nil || q.NIP != nil || q.NPM != nil </span><span class="cov7" title="3">{
-                return commondomain.Paged[domainBankSoal.BankSoalDefault]{}, domainBankSoal.OnlyAdminFacultyStudyProgram()
-        }</span>
+        // if q.NIDN != nil || q.NIP != nil || q.NPM != nil {
+        //         return commondomain.Paged[domainBankSoal.BankSoalDefault]{}, domainBankSoal.OnlyAdminFacultyStudyProgram()
+        // }
 
-        <span class="cov4" title="2">BankSoals, total, err := h.Repo.GetAll(
+        BankSoals, total, err := h.Repo.GetAll(
                 ctx,
                 q.Search,
                 q.SearchFilter,
@@ -8526,9 +8583,16 @@ func NewBankSoal(
         createdby string, //lpm, fakultas, prodi
         createdbyref string,
 ) common.ResultValue[*BankSoal] <span class="cov0" title="0">{
-        if createdby != "local" </span><span class="cov0" title="0">{
+        var validOwners = map[string]bool{
+                "local":  true,
+                "simpeg": true,
+                "simak":  true,
+        }
+
+        if !validOwners[createdby] </span><span class="cov0" title="0">{
                 return common.FailureValue[*BankSoal](InvalidOwner())
         }</span>
+
         <span class="cov0" title="0">if peruntukan != "mahasiswa" &amp;&amp; peruntukan != "dosen" &amp;&amp; peruntukan != "tendik" </span><span class="cov0" title="0">{
                 return common.FailureValue[*BankSoal](InvalidType())
         }</span>
@@ -8569,7 +8633,13 @@ func UpdateBankSoal(
                 return common.FailureValue[*BankSoal](InvalidData())
         }</span>
 
-        <span class="cov0" title="0">if createdby != "local" </span><span class="cov0" title="0">{
+        <span class="cov0" title="0">var validOwners = map[string]bool{
+                "local":  true,
+                "simpeg": true,
+                "simak":  true,
+        }
+
+        if !validOwners[createdby] </span><span class="cov0" title="0">{
                 return common.FailureValue[*BankSoal](InvalidOwner())
         }</span>
 
@@ -8868,7 +8938,13 @@ func AddTimeBankSoalExt(
         <span class="cov0" title="0">var tanggalMulaiPtr *time.Time
         var tanggalAkhirPtr *time.Time
 
-        if createdby != "local" </span><span class="cov0" title="0">{
+        var validOwners = map[string]bool{
+                "local":  true,
+                "simpeg": true,
+                "simak":  true,
+        }
+
+        if !validOwners[createdby] </span><span class="cov0" title="0">{
                 return common.FailureValue[*BankSoalExt](InvalidOwner())
         }</span>
 
@@ -9175,15 +9251,18 @@ func (r *BankSoalRepository) GetDefaultByUuid(
         dosenSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS nidn,
-                        u.name AS nama_dosen,
-                        u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
-                        u.prodi AS kode_prodi,
-                        '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level AS role
-                `)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+               u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
         // =========================
         // Subquery account
@@ -9191,15 +9270,18 @@ func (r *BankSoalRepository) GetDefaultByUuid(
         accountSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS id,
+                        CONVERT(u.id USING utf8mb4) AS id,
+                        u.employee_id,
                         u.name,
                         u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
+                        f.nama_fakultas AS nama_fakultas,
                         u.prodi AS kode_prodi,
                         '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
+                        p.nama_prodi AS nama_prodi,
                         u.level AS role
-                `)
+                `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
         // =========================
         // Subquery pertanyaan
@@ -9249,11 +9331,21 @@ func (r *BankSoalRepository) GetDefaultByUuid(
                         k.uuid AS UUIDKuesioner
                 `).
                 Joins(`LEFT JOIN (?) ul 
-                        ON ul.id = CAST(b.createdByRef AS CHAR)
-                        AND LOWER(b.createdBy) = 'local'`, accountSub).
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
                 Joins(`LEFT JOIN (?) dc 
-                        ON dc.nidn = CAST(b.createdByRef AS CHAR)
-                        AND LOWER(b.createdBy) = 'simak'`, dosenSub).
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                 Joins(`LEFT JOIN (?) pc ON b.id = pc.id_bank_soal`, pertanyaanSub).
                 Joins(`LEFT JOIN kuesionerv2 k ON k.id_bank_soal = b.id`).
                 Where("b.uuid = ?", id).
@@ -9291,11 +9383,21 @@ func (r *BankSoalRepository) GetDefaultByUuid(
                         COALESCE(ul.role, dc.role) AS Role
                 `).
                 Joins(`LEFT JOIN (?) ul 
-                        ON ul.id = CAST(e.createdByRef AS CHAR)
-                        AND LOWER(e.createdBy) = 'local'`, accountSub).
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
                 Joins(`LEFT JOIN (?) dc 
-                        ON dc.nidn = CAST(e.createdByRef AS CHAR)
-                        AND LOWER(e.createdBy) = 'simak'`, dosenSub).
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                 Where("e.id_bank_soal = ?", row.Id).
                 Order("e.id DESC").
                 Scan(&amp;extRows).Error
@@ -9332,33 +9434,43 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 
         var row domainbanksoal.BankSoalDefault
 
+        // =========================
         // Subquery dosen (Local users)
+        // =========================
         dosenSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS nidn,
-                        u.name AS nama_dosen,
-                        u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
-                        u.prodi AS kode_prodi,
-                        '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+               u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+        // =========================
         // Subquery account
+        // =========================
         accountSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS id,
+                        CONVERT(u.id USING utf8mb4) AS id,
+                        u.employee_id,
                         u.name,
                         u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
+                        f.nama_fakultas AS nama_fakultas,
                         u.prodi AS kode_prodi,
                         '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+                        p.nama_prodi AS nama_prodi,
+                        u.level AS role
+                `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
         // =========================
         // SUBQUERY PERTANYAAN
@@ -9412,16 +9524,22 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
                         INNER JOIN kuesionerv2 k
                                 ON k.id_bank_soal = b.id
                 `).
-                Joins(`
-                        LEFT JOIN (?) ul
-                                ON ul.id = CAST(b.createdByRef AS CHAR)
-                                AND LOWER(b.createdBy) = 'local'
-                `, accountSub).
-                Joins(`
-                        LEFT JOIN (?) dc
-                                ON dc.nidn = CAST(b.createdByRef AS CHAR)
-                                AND LOWER(b.createdBy) = 'simak'
-                `, dosenSub).
+                Joins(`LEFT JOIN (?) ul 
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
+                Joins(`LEFT JOIN (?) dc 
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                 Joins(`
                         LEFT JOIN (?) pc
                                 ON b.id = pc.id_bank_soal
@@ -9463,16 +9581,22 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
                         COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi,
                         COALESCE(ul.role, dc.role) AS Role
                 `).
-                Joins(`
-                        LEFT JOIN (?) ul
-                                ON ul.id = CAST(e.createdByRef AS CHAR)
-                                AND LOWER(e.createdBy) = 'local'
-                `, accountSub).
-                Joins(`
-                        LEFT JOIN (?) dc
-                                ON dc.nidn = CAST(e.createdByRef AS CHAR)
-                                AND LOWER(e.createdBy) = 'simak'
-                `, dosenSub).
+                Joins(`LEFT JOIN (?) ul 
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
+                Joins(`LEFT JOIN (?) dc 
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                 Where("e.id_bank_soal = ?", row.Id).
                 Order("e.id DESC").
                 Find(&amp;extRows).Error
@@ -9718,33 +9842,43 @@ func (r *BankSoalRepository) GetAll(
         var rows = make([]domainbanksoal.BankSoalDefault, 0)
         var total int64
 
+        // =========================
         // Subquery dosen (Local users)
+        // =========================
         dosenSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS nidn,
-                        u.name AS nama_dosen,
-                        u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
-                        u.prodi AS kode_prodi,
-                        '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+               u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+        // =========================
         // Subquery account
+        // =========================
         accountSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS id,
+                        CONVERT(u.id USING utf8mb4) AS id,
+                        u.employee_id,
                         u.name,
                         u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
+                        f.nama_fakultas AS nama_fakultas,
                         u.prodi AS kode_prodi,
                         '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+                        p.nama_prodi AS nama_prodi,
+                        u.level AS role
+                `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
         // Subquery pertanyaan
         pertanyaanSub := r.db.
@@ -9811,8 +9945,22 @@ func (r *BankSoalRepository) GetAll(
                         0 AS TotalInput,
                         COALESCE(pc.uuids, '') AS TargetPertanyaan
                 `).
-                Joins(`LEFT JOIN (?) ul ON ul.id = CAST(b.createdByRef AS CHAR) AND LOWER(b.createdBy) = 'local'`, accountSub).
-                Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(b.createdByRef AS CHAR) AND LOWER(b.createdBy) = 'simak'`, dosenSub).
+                Joins(`LEFT JOIN (?) ul 
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
+                Joins(`LEFT JOIN (?) dc 
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                 Joins(`LEFT JOIN (?) pc ON b.id = pc.id_bank_soal`, pertanyaanSub)
 
         // Filter active / deleted
@@ -9850,34 +9998,34 @@ func (r *BankSoalRepository) GetAll(
                 if normRole == "prodi" || normRole == "adm_simonev_prodi" </span><span class="cov0" title="0">{
                         if len(prodiList) &gt; 0 </span><span class="cov0" title="0">{
                                 db = db.Where(`(
-                                        COALESCE(ul.kode_prodi, dc.kode_prodi) IN ?
-                                        OR (COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ? AND (COALESCE(ul.kode_prodi, dc.kode_prodi) IS NULL OR COALESCE(ul.kode_prodi, dc.kode_prodi) = ''))
-                                        OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+                                        CONVERT(COALESCE(ul.kode_prodi, dc.kode_prodi) USING utf8mb4) IN ?
+                                        OR (CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ? AND (COALESCE(ul.kode_prodi, dc.kode_prodi) IS NULL OR COALESCE(ul.kode_prodi, dc.kode_prodi) = ''))
+                                        OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
                                 )`, prodiList, fakList)
                         }</span> else<span class="cov0" title="0"> if len(fakList) &gt; 0 </span><span class="cov0" title="0">{
                                 db = db.Where(`(
-                                        COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
-                                        OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+                                        CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ?
+                                        OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
                                 )`, fakList)
                         }</span>
                 } else<span class="cov0" title="0"> if normRole == "fakultas" || normRole == "adm_simonev_fakultas" </span><span class="cov0" title="0">{
                         if len(fakList) &gt; 0 </span><span class="cov0" title="0">{
                                 db = db.Where(`(
-                                        COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
-                                        OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+                                        CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ?
+                                        OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
                                 )`, fakList)
                         }</span>
                 } else<span class="cov0" title="0"> {
                         // Fallback untuk level fakultas/prodi
                         if len(prodiList) &gt; 0 </span><span class="cov0" title="0">{
                                 db = db.Where(`(
-                                        COALESCE(ul.kode_prodi, dc.kode_prodi) IN ?
-                                        OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+                                        CONVERT(COALESCE(ul.kode_prodi, dc.kode_prodi) USING utf8mb4) IN ?
+                                        OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
                                 )`, prodiList)
                         }</span> else<span class="cov0" title="0"> if len(fakList) &gt; 0 </span><span class="cov0" title="0">{
                                 db = db.Where(`(
-                                        COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
-                                        OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+                                        CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ?
+                                        OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
                                 )`, fakList)
                         }</span>
                 }
@@ -9974,8 +10122,22 @@ func (r *BankSoalRepository) GetAll(
                                 COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi,
                                 COALESCE(ul.role, dc.role) AS Role
                         `).
-                        Joins(`LEFT JOIN (?) ul ON ul.id = CAST(e.createdByRef AS CHAR) AND LOWER(e.createdBy) = 'local'`, accountSub).
-                        Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(e.createdByRef AS CHAR) AND LOWER(e.createdBy) = 'simak'`, dosenSub).
+                        Joins(`LEFT JOIN (?) ul 
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
+                        Joins(`LEFT JOIN (?) dc 
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                         Where("e.id_bank_soal IN ?", ids).
                         Order("e.id DESC").
                         Find(&amp;extRows).Error
@@ -10765,23 +10927,23 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error <span class="cov0" title="0"
         npm := c.FormValue("npm")
         fakultas := c.FormValue("fakultas")
         prodi := c.FormValue("prodi")
-        role := c.FormValue("role")
-        if role == "" </span><span class="cov0" title="0">{
-                role = c.FormValue("level")
-        }</span>
-        <span class="cov0" title="0">godump.Dump(c.FormValue("level"), c.FormValue("role"))
+        role := c.FormValue("level")
+        // if role == "" {
+        //         role = c.FormValue("level")
+        // }
+        godump.Dump(npm, nidn, fakultas, prodi, c.FormValue("level"), c.FormValue("role"))
 
-        if role == "adm_simonev_fakultas" </span><span class="cov0" title="0">{
-                role = "fakultas"
-                nip = ""
-                nidn = ""
-        }</span> else<span class="cov0" title="0"> if role == "adm_simonev_prodi" </span><span class="cov0" title="0">{
-                role = "prodi"
-                nip = ""
-                nidn = ""
-        }</span>
+        // if role == "adm_simonev_fakultas" {
+        //         role = "fakultas"
+        //         nip = ""
+        //         nidn = ""
+        // } else if role == "adm_simonev_prodi" {
+        //         role = "prodi"
+        //         nip = ""
+        //         nidn = ""
+        // }
 
-        <span class="cov0" title="0">query := GetAllBankSoals.GetAllBankSoalsQuery{
+        query := GetAllBankSoals.GetAllBankSoalsQuery{
                 Search:         search,
                 SearchFilter:   filters,
                 NPM:            helper.StrPtr(npm),
@@ -12370,7 +12532,13 @@ func NewKategori(
         createdbyref string,
 ) common.ResultValue[*Kategori] <span class="cov0" title="0">{
 
-        if createdby != "local" </span><span class="cov0" title="0">{
+        var validOwners = map[string]bool{
+                "local":  true,
+                "simpeg": true,
+                "simak":  true,
+        }
+
+        if !validOwners[createdby] </span><span class="cov0" title="0">{
                 return common.FailureValue[*Kategori](InvalidOwner())
         }</span>
 
@@ -12704,33 +12872,43 @@ func (r *KategoriRepository) GetDefaultByUuid(
                 SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
         }
 
+        // =========================
         // Subquery dosen (Local users)
+        // =========================
         dosenSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS nidn,
-                        u.name AS nama_dosen,
-                        u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
-                        u.prodi AS kode_prodi,
-                        '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+               u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+        // =========================
         // Subquery account
+        // =========================
         accountSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS id,
+                        CONVERT(u.id USING utf8mb4) AS id,
+                        u.employee_id,
                         u.name,
                         u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
+                        f.nama_fakultas AS nama_fakultas,
                         u.prodi AS kode_prodi,
                         '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+                        p.nama_prodi AS nama_prodi,
+                        u.level AS role
+                `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
         err := r.db.WithContext(ctx).
                 Table("kategoriv2 a").
@@ -12753,8 +12931,22 @@ func (r *KategoriRepository) GetDefaultByUuid(
                         COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
                         COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi
         `, uuidSub, namaSub).
-                Joins(`LEFT JOIN (?) ul ON ul.id = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'local'`, accountSub).
-                Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'simak'`, dosenSub).
+                Joins(`LEFT JOIN (?) ul 
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
+                Joins(`LEFT JOIN (?) dc 
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simak'
+                                )
+                        )`, dosenSub).
                 Where("a.uuid = ?", id).
                 Take(&amp;rowData).Error
 
@@ -12814,33 +13006,43 @@ func (r *KategoriRepository) GetAll(
                 SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
         }
 
+        // =========================
         // Subquery dosen (Local users)
+        // =========================
         dosenSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS nidn,
-                        u.name AS nama_dosen,
-                        u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
-                        u.prodi AS kode_prodi,
-                        '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+               u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+        // =========================
         // Subquery account
+        // =========================
         accountSub := r.db.
                 Table("users u").
                 Select(`
-                        CAST(u.id AS CHAR) AS id,
+                        CONVERT(u.id USING utf8mb4) AS id,
+                        u.employee_id,
                         u.name,
                         u.fakultas AS kode_fakultas,
-                        u.fakultas AS nama_fakultas,
+                        f.nama_fakultas AS nama_fakultas,
                         u.prodi AS kode_prodi,
                         '' AS kode_jenjang,
-                        u.prodi AS nama_prodi,
-                        u.level as role
-                `)
+                        p.nama_prodi AS nama_prodi,
+                        u.level AS role
+                `).
+                Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+                Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
         db := r.db.Debug().WithContext(ctx).
                 Table("kategoriv2 a").
@@ -12863,8 +13065,22 @@ func (r *KategoriRepository) GetAll(
                         COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
                         COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi
         `, uuidSub, namaSub).
-                Joins(`LEFT JOIN (?) ul ON ul.id = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'local'`, accountSub).
-                Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'simak'`, dosenSub)
+                Joins(`LEFT JOIN (?) ul 
+                        ON (
+                                (
+                                        CONVERT(ul.id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(ul.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simpeg'
+                                )
+                        )`, accountSub).
+                Joins(`LEFT JOIN (?) dc 
+                        ON (
+                                (
+                                        CONVERT(dc.nidn USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+                                ) OR (
+                                        CONVERT(dc.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simak'
+                                )
+                        )`, dosenSub)
 
         if deleted </span><span class="cov0" title="0">{
                 db = db.Where(clause.Expr{
@@ -13897,10 +14113,11 @@ func (h *CreateKuesionerCommandHandler) Handle(
                 return "", err
         }</span>
 
-        <span class="cov0" title="0">account, err := h.RepoAccount.Get(ctx, identifier)
+        <span class="cov0" title="0">mode := "skip"
+        account, err := h.RepoAccount.Get(ctx, identifier, &amp;mode)
         if err != nil </span><span class="cov0" title="0">{
                 if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
-                        return "", domainkuesioner.NotFoundBankSoal()
+                        return "", domainkuesioner.InvalidIdentity()
                 }</span>
                 <span class="cov0" title="0">return "", err</span>
         }
@@ -13913,7 +14130,7 @@ func (h *CreateKuesionerCommandHandler) Handle(
         // -------------------------
         // CREATE DOMAIN ENTITY
         // -------------------------
-        result := domainkuesioner.NewKuesioner(
+        result := domainkuesioner.NewKuesioner( //[pr] bug logic case peruntukan=daosen data pengguna=tendik
                 k.NIDN,
                 k.NamaDosen,
                 k.NIP,
@@ -14843,6 +15060,10 @@ func NotFound(id string) domain.Error <span class="cov0" title="0">{
 
 func NotFoundBankSoal() domain.Error <span class="cov0" title="0">{
         return domain.NotFoundError("Kuesioner.NotFoundBankSoal", "bank soal is not found")
+}</span>
+
+func InvalidIdentity() domain.Error <span class="cov0" title="0">{
+        return domain.NotFoundError("Kuesioner.InvalidIdentity", "indentity is invalid")
 }</span>
 
 func NotFoundPertanyaan() domain.Error <span class="cov0" title="0">{
@@ -17874,7 +18095,13 @@ func NewTemplateJawaban(
         createdbyref string,
 ) common.ResultValue[*TemplateJawaban] <span class="cov0" title="0">{
 
-        if createdby != "local" </span><span class="cov0" title="0">{
+        var validOwners = map[string]bool{
+                "local":  true,
+                "simpeg": true,
+                "simak":  true,
+        }
+
+        if !validOwners[createdby] </span><span class="cov0" title="0">{
                 return common.FailureValue[*TemplateJawaban](InvalidOwner())
         }</span>
 
@@ -19043,20 +19270,24 @@ func (h *CopyTemplatePertanyaanResultCommandHandler) Handle(
 
 import (
         "context"
+        "errors"
 
         "UnpakSiamida/common/helper"
+        domainaccount "UnpakSiamida/modules/account/domain"
         domainbanksoal "UnpakSiamida/modules/banksoal/domain"
         domainkategori "UnpakSiamida/modules/kategori/domain"
         domaintemplatepertanyaan "UnpakSiamida/modules/templatepertanyaan/domain"
         "time"
 
         "github.com/google/uuid"
+        "gorm.io/gorm"
 )
 
 type CreateTemplatePertanyaanCommandHandler struct {
         Repo         domaintemplatepertanyaan.ITemplatePertanyaanRepository
         RepoKategori domainkategori.IKategoriRepository
         RepoBankSoal domainbanksoal.IBankSoalRepository
+        RepoAccount  domainaccount.IAccountRepository
 }
 
 func (h *CreateTemplatePertanyaanCommandHandler) Handle(
@@ -19090,6 +19321,27 @@ func (h *CreateTemplatePertanyaanCommandHandler) Handle(
                 return "", err
         }</span>
 
+        <span class="cov1" title="1">identity, err := cmd.AccountIdentifierCreate()
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov1" title="1">var refFakultas *string
+        var refProdi *string
+        if h.RepoAccount != nil </span><span class="cov0" title="0">{
+                account, err := h.RepoAccount.Get(ctx, identity, nil)
+                if err != nil </span><span class="cov0" title="0">{
+                        if errors.Is(err, gorm.ErrRecordNotFound) </span><span class="cov0" title="0">{
+                                return "", domaintemplatepertanyaan.InvalidIdentity()
+                        }</span>
+                        <span class="cov0" title="0">return "", err</span>
+                }
+                <span class="cov0" title="0">if account != nil </span><span class="cov0" title="0">{
+                        refFakultas = account.RefFakultas
+                        refProdi = account.RefProdi
+                }</span>
+        }
+
         <span class="cov1" title="1">result := domaintemplatepertanyaan.NewTemplatePertanyaan(
                 existingBankSoal.ID,
                 cmd.Pertanyaan,
@@ -19097,6 +19349,8 @@ func (h *CreateTemplatePertanyaanCommandHandler) Handle(
                 parseBobot,
                 &amp;existingKategori.ID,
                 cmd.Required,
+                refFakultas,
+                refProdi,
                 cmd.Resource, //local, simak, simpeg
                 cmd.SID,
         )
@@ -19111,6 +19365,28 @@ func (h *CreateTemplatePertanyaanCommandHandler) Handle(
         }</span>
 
         <span class="cov1" title="1">return result.Value.UUID.String(), nil</span>
+}
+
+func (cmd *CreateTemplatePertanyaanCommand) AccountIdentifierCreate() (domainaccount.AccountIdentifier, error) <span class="cov1" title="1">{
+        switch cmd.Resource </span>{
+        case "simak":<span class="cov0" title="0">
+                return domainaccount.AccountIdentifier{
+                        NIDN: &amp;cmd.SID,
+                }, nil</span>
+
+        case "simpeg":<span class="cov0" title="0">
+                return domainaccount.AccountIdentifier{
+                        NIP: &amp;cmd.SID,
+                }, nil</span>
+
+        case "local":<span class="cov1" title="1">
+                return domainaccount.AccountIdentifier{
+                        UserID: &amp;cmd.SID,
+                }, nil</span>
+
+        default:<span class="cov0" title="0">
+                return domainaccount.AccountIdentifier{}, domaintemplatepertanyaan.InvalidIdentity()</span>
+        }
 }
 </pre>
 		
@@ -20005,6 +20281,8 @@ type TemplatePertanyaan struct {
         Bobot        uint       `gorm:"column:bobot"`
         IdKategori   *uint      `gorm:"column:id_kategori"`
         Required     int        `gorm:"column:required"`
+        Fakultas     *string    `gorm:"column:fakultas"`
+        Prodi        *string    `gorm:"column:prodi"`
         Status       string     `gorm:"column:status"`
         CreatedBy    *string    `gorm:"column:createdBy"`
         CreatedByRef *string    `gorm:"column:createdByRef"`
@@ -20025,11 +20303,19 @@ func NewTemplatePertanyaan(
         bobot uint,
         idKategori *uint,
         required int,
+        fakultas *string,
+        prodi *string,
         createdby string,
         createdbyref string,
 ) common.ResultValue[*TemplatePertanyaan] <span class="cov0" title="0">{
 
-        if createdby != "local" </span><span class="cov0" title="0">{
+        var validOwners = map[string]bool{
+                "local":  true,
+                "simpeg": true,
+                "simak":  true,
+        }
+
+        if !validOwners[createdby] </span><span class="cov0" title="0">{
                 return common.FailureValue[*TemplatePertanyaan](InvalidOwner())
         }</span>
 
@@ -20046,6 +20332,8 @@ func NewTemplatePertanyaan(
                 IdKategori:   idKategori,
                 Required:     required,
                 Status:       "draf",
+                Fakultas:     fakultas,
+                Prodi:        prodi,
                 CreatedBy:    helper.StrPtr(createdby),
                 CreatedByRef: helper.StrPtr(createdbyref),
         }
@@ -20202,18 +20490,21 @@ func InvalidStatus() domain.Error <span class="cov0" title="0">{
 }</span>
 
 func InvalidBankSoal() domain.Error <span class="cov0" title="0">{
-        return domain.NotFoundError("TemplatePertanyaan.InvalidBankSoal", "kategori is invalid")
+        return domain.NotFoundError("TemplatePertanyaan.InvalidBankSoal", "bank soal is invalid")
 }</span>
 
 func NotFoundKategori() domain.Error <span class="cov0" title="0">{
         return domain.NotFoundError("TemplatePertanyaan.NotFoundKategori", "kategori is not found")
 }</span>
 func NotFoundBankSoal() domain.Error <span class="cov0" title="0">{
-        return domain.NotFoundError("TemplatePertanyaan.NotFoundBankSoal", "kategori is not found")
+        return domain.NotFoundError("TemplatePertanyaan.NotFoundBankSoal", "bank soal is not found")
 }</span>
 
 func InvalidData() domain.Error <span class="cov0" title="0">{
         return domain.NotFoundError("TemplatePertanyaan.InvalidData", "data is invalid")
+}</span>
+func InvalidIdentity() domain.Error <span class="cov0" title="0">{
+        return domain.NotFoundError("TemplatePertanyaan.InvalidIdentity", "indentity is invalid")
 }</span>
 
 func NotFound(id string) domain.Error <span class="cov0" title="0">{
@@ -20243,6 +20534,7 @@ import (
         update "UnpakSiamida/modules/templatepertanyaan/application/UpdateTemplatePertanyaan"
         domainTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/domain"
 
+        infraAccount "UnpakSiamida/modules/account/infrastructure"
         infraBankSoal "UnpakSiamida/modules/banksoal/infrastructure"
         infraKategori "UnpakSiamida/modules/kategori/infrastructure"
 
@@ -20253,10 +20545,11 @@ import (
         // "fmt"
 )
 
-func RegisterModuleTemplatePertanyaan(db *gorm.DB, dbSimak ...*gorm.DB) error <span class="cov0" title="0">{
-        repoTemplatePertanyaan := NewTemplatePertanyaanRepository(db, dbSimak...)
+func RegisterModuleTemplatePertanyaan(db *gorm.DB, dbSimpeg *gorm.DB, dbSimak *gorm.DB) error <span class="cov0" title="0">{
+        repoTemplatePertanyaan := NewTemplatePertanyaanRepository(db, dbSimak)
         repoKategori := infraKategori.NewKategoriRepository(db)
         repoBankSoal := infraBankSoal.NewBankSoalRepository(db)
+        repoAccount := infraAccount.NewAccountRepository(db, dbSimak, dbSimpeg)
         // if err := db.AutoMigrate(&amp;domainTemplatePertanyaan.TemplatePertanyaan{}); err != nil {
         //         panic(err)
         // }
@@ -20279,6 +20572,7 @@ func RegisterModuleTemplatePertanyaan(db *gorm.DB, dbSimak ...*gorm.DB) error <s
                 Repo:         repoTemplatePertanyaan,
                 RepoKategori: repoKategori,
                 RepoBankSoal: repoBankSoal,
+                RepoAccount:  repoAccount,
         })
 
         mediatr.RegisterRequestHandler[
@@ -20503,8 +20797,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
                         a.required as Required,
                         a.status as Status,
                         CASE
-                                WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
-                                WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
+                                WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+                                WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
                                 WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
                                 WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
                                 ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
@@ -20579,6 +20873,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
                 Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
                 Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
                 Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+                Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+                Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
                 Select(`
                         a.id as ID,
                         a.uuid as UUID,
@@ -20595,8 +20891,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
                         a.required as Required,
                         a.status as Status,
                         CASE
-                                WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
-                                WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
+                                WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+                                WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
                                 WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
                                 WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
                                 ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
@@ -20702,6 +20998,8 @@ func (r *TemplatePertanyaanRepository) GetAll(
                 Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
                 Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
                 Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+                Joins("LEFT JOIN m_fakultas f ON a.fakultas = f.kode_fakultas").
+                Joins("LEFT JOIN m_program_studi p ON a.prodi = p.kode_prodi").
                 Select(`
                 a.id as ID,
                 a.uuid as UUID,
@@ -20722,9 +21020,11 @@ func (r *TemplatePertanyaanRepository) GetAll(
                 a.unit as Unit,
                 a.created_at as CreatedAt,
                 CASE
-                        WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
-                        WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
-                        ELSE 'admin'
+                        WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+                        WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+                        WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+                        WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+                        ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
                 END as CreatedBy,
                 a.createdByRef as CreatedByRef,
                 a.updated_at as UpdatedAt,
