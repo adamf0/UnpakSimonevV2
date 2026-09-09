@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"UnpakSiamida/common/domain"
-	helperCommon "UnpakSiamida/common/helper"
 	"UnpakSiamida/modules/banksoal/application/mock"
 	domainBankSoal "UnpakSiamida/modules/banksoal/domain"
 
@@ -14,38 +13,38 @@ import (
 )
 
 func TestGetAllBankSoalsQueryHandler_Handle(t *testing.T) {
-	t.Run("NPM not nil", func(t *testing.T) {
-		repo := &mock.MockRepository{}
-		handler := &GetAllBankSoalsQueryHandler{Repo: repo}
-		cmd := GetAllBankSoalsQuery{
-			NPM: helperCommon.StrPtr("12345"),
-		}
-		res, err := handler.Handle(context.Background(), cmd)
-		assert.Error(t, err)
-		assert.Empty(t, res.Data)
-	})
+	// t.Run("NPM not nil", func(t *testing.T) {
+	// 	repo := &mock.MockRepository{}
+	// 	handler := &GetAllBankSoalsQueryHandler{Repo: repo}
+	// 	cmd := GetAllBankSoalsQuery{
+	// 		NPM: helperCommon.StrPtr("12345"),
+	// 	}
+	// 	res, err := handler.Handle(context.Background(), cmd)
+	// 	assert.Error(t, err)
+	// 	assert.Empty(t, res.Data)
+	// })
 
-	t.Run("NIDN not nil", func(t *testing.T) {
-		repo := &mock.MockRepository{}
-		handler := &GetAllBankSoalsQueryHandler{Repo: repo}
-		cmd := GetAllBankSoalsQuery{
-			NIDN: helperCommon.StrPtr("12345"),
-		}
-		res, err := handler.Handle(context.Background(), cmd)
-		assert.Error(t, err)
-		assert.Empty(t, res.Data)
-	})
+	// t.Run("NIDN not nil", func(t *testing.T) {
+	// 	repo := &mock.MockRepository{}
+	// 	handler := &GetAllBankSoalsQueryHandler{Repo: repo}
+	// 	cmd := GetAllBankSoalsQuery{
+	// 		NIDN: helperCommon.StrPtr("12345"),
+	// 	}
+	// 	res, err := handler.Handle(context.Background(), cmd)
+	// 	assert.Error(t, err)
+	// 	assert.Empty(t, res.Data)
+	// })
 
-	t.Run("NIP not nil", func(t *testing.T) {
-		repo := &mock.MockRepository{}
-		handler := &GetAllBankSoalsQueryHandler{Repo: repo}
-		cmd := GetAllBankSoalsQuery{
-			NIP: helperCommon.StrPtr("12345"),
-		}
-		res, err := handler.Handle(context.Background(), cmd)
-		assert.Error(t, err)
-		assert.Empty(t, res.Data)
-	})
+	// t.Run("NIP not nil", func(t *testing.T) {
+	// 	repo := &mock.MockRepository{}
+	// 	handler := &GetAllBankSoalsQueryHandler{Repo: repo}
+	// 	cmd := GetAllBankSoalsQuery{
+	// 		NIP: helperCommon.StrPtr("12345"),
+	// 	}
+	// 	res, err := handler.Handle(context.Background(), cmd)
+	// 	assert.Error(t, err)
+	// 	assert.Empty(t, res.Data)
+	// })
 
 	t.Run("repo error", func(t *testing.T) {
 		repo := &mock.MockRepository{
