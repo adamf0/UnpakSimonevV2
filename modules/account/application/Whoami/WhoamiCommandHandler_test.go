@@ -21,7 +21,7 @@ func TestWhoamiCommandHandler_Handle(t *testing.T) {
 		}
 
 		repo := &mockrepo.MockAccountRepository{
-			GetFunc: func(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error) {
+			GetFunc: func(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error) {
 				assert.Equal(t, "user-123", *id.UserID)
 				assert.Equal(t, "nim-123", *id.NIM)
 				return expectedUser, nil
@@ -44,7 +44,7 @@ func TestWhoamiCommandHandler_Handle(t *testing.T) {
 
 	t.Run("Failure_NotFound_InvalidCredential", func(t *testing.T) {
 		repo := &mockrepo.MockAccountRepository{
-			GetFunc: func(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error) {
+			GetFunc: func(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error) {
 				return nil, gorm.ErrRecordNotFound
 			},
 		}
@@ -66,7 +66,7 @@ func TestWhoamiCommandHandler_Handle(t *testing.T) {
 	t.Run("Failure_RepoError", func(t *testing.T) {
 		expectedErr := errors.New("db error")
 		repo := &mockrepo.MockAccountRepository{
-			GetFunc: func(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error) {
+			GetFunc: func(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error) {
 				return nil, expectedErr
 			},
 		}

@@ -495,21 +495,21 @@ func GetAllBankSoalsHandlerfunc(c *fiber.Ctx) error {
 	npm := c.FormValue("npm")
 	fakultas := c.FormValue("fakultas")
 	prodi := c.FormValue("prodi")
-	role := c.FormValue("role")
-	if role == "" {
-		role = c.FormValue("level")
-	}
-	godump.Dump(c.FormValue("level"), c.FormValue("role"))
+	role := c.FormValue("level")
+	// if role == "" {
+	// 	role = c.FormValue("level")
+	// }
+	godump.Dump(npm, nidn, fakultas, prodi, c.FormValue("level"), c.FormValue("role"))
 
-	if role == "adm_simonev_fakultas" {
-		role = "fakultas"
-		nip = ""
-		nidn = ""
-	} else if role == "adm_simonev_prodi" {
-		role = "prodi"
-		nip = ""
-		nidn = ""
-	}
+	// if role == "adm_simonev_fakultas" {
+	// 	role = "fakultas"
+	// 	nip = ""
+	// 	nidn = ""
+	// } else if role == "adm_simonev_prodi" {
+	// 	role = "prodi"
+	// 	nip = ""
+	// 	nidn = ""
+	// }
 
 	query := GetAllBankSoals.GetAllBankSoalsQuery{
 		Search:         search,

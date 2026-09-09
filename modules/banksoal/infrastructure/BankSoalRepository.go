@@ -125,15 +125,18 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 	dosenSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS nidn,
-			u.name AS nama_dosen,
-			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
-			u.prodi AS kode_prodi,
-			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level AS role
-		`)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+       	u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
 	// =========================
 	// Subquery account
@@ -141,15 +144,18 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 	accountSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS id,
+			CONVERT(u.id USING utf8mb4) AS id,
+			u.employee_id,
 			u.name,
 			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
+			f.nama_fakultas AS nama_fakultas,
 			u.prodi AS kode_prodi,
 			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
+			p.nama_prodi AS nama_prodi,
 			u.level AS role
-		`)
+		`).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
 	// =========================
 	// Subquery pertanyaan
@@ -199,11 +205,21 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 			k.uuid AS UUIDKuesioner
 		`).
 		Joins(`LEFT JOIN (?) ul 
-			ON ul.id = CAST(b.createdByRef AS CHAR)
-			AND LOWER(b.createdBy) = 'local'`, accountSub).
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
 		Joins(`LEFT JOIN (?) dc 
-			ON dc.nidn = CAST(b.createdByRef AS CHAR)
-			AND LOWER(b.createdBy) = 'simak'`, dosenSub).
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 		Joins(`LEFT JOIN (?) pc ON b.id = pc.id_bank_soal`, pertanyaanSub).
 		Joins(`LEFT JOIN kuesionerv2 k ON k.id_bank_soal = b.id`).
 		Where("b.uuid = ?", id).
@@ -241,11 +257,21 @@ func (r *BankSoalRepository) GetDefaultByUuid(
 			COALESCE(ul.role, dc.role) AS Role
 		`).
 		Joins(`LEFT JOIN (?) ul 
-			ON ul.id = CAST(e.createdByRef AS CHAR)
-			AND LOWER(e.createdBy) = 'local'`, accountSub).
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
 		Joins(`LEFT JOIN (?) dc 
-			ON dc.nidn = CAST(e.createdByRef AS CHAR)
-			AND LOWER(e.createdBy) = 'simak'`, dosenSub).
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 		Where("e.id_bank_soal = ?", row.Id).
 		Order("e.id DESC").
 		Scan(&extRows).Error
@@ -282,33 +308,43 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 
 	var row domainbanksoal.BankSoalDefault
 
+	// =========================
 	// Subquery dosen (Local users)
+	// =========================
 	dosenSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS nidn,
-			u.name AS nama_dosen,
-			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
-			u.prodi AS kode_prodi,
-			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+       	u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+	// =========================
 	// Subquery account
+	// =========================
 	accountSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS id,
+			CONVERT(u.id USING utf8mb4) AS id,
+			u.employee_id,
 			u.name,
 			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
+			f.nama_fakultas AS nama_fakultas,
 			u.prodi AS kode_prodi,
 			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+			p.nama_prodi AS nama_prodi,
+			u.level AS role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
 	// =========================
 	// SUBQUERY PERTANYAAN
@@ -362,16 +398,22 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 			INNER JOIN kuesionerv2 k
 				ON k.id_bank_soal = b.id
 		`).
-		Joins(`
-			LEFT JOIN (?) ul
-				ON ul.id = CAST(b.createdByRef AS CHAR)
-				AND LOWER(b.createdBy) = 'local'
-		`, accountSub).
-		Joins(`
-			LEFT JOIN (?) dc
-				ON dc.nidn = CAST(b.createdByRef AS CHAR)
-				AND LOWER(b.createdBy) = 'simak'
-		`, dosenSub).
+		Joins(`LEFT JOIN (?) ul 
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 		Joins(`
 			LEFT JOIN (?) pc
 				ON b.id = pc.id_bank_soal
@@ -413,16 +455,22 @@ func (r *BankSoalRepository) GetDefaultByKuesioner(
 			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi,
 			COALESCE(ul.role, dc.role) AS Role
 		`).
-		Joins(`
-			LEFT JOIN (?) ul
-				ON ul.id = CAST(e.createdByRef AS CHAR)
-				AND LOWER(e.createdBy) = 'local'
-		`, accountSub).
-		Joins(`
-			LEFT JOIN (?) dc
-				ON dc.nidn = CAST(e.createdByRef AS CHAR)
-				AND LOWER(e.createdBy) = 'simak'
-		`, dosenSub).
+		Joins(`LEFT JOIN (?) ul 
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 		Where("e.id_bank_soal = ?", row.Id).
 		Order("e.id DESC").
 		Find(&extRows).Error
@@ -668,33 +716,43 @@ func (r *BankSoalRepository) GetAll(
 	var rows = make([]domainbanksoal.BankSoalDefault, 0)
 	var total int64
 
+	// =========================
 	// Subquery dosen (Local users)
+	// =========================
 	dosenSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS nidn,
-			u.name AS nama_dosen,
-			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
-			u.prodi AS kode_prodi,
-			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+       	u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+	// =========================
 	// Subquery account
+	// =========================
 	accountSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS id,
+			CONVERT(u.id USING utf8mb4) AS id,
+			u.employee_id,
 			u.name,
 			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
+			f.nama_fakultas AS nama_fakultas,
 			u.prodi AS kode_prodi,
 			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+			p.nama_prodi AS nama_prodi,
+			u.level AS role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
 	// Subquery pertanyaan
 	pertanyaanSub := r.db.
@@ -761,8 +819,22 @@ func (r *BankSoalRepository) GetAll(
 			0 AS TotalInput,
 			COALESCE(pc.uuids, '') AS TargetPertanyaan
 		`).
-		Joins(`LEFT JOIN (?) ul ON ul.id = CAST(b.createdByRef AS CHAR) AND LOWER(b.createdBy) = 'local'`, accountSub).
-		Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(b.createdByRef AS CHAR) AND LOWER(b.createdBy) = 'simak'`, dosenSub).
+		Joins(`LEFT JOIN (?) ul 
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(b.createdByRef USING utf8mb4) AND LOWER(b.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 		Joins(`LEFT JOIN (?) pc ON b.id = pc.id_bank_soal`, pertanyaanSub)
 
 	// Filter active / deleted
@@ -800,34 +872,34 @@ func (r *BankSoalRepository) GetAll(
 		if normRole == "prodi" || normRole == "adm_simonev_prodi" {
 			if len(prodiList) > 0 {
 				db = db.Where(`(
-					COALESCE(ul.kode_prodi, dc.kode_prodi) IN ?
-					OR (COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ? AND (COALESCE(ul.kode_prodi, dc.kode_prodi) IS NULL OR COALESCE(ul.kode_prodi, dc.kode_prodi) = ''))
-					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+					CONVERT(COALESCE(ul.kode_prodi, dc.kode_prodi) USING utf8mb4) IN ?
+					OR (CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ? AND (COALESCE(ul.kode_prodi, dc.kode_prodi) IS NULL OR COALESCE(ul.kode_prodi, dc.kode_prodi) = ''))
+					OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
 				)`, prodiList, fakList)
 			} else if len(fakList) > 0 {
 				db = db.Where(`(
-					COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
-					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+					CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ?
+					OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
 				)`, fakList)
 			}
 		} else if normRole == "fakultas" || normRole == "adm_simonev_fakultas" {
 			if len(fakList) > 0 {
 				db = db.Where(`(
-					COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
-					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+					CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ?
+					OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
 				)`, fakList)
 			}
 		} else {
 			// Fallback untuk level fakultas/prodi
 			if len(prodiList) > 0 {
 				db = db.Where(`(
-					COALESCE(ul.kode_prodi, dc.kode_prodi) IN ?
-					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+					CONVERT(COALESCE(ul.kode_prodi, dc.kode_prodi) USING utf8mb4) IN ?
+					OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
 				)`, prodiList)
 			} else if len(fakList) > 0 {
 				db = db.Where(`(
-					COALESCE(ul.kode_fakultas, dc.kode_fakultas) IN ?
-					OR LOWER(COALESCE(ul.role, dc.role)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
+					CONVERT(COALESCE(ul.kode_fakultas, dc.kode_fakultas) USING utf8mb4) IN ?
+					OR LOWER(CONVERT(COALESCE(ul.role, dc.role) USING utf8mb4)) IN ('admin', 'superadmin', 'adm_pusat', 'adm_simonev', 'putik', 'rektorat')
 				)`, fakList)
 			}
 		}
@@ -924,8 +996,22 @@ func (r *BankSoalRepository) GetAll(
 				COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi,
 				COALESCE(ul.role, dc.role) AS Role
 			`).
-			Joins(`LEFT JOIN (?) ul ON ul.id = CAST(e.createdByRef AS CHAR) AND LOWER(e.createdBy) = 'local'`, accountSub).
-			Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(e.createdByRef AS CHAR) AND LOWER(e.createdBy) = 'simak'`, dosenSub).
+			Joins(`LEFT JOIN (?) ul 
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
+			Joins(`LEFT JOIN (?) dc 
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(e.createdByRef USING utf8mb4) AND LOWER(e.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 			Where("e.id_bank_soal IN ?", ids).
 			Order("e.id DESC").
 			Find(&extRows).Error

@@ -69,10 +69,21 @@ func (r *AccountRepository) Auth(ctx context.Context, username string, password 
 	)
 }
 
-func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier) (*domain.AccountDefault, error) {
+func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier, mode *string) (*domain.AccountDefault, error) {
 	if strings.TrimSpace(helper.StringValue(id.NIDN)) != "" {
 		res, err := r.getSimakDosen(ctx, helper.StringValue(id.NIDN))
 		if err == nil && res != nil && res.ID != "" {
+			if mode == nil {
+				local, err := r.getDB(ctx, res.ID)
+				if err == nil {
+					res.Level = local.Level
+					res.Fakultas = local.Fakultas
+					res.RefFakultas = local.RefFakultas
+					res.Prodi = local.Prodi
+					res.RefProdi = local.RefProdi
+				}
+			}
+
 			return res, nil
 		}
 	}
@@ -87,6 +98,17 @@ func (r *AccountRepository) Get(ctx context.Context, id domain.AccountIdentifier
 	if strings.TrimSpace(helper.StringValue(id.NIP)) != "" {
 		res, err := r.getSimpeg(ctx, id.NIP, id.NIDN)
 		if err == nil && res != nil && res.ID != "" {
+			if mode == nil {
+				local, err := r.getDB(ctx, res.ID)
+				if err == nil {
+					res.Level = local.Level
+					res.Fakultas = local.Fakultas
+					res.RefFakultas = local.RefFakultas
+					res.Prodi = local.Prodi
+					res.RefProdi = local.RefProdi
+				}
+			}
+
 			return res, nil
 		}
 	}

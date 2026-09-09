@@ -10,7 +10,7 @@ import (
 
 type MockAccountRepository struct {
 	AuthFunc      func(ctx context.Context, username string, password string) (*domainaccount.AccountDefault, error)
-	GetFunc       func(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error)
+	GetFunc       func(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error)
 	GetByUuidFunc func(ctx context.Context, uid uuid.UUID) (*domainaccount.Account, error)
 	GetAllFunc    func(ctx context.Context, search string, searchFilters []commonDomain.SearchFilter, page, limit *int, deleted bool) ([]domainaccount.Account, int64, error)
 	CreateFunc    func(ctx context.Context, account *domainaccount.Account) error
@@ -26,9 +26,9 @@ func (m *MockAccountRepository) Auth(ctx context.Context, username string, passw
 	return nil, nil
 }
 
-func (m *MockAccountRepository) Get(ctx context.Context, id domainaccount.AccountIdentifier) (*domainaccount.AccountDefault, error) {
+func (m *MockAccountRepository) Get(ctx context.Context, id domainaccount.AccountIdentifier, mode *string) (*domainaccount.AccountDefault, error) {
 	if m.GetFunc != nil {
-		return m.GetFunc(ctx, id)
+		return m.GetFunc(ctx, id, mode)
 	}
 	return nil, nil
 }

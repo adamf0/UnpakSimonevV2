@@ -61,7 +61,7 @@ func DefaultBlacklistedHeaderNames() map[string]bool {
 }
 
 func DefaultHeaderSecurityConfig() *HeaderSecurityConfig {
-	domains := []string{"simonev.unpak.ac.id", "gerbang.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com", "postman"}
+	domains := []string{"unpak.ac.id", "hrportal.unpak.ac.id", "simonev.unpak.ac.id", "simonev-lpm.unpak.ac.id", "api-simonev-lpm.unpak.ac.id", "gerbang.unpak.ac.id", "sipaksi.unpak.ac.id", "siamida.unpak.ac.id", "localhost", "localhost:3000", "localhost:4000", "127.0.0.1", "127.0.0.1:3000", "127.0.0.1:4000", "thunderclient.com", "postman"}
 	if envDomains := os.Getenv("ALLOWED_HOSTS"); envDomains != "" {
 		parts := strings.Split(envDomains, ",")
 		for _, p := range parts {
@@ -138,10 +138,11 @@ func HeaderSecurityMiddleware(cfg *HeaderSecurityConfig) fiber.Handler {
 	blocked := parseBlockedCIDRs(cfg.BlockedCIDRs)
 
 	return func(c *fiber.Ctx) error {
-
 		for name, vals := range c.GetReqHeaders() {
-			for _, val := range vals {
+			lowerName := strings.ToLower(name)
+			skipDomainCheck := lowerName == "authorization" || lowerName == "cookie" || lowerName == "user-agent" || lowerName == "accept" || lowerName == "content-type" || lowerName == "cache-control"
 
+			for _, val := range vals {
 				if err := validateHeaderLength(name, val, cfg); err != nil {
 					return badRequest(c, err)
 				}
@@ -164,12 +165,14 @@ func HeaderSecurityMiddleware(cfg *HeaderSecurityConfig) fiber.Handler {
 					return badRequest(c, err)
 				}
 
-				if err := validateURLDomain(decoded, cfg, blocked); err != nil {
-					return badRequest(c, err)
-				}
+				if !skipDomainCheck {
+					if err := validateURLDomain(decoded, cfg, blocked); err != nil {
+						return badRequest(c, err)
+					}
 
-				if err := validateHostHeader(name, decoded, cfg); err != nil {
-					return badRequest(c, err)
+					if err := validateHostHeader(name, decoded, cfg); err != nil {
+						return badRequest(c, err)
+					}
 				}
 			}
 		}
@@ -311,6 +314,16 @@ func validateEmbeddedDomains(c *fiber.Ctx, cfg *HeaderSecurityConfig) error {
 // =======================
 
 func badRequest(c *fiber.Ctx, err error) error {
+	origin := c.Get("Origin")
+	if origin == "" {
+		origin = "*"
+	}
+	c.Set("Access-Control-Allow-Origin", origin)
+	if origin != "*" {
+		c.Set("Access-Control-Allow-Credentials", "true")
+	}
+	c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+	c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, ctxtoken, ctxtahun, *")
 	return c.Status(400).JSON(err)
 }
 
@@ -355,8 +368,7 @@ func extractBearerToken(c *fiber.Ctx) (string, error) {
 
 	if authHeader == "" && authQuery == "" {
 		log.Println("Authorization header missing")
-		return "", c.Status(400).
-			JSON(commoninfra.NewResponseError(logCommonRbac, "authorization header missing"))
+		return "", fiber.NewError(fiber.StatusBadRequest, "authorization header missing")
 	}
 
 	var jwt = authHeader
@@ -369,8 +381,7 @@ func extractBearerToken(c *fiber.Ctx) (string, error) {
 	parts := strings.Split(jwt, " ")
 	if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
 		log.Println("Invalid authorization header format")
-		return "", c.Status(400).
-			JSON(commoninfra.NewResponseError(logCommonRbac, "authorization header format must be Bearer token"))
+		return "", fiber.NewError(fiber.StatusBadRequest, "authorization header format must be Bearer token")
 	}
 
 	token := parts[1]
@@ -423,25 +434,29 @@ func validateClaims(token *jwt.Token) (jwt.MapClaims, error) {
 	return claims, nil
 }
 
+func isKeycloakSessionID(str string) bool {
+	return strings.HasPrefix(str, "mIb") || (len(str) > 20 && !strings.Contains(str, "-") && !strings.Contains(str, "@"))
+}
+
 func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
 	iss, _ := claims["iss"].(string)
 	employeeId, _ := claims["employeeid"].(string)
 
-	isKeycloak := strings.Contains(iss, "gerbang.unpak.ac.id") || employeeId != ""
+	isKeycloak := strings.Contains(iss, "gerbang.unpak.ac.id") || employeeId != "" || claims["preferred_username"] != nil
 
 	if isKeycloak {
-		if employeeId == "" {
-			if pref, ok := claims["preferred_username"].(string); ok && pref != "" {
-				employeeId = pref
-			} else if sub, ok := claims["sub"].(string); ok {
-				employeeId = sub
-			} else if uName, ok := claims["username"].(string); ok {
-				employeeId = uName
+		if employeeId == "" || isKeycloakSessionID(employeeId) {
+			if emp, ok := claims["employeeid"].(string); ok && emp != "" {
+				employeeId = emp
+			} else if emp2, ok := claims["employee_id"].(string); ok && emp2 != "" {
+				employeeId = emp2
 			}
 		}
 
 		c.Request().PostArgs().Set("sid", employeeId)
+		c.Request().PostArgs().Set("user_id", employeeId)
 		c.Locals("sid", employeeId)
+		c.Locals("user_id", employeeId)
 
 		var allGroups []string
 		if groupRaw, ok := claims["group"].([]interface{}); ok {
@@ -526,7 +541,9 @@ func injectRequestValues(c *fiber.Ctx, claims jwt.MapClaims, tokenStr string) {
 		// Local login token
 		if sid, ok := claims["sid"].(string); ok {
 			c.Request().PostArgs().Set("sid", sid)
+			c.Request().PostArgs().Set("user_id", sid)
 			c.Locals("sid", sid)
+			c.Locals("user_id", sid)
 		}
 		if resource, ok := claims["resource"].(string); ok {
 			c.Request().PostArgs().Set("resource", resource)
@@ -567,10 +584,18 @@ func RBACMiddleware(whitelist []string, whoamiURL string) fiber.Handler {
 			return err
 		}
 
+		if whoamiURL == "" {
+			whoamiURL = os.Getenv("WHOAMI_URL")
+		}
+
 		user, err := fetchWhoAmI(token, whoamiURL, c)
 		if err != nil {
 			return err
 		}
+		if user == nil {
+			return fiber.NewError(fiber.StatusUnauthorized, "user profile invalid")
+		}
+
 		nidn := ""
 		nip := ""
 		npm := ""
@@ -617,18 +642,16 @@ func fetchWhoAmI(token, whoamiURL string, c *fiber.Ctx) (*Account, error) {
 	req, err := http.NewRequest("GET", whoamiURL, nil)
 	if err != nil {
 		log.Printf("[RBAC] Failed to create request: %v", err)
-		return nil, c.Status(500).
-			JSON(commoninfra.NewResponseError(logCommonRbac, "Failed to create request: "+err.Error()))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to create whoami request: "+err.Error())
 	}
 
 	req.Header.Set("Authorization", "Bearer "+token)
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Printf("[RBAC] Failed to call whoami: %v", err)
-		return nil, c.Status(500).
-			JSON(commoninfra.NewResponseError(logCommonRbac, "Failed to call whoami: "+err.Error()))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Failed to call whoami: "+err.Error())
 	}
 	defer resp.Body.Close()
 
@@ -636,14 +659,13 @@ func fetchWhoAmI(token, whoamiURL string, c *fiber.Ctx) (*Account, error) {
 	log.Printf("[RBAC] Whoami response status: %d, body: %s", resp.StatusCode, string(body))
 
 	if resp.StatusCode != 200 {
-		return nil, handleWhoAmIError(body, c)
+		return nil, fiber.NewError(resp.StatusCode, "Whoami request failed with status: "+string(body))
 	}
 
 	var user Account
 	if err := json.Unmarshal(body, &user); err != nil {
 		log.Printf("[RBAC] Failed to parse whoami response: %v", err)
-		return nil, c.Status(400).
-			JSON(commoninfra.NewResponseError(logCommonRbac, "Failed to parse whoami response"))
+		return nil, fiber.NewError(fiber.StatusBadRequest, "Failed to parse whoami response")
 	}
 
 	log.Printf("[RBAC] Whoami user: %+v", user)

@@ -132,7 +132,7 @@ func TestCreateTemplatePertanyaanCommandHandler_InvalidBankSoalUuid(t *testing.T
 
 	res, err := handler.Handle(context.Background(), cmd)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "kategori is invalid")
+	assert.Contains(t, err.Error(), "bank soal is invalid")
 	assert.Empty(t, res)
 }
 
@@ -206,6 +206,6 @@ func TestCreateTemplatePertanyaanCommandHandler_BankSoalNotFound(t *testing.T) {
 
 	res, err := handler.Handle(context.Background(), cmd)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "kategori is not found")
+	assert.Contains(t, err.Error(), "bank soal is not found")
 	assert.Empty(t, res)
 }

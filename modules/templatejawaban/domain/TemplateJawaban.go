@@ -39,7 +39,13 @@ func NewTemplateJawaban(
 	createdbyref string,
 ) common.ResultValue[*TemplateJawaban] {
 
-	if createdby != "local" {
+	var validOwners = map[string]bool{
+		"local":  true,
+		"simpeg": true,
+		"simak":  true,
+	}
+
+	if !validOwners[createdby] {
 		return common.FailureValue[*TemplateJawaban](InvalidOwner())
 	}
 

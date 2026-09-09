@@ -53,10 +53,11 @@ func (h *CreateKuesionerCommandHandler) Handle(
 		return "", err
 	}
 
-	account, err := h.RepoAccount.Get(ctx, identifier)
+	mode := "skip"
+	account, err := h.RepoAccount.Get(ctx, identifier, &mode)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", domainkuesioner.NotFoundBankSoal()
+			return "", domainkuesioner.InvalidIdentity()
 		}
 		return "", err
 	}
@@ -69,7 +70,7 @@ func (h *CreateKuesionerCommandHandler) Handle(
 	// -------------------------
 	// CREATE DOMAIN ENTITY
 	// -------------------------
-	result := domainkuesioner.NewKuesioner(
+	result := domainkuesioner.NewKuesioner( //[pr] bug logic case peruntukan=daosen data pengguna=tendik
 		k.NIDN,
 		k.NamaDosen,
 		k.NIP,

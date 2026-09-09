@@ -16,6 +16,7 @@ import (
 	update "UnpakSiamida/modules/templatepertanyaan/application/UpdateTemplatePertanyaan"
 	domainTemplatePertanyaan "UnpakSiamida/modules/templatepertanyaan/domain"
 
+	infraAccount "UnpakSiamida/modules/account/infrastructure"
 	infraBankSoal "UnpakSiamida/modules/banksoal/infrastructure"
 	infraKategori "UnpakSiamida/modules/kategori/infrastructure"
 
@@ -26,10 +27,11 @@ import (
 	// "fmt"
 )
 
-func RegisterModuleTemplatePertanyaan(db *gorm.DB, dbSimak ...*gorm.DB) error {
-	repoTemplatePertanyaan := NewTemplatePertanyaanRepository(db, dbSimak...)
+func RegisterModuleTemplatePertanyaan(db *gorm.DB, dbSimpeg *gorm.DB, dbSimak *gorm.DB) error {
+	repoTemplatePertanyaan := NewTemplatePertanyaanRepository(db, dbSimak)
 	repoKategori := infraKategori.NewKategoriRepository(db)
 	repoBankSoal := infraBankSoal.NewBankSoalRepository(db)
+	repoAccount := infraAccount.NewAccountRepository(db, dbSimak, dbSimpeg)
 	// if err := db.AutoMigrate(&domainTemplatePertanyaan.TemplatePertanyaan{}); err != nil {
 	// 	panic(err)
 	// }
@@ -52,6 +54,7 @@ func RegisterModuleTemplatePertanyaan(db *gorm.DB, dbSimak ...*gorm.DB) error {
 		Repo:         repoTemplatePertanyaan,
 		RepoKategori: repoKategori,
 		RepoBankSoal: repoBankSoal,
+		RepoAccount:  repoAccount,
 	})
 
 	mediatr.RegisterRequestHandler[

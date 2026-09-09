@@ -34,7 +34,7 @@ func (h *WhoamiCommandHandler) Handle(
 		NIP:    cmd.NIP,
 		NIM:    cmd.NIM,
 	}
-	user, err := h.Repo.Get(ctx, account)
+	user, err := h.Repo.Get(ctx, account, nil)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, domainaccount.InvalidCredential()

@@ -84,7 +84,18 @@ func HandleError(c *fiber.Ctx, err error) error {
 		return nil
 	}
 
-	trace := getTrace() // ambil trace di semua error
+	origin := c.Get("Origin")
+	if origin == "" {
+		origin = "*"
+	}
+	c.Set("Access-Control-Allow-Origin", origin)
+	if origin != "*" {
+		c.Set("Access-Control-Allow-Credentials", "true")
+	}
+	c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+	c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, ctxtoken, ctxtahun, *")
+
+	trace := getTrace()
 
 	// 1) ResponseError
 	var respErr *ResponseError

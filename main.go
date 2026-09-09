@@ -10,7 +10,6 @@ import (
 	_ "time/tzdata"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/joho/godotenv"
 	"github.com/mehdihadeli/go-mediatr"
@@ -177,23 +176,59 @@ func main() {
 	cfg.ResolveAndCheck = false
 
 	app := fiber.New(fiber.Config{
-		// DisableStartupMessage: true,
 		ReadBufferSize: 16 * 1024,
-		// Prefork:        true, // gunakan semua CPU cores
-		ReadTimeout:  120 * time.Second,
-		WriteTimeout: 120 * time.Second,
-		IdleTimeout:  120 * time.Second,
-	})
-	app.Use(recover.New())
+		ReadTimeout:    120 * time.Second,
+		WriteTimeout:   120 * time.Second,
+		IdleTimeout:    120 * time.Second,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			var e *fiber.Error
+			if errors.As(err, &e) {
+				code = e.Code
+			}
 
-	app.Use(cors.New(cors.Config{
-		AllowOriginsFunc: func(origin string) bool {
-			return true // Allow all origins (*)
+			origin := c.Get("Origin")
+			if origin != "" {
+				c.Set("Access-Control-Allow-Origin", origin)
+				c.Set("Access-Control-Allow-Credentials", "true")
+			} else {
+				c.Set("Access-Control-Allow-Origin", "*")
+			}
+			c.Set("Access-Control-Allow-Headers", "*")
+			c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+
+			return c.Status(code).JSON(fiber.Map{
+				"Code":    code,
+				"Message": err.Error(),
+			})
 		},
-		AllowMethods:     "GET,POST,PUT,PATCH,DELETE,OPTIONS",
-		AllowHeaders:     "*",
-		AllowCredentials: true,
-	}))
+	})
+
+	// 1. Universal CORS Middleware - Absolute top priority for ALL requests (GET, POST, PUT, DELETE, OPTIONS)
+	app.Use(func(c *fiber.Ctx) error {
+		origin := c.Get("Origin")
+		if origin == "" {
+			origin = "*"
+		}
+
+		c.Set("Access-Control-Allow-Origin", origin)
+		if origin != "*" {
+			c.Set("Access-Control-Allow-Credentials", "true")
+		}
+		c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization, X-Requested-With, ctxtoken, ctxtahun, *")
+		c.Set("Access-Control-Expose-Headers", "Content-Length, Content-Type, Authorization")
+		c.Set("Access-Control-Max-Age", "86400")
+
+		// Instantly respond 204 to OPTIONS preflight without blocking
+		if c.Method() == fiber.MethodOptions {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+
+		return c.Next()
+	})
+
+	app.Use(recover.New())
 
 	// app.Use(helmet.New(helmet.Config{
 	// 	XSSProtection:             "1; mode=block",
@@ -202,7 +237,7 @@ func main() {
 	// 	ReferrerPolicy:            "no-referrer", // Referrer-Policy
 	// 	ContentSecurityPolicy:     "default-src 'self'; script-src 'self'; object-src 'none'; base-uri 'none'",
 	// 	CrossOriginEmbedderPolicy: "require-corp",
-	// 	CrossOriginOpenerPolicy:   "same-origin",
+	// 	CrossOriginOpenerPolicy:   "cross-origin",
 	// 	CrossOriginResourcePolicy: "cross-origin",
 	// }))
 	app.Use(commonpresentation.LoggerMiddleware)
@@ -282,7 +317,7 @@ func main() {
 	})
 
 	mustStart("TemplatePertanyaan Module", func() error {
-		return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db, dbSimak)
+		return templatepertanyaanInfrastructure.RegisterModuleTemplatePertanyaan(db, dbSimpeg, dbSimak)
 	})
 
 	mustStart("TemplateJawaban Module", func() error {

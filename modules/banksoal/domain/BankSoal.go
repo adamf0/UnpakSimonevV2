@@ -42,9 +42,16 @@ func NewBankSoal(
 	createdby string, //lpm, fakultas, prodi
 	createdbyref string,
 ) common.ResultValue[*BankSoal] {
-	if createdby != "local" {
+	var validOwners = map[string]bool{
+		"local":  true,
+		"simpeg": true,
+		"simak":  true,
+	}
+
+	if !validOwners[createdby] {
 		return common.FailureValue[*BankSoal](InvalidOwner())
 	}
+
 	if peruntukan != "mahasiswa" && peruntukan != "dosen" && peruntukan != "tendik" {
 		return common.FailureValue[*BankSoal](InvalidType())
 	}
@@ -85,7 +92,13 @@ func UpdateBankSoal(
 		return common.FailureValue[*BankSoal](InvalidData())
 	}
 
-	if createdby != "local" {
+	var validOwners = map[string]bool{
+		"local":  true,
+		"simpeg": true,
+		"simak":  true,
+	}
+
+	if !validOwners[createdby] {
 		return common.FailureValue[*BankSoal](InvalidOwner())
 	}
 

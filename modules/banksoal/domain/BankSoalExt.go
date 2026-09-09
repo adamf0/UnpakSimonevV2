@@ -41,7 +41,13 @@ func AddTimeBankSoalExt(
 	var tanggalMulaiPtr *time.Time
 	var tanggalAkhirPtr *time.Time
 
-	if createdby != "local" {
+	var validOwners = map[string]bool{
+		"local":  true,
+		"simpeg": true,
+		"simak":  true,
+	}
+
+	if !validOwners[createdby] {
 		return common.FailureValue[*BankSoalExt](InvalidOwner())
 	}
 

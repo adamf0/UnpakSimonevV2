@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/mehdihadeli/go-mediatr"
 
 	commondomain "UnpakSiamida/common/domain"
@@ -120,43 +119,14 @@ func WhoAmIHandler(c *fiber.Ctx) error {
 		}
 	}
 
-	// Extract claims directly from Authorization or ctxtoken JWT header if fields are missing
-	authHeader := c.Get("Authorization")
-	if authHeader == "" {
-		authHeader = c.Query("ctxtoken")
+	isKeycloakSessionID := func(str string) bool {
+		return strings.HasPrefix(str, "mIb") || (len(str) > 20 && !strings.Contains(str, "-") && !strings.Contains(str, "@"))
 	}
-	if authHeader != "" {
-		tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
-		tokenStr = strings.TrimSpace(tokenStr)
-		if tokenStr != "" {
-			token, _, err := new(jwt.Parser).ParseUnverified(tokenStr, jwt.MapClaims{})
-			if err == nil && token != nil {
-				if claims, ok := token.Claims.(jwt.MapClaims); ok {
-					if userID == "" {
-						if s, ok := claims["sid"].(string); ok && s != "" {
-							userID = s
-						} else if pref, ok := claims["preferred_username"].(string); ok && pref != "" {
-							userID = pref
-						} else if emp, ok := claims["employeeid"].(string); ok && emp != "" {
-							userID = emp
-						} else if sub, ok := claims["sub"].(string); ok && sub != "" {
-							userID = sub
-						}
-					}
-					if resource == "" {
-						if r, ok := claims["resource"].(string); ok && r != "" {
-							resource = r
-						}
-					}
-					if codectx == "" {
-						if cx, ok := claims["codectx"].(string); ok && cx != "" {
-							codectx = cx
-						} else if cx2, ok := claims["codetx"].(string); ok && cx2 != "" {
-							codectx = cx2
-						}
-					}
-				}
-			}
+	if userID == "" || isKeycloakSessionID(userID) {
+		if s, ok := c.Locals("sid").(string); ok && s != "" && !isKeycloakSessionID(s) {
+			userID = s
+		} else if u, ok := c.Locals("user_id").(string); ok && u != "" && !isKeycloakSessionID(u) {
+			userID = u
 		}
 	}
 

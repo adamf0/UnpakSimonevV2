@@ -16,7 +16,7 @@ func TestTemplatePertanyaan_TableName(t *testing.T) {
 func TestTemplatePertanyaan_New(t *testing.T) {
 	// Success case
 	var kategori uint = 5
-	res := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, &kategori, 1, "local", "ref-123")
+	res := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, &kategori, 1, nil, nil, "local", "ref-123")
 	assert.True(t, res.IsSuccess)
 	assert.NotNil(t, res.Value)
 	assert.Equal(t, "Pertanyaan A?", res.Value.Pertanyaan)
@@ -24,18 +24,18 @@ func TestTemplatePertanyaan_New(t *testing.T) {
 	assert.Equal(t, "draf", res.Value.Status)
 
 	// Bobot <= 0 defaults to 1
-	resZeroBobot := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 0, &kategori, 1, "local", "ref-123")
+	resZeroBobot := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 0, &kategori, 1, nil, nil, "local", "ref-123")
 	assert.True(t, resZeroBobot.IsSuccess)
 	assert.Equal(t, uint(1), resZeroBobot.Value.Bobot)
 
 	// Failure case
-	resFail := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, "invalid-owner", "ref-123")
+	resFail := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, nil, nil, "invalid-owner", "ref-123")
 	assert.False(t, resFail.IsSuccess)
 	assert.Equal(t, domain.InvalidOwner(), resFail.Error)
 }
 
 func TestTemplatePertanyaan_Update(t *testing.T) {
-	tp := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, "local", "ref-123").Value
+	tp := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, nil, nil, "local", "ref-123").Value
 
 	// Success case
 	res := domain.UpdateTemplatePertanyaan(tp, tp.UUID, 2, "Updated Question", "checkbox", 3, nil, 0, "local", "ref-123")
@@ -56,7 +56,7 @@ func TestTemplatePertanyaan_Update(t *testing.T) {
 }
 
 func TestTemplatePertanyaan_DeleteAndRestore(t *testing.T) {
-	tp := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, "local", "ref-123").Value
+	tp := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, nil, nil, "local", "ref-123").Value
 
 	// Delete
 	resDel := domain.DeleteTemplatePertanyaan(tp)
@@ -74,7 +74,7 @@ func TestTemplatePertanyaan_DeleteAndRestore(t *testing.T) {
 }
 
 func TestTemplatePertanyaan_ChangeStatus(t *testing.T) {
-	tp := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, "local", "ref-123").Value
+	tp := domain.NewTemplatePertanyaan(1, "Pertanyaan A?", "radio", 2, nil, 1, nil, nil, "local", "ref-123").Value
 
 	// Success status
 	res := domain.ChangeStatus(tp, "active")
@@ -91,7 +91,7 @@ func TestTemplatePertanyaan_ChangeStatus(t *testing.T) {
 }
 
 func TestTemplatePertanyaan_Copy(t *testing.T) {
-	tp := domain.NewTemplatePertanyaan(1, "Original Question", "radio", 2, nil, 1, "local", "ref-123").Value
+	tp := domain.NewTemplatePertanyaan(1, "Original Question", "radio", 2, nil, 1, nil, nil, "local", "ref-123").Value
 
 	// Copy count = 0
 	resCopy1 := domain.CopyTemplatePertanyaan(tp, 0, "local", "ref-123")

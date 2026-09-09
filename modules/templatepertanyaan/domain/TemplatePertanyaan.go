@@ -21,6 +21,8 @@ type TemplatePertanyaan struct {
 	Bobot        uint       `gorm:"column:bobot"`
 	IdKategori   *uint      `gorm:"column:id_kategori"`
 	Required     int        `gorm:"column:required"`
+	Fakultas     *string    `gorm:"column:fakultas"`
+	Prodi        *string    `gorm:"column:prodi"`
 	Status       string     `gorm:"column:status"`
 	CreatedBy    *string    `gorm:"column:createdBy"`
 	CreatedByRef *string    `gorm:"column:createdByRef"`
@@ -41,11 +43,19 @@ func NewTemplatePertanyaan(
 	bobot uint,
 	idKategori *uint,
 	required int,
+	fakultas *string,
+	prodi *string,
 	createdby string,
 	createdbyref string,
 ) common.ResultValue[*TemplatePertanyaan] {
 
-	if createdby != "local" {
+	var validOwners = map[string]bool{
+		"local":  true,
+		"simpeg": true,
+		"simak":  true,
+	}
+
+	if !validOwners[createdby] {
 		return common.FailureValue[*TemplatePertanyaan](InvalidOwner())
 	}
 
@@ -62,6 +72,8 @@ func NewTemplatePertanyaan(
 		IdKategori:   idKategori,
 		Required:     required,
 		Status:       "draf",
+		Fakultas:     fakultas,
+		Prodi:        prodi,
 		CreatedBy:    helper.StrPtr(createdby),
 		CreatedByRef: helper.StrPtr(createdbyref),
 	}

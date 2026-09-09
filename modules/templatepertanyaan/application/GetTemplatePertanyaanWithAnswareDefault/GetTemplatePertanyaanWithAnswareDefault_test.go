@@ -144,7 +144,7 @@ func TestGetTemplatePertanyaanWithAnswareDefaultByBankSoalQueryHandler_InvalidUu
 
 	res, err := handler.Handle(context.Background(), q)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "kategori is invalid") // Note: domain error returned is InvalidBankSoal()
+	assert.Contains(t, err.Error(), "bank soal is invalid")
 	assert.Empty(t, res.Data)
 }
 
@@ -168,6 +168,6 @@ func TestGetTemplatePertanyaanWithAnswareDefaultByBankSoalQueryHandler_BankSoalN
 
 	res, err := handler.Handle(context.Background(), q)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "kategori is not found") // NotFoundBankSoal returns "kategori is not found"
+	assert.Contains(t, err.Error(), "bank soal is not found")
 	assert.Empty(t, res.Data)
 }

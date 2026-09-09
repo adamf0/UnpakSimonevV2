@@ -9,7 +9,7 @@ import (
 
 type IAccountRepository interface {
 	Auth(ctx context.Context, username string, password string) (*AccountDefault, error)
-	Get(ctx context.Context, id AccountIdentifier) (*AccountDefault, error)
+	Get(ctx context.Context, id AccountIdentifier, mode *string) (*AccountDefault, error)
 
 	GetByUuid(
 		ctx context.Context,

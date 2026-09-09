@@ -62,33 +62,43 @@ func (r *KategoriRepository) GetDefaultByUuid(
 		SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
+	// =========================
 	// Subquery dosen (Local users)
+	// =========================
 	dosenSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS nidn,
-			u.name AS nama_dosen,
-			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
-			u.prodi AS kode_prodi,
-			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+       	u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+	// =========================
 	// Subquery account
+	// =========================
 	accountSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS id,
+			CONVERT(u.id USING utf8mb4) AS id,
+			u.employee_id,
 			u.name,
 			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
+			f.nama_fakultas AS nama_fakultas,
 			u.prodi AS kode_prodi,
 			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+			p.nama_prodi AS nama_prodi,
+			u.level AS role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
 	err := r.db.WithContext(ctx).
 		Table("kategoriv2 a").
@@ -111,8 +121,22 @@ func (r *KategoriRepository) GetDefaultByUuid(
 			COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
 			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi
 	`, uuidSub, namaSub).
-		Joins(`LEFT JOIN (?) ul ON ul.id = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'local'`, accountSub).
-		Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'simak'`, dosenSub).
+		Joins(`LEFT JOIN (?) ul 
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simak'
+				)
+			)`, dosenSub).
 		Where("a.uuid = ?", id).
 		Take(&rowData).Error
 
@@ -172,33 +196,43 @@ func (r *KategoriRepository) GetAll(
 		SQL: `(SELECT k.nama_kategori FROM kategoriv2 k WHERE k.id = a.sub_kategori LIMIT 1)`,
 	}
 
+	// =========================
 	// Subquery dosen (Local users)
+	// =========================
 	dosenSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS nidn,
-			u.name AS nama_dosen,
-			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
-			u.prodi AS kode_prodi,
-			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+        CONVERT(u.id USING utf8mb4) AS nidn,
+       	u.employee_id,
+        u.name AS nama_dosen,
+        u.fakultas AS kode_fakultas,
+        f.nama_fakultas AS nama_fakultas,
+        u.prodi AS kode_prodi,
+        '' AS kode_jenjang,
+        p.nama_prodi AS nama_prodi,
+        u.level AS role
+    `).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
+	// =========================
 	// Subquery account
+	// =========================
 	accountSub := r.db.
 		Table("users u").
 		Select(`
-			CAST(u.id AS CHAR) AS id,
+			CONVERT(u.id USING utf8mb4) AS id,
+			u.employee_id,
 			u.name,
 			u.fakultas AS kode_fakultas,
-			u.fakultas AS nama_fakultas,
+			f.nama_fakultas AS nama_fakultas,
 			u.prodi AS kode_prodi,
 			'' AS kode_jenjang,
-			u.prodi AS nama_prodi,
-			u.level as role
-		`)
+			p.nama_prodi AS nama_prodi,
+			u.level AS role
+		`).
+		Joins("LEFT JOIN m_fakultas f ON CONVERT(u.fakultas USING utf8mb4) = CONVERT(f.kode_fakultas USING utf8mb4)").
+		Joins("LEFT JOIN m_program_studi p ON CONVERT(u.prodi USING utf8mb4) = CONVERT(p.kode_prodi USING utf8mb4)")
 
 	db := r.db.Debug().WithContext(ctx).
 		Table("kategoriv2 a").
@@ -221,8 +255,22 @@ func (r *KategoriRepository) GetAll(
 			COALESCE(ul.kode_prodi, dc.kode_prodi) AS KodeProdi,
 			COALESCE(ul.nama_prodi, dc.nama_prodi) AS NamaProdi
 	`, uuidSub, namaSub).
-		Joins(`LEFT JOIN (?) ul ON ul.id = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'local'`, accountSub).
-		Joins(`LEFT JOIN (?) dc ON dc.nidn = CAST(a.createdByRef AS CHAR) AND LOWER(a.createdBy) = 'simak'`, dosenSub)
+		Joins(`LEFT JOIN (?) ul 
+			ON (
+				(
+					CONVERT(ul.id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+				) OR (
+					CONVERT(ul.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simpeg'
+				)
+			)`, accountSub).
+		Joins(`LEFT JOIN (?) dc 
+			ON (
+				(
+					CONVERT(dc.nidn USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'local'
+				) OR (
+					CONVERT(dc.employee_id USING utf8mb4) = CONVERT(a.createdByRef USING utf8mb4) AND LOWER(a.createdBy) = 'simak'
+				)
+			)`, dosenSub)
 
 	if deleted {
 		db = db.Where(clause.Expr{

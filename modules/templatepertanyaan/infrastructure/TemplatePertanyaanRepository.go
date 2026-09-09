@@ -129,8 +129,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByUuid(
 			a.required as Required,
 			a.status as Status,
 			CASE
-				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
-				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
 				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
 				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
 				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
@@ -205,6 +205,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+		Joins("LEFT JOIN m_fakultas f ON u.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON u.prodi = p.kode_prodi").
 		Select(`
 			a.id as ID,
 			a.uuid as UUID,
@@ -221,8 +223,8 @@ func (r *TemplatePertanyaanRepository) GetDefaultWithAnswareByBankSoal(
 			a.required as Required,
 			a.status as Status,
 			CASE
-				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
-				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
+				WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+				WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
 				WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
 				WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
 				ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
@@ -328,6 +330,8 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		Joins("LEFT JOIN kategoriv2 k ON k.id = a.id_kategori").
 		Joins("LEFT JOIN bank_soalv2 b ON b.id = a.id_bank_soal").
 		Joins("LEFT JOIN users u ON a.createdByRef = u.id").
+		Joins("LEFT JOIN m_fakultas f ON a.fakultas = f.kode_fakultas").
+		Joins("LEFT JOIN m_program_studi p ON a.prodi = p.kode_prodi").
 		Select(`
 		a.id as ID,
 		a.uuid as UUID,
@@ -348,9 +352,11 @@ func (r *TemplatePertanyaanRepository) GetAll(
 		a.unit as Unit,
 		a.created_at as CreatedAt,
 		CASE
-			WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", u.prodi)
-			WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", u.fakultas)
-			ELSE 'admin'
+			WHEN u.prodi IS NOT NULL AND u.prodi != '' THEN CONCAT("PRODI ", p.nama_prodi)
+			WHEN u.fakultas IS NOT NULL AND u.fakultas != '' THEN CONCAT("FAKULTAS ", f.nama_fakultas)
+			WHEN LOWER(u.level) = 'fakultas' THEN 'fakultas'
+			WHEN LOWER(u.level) = 'prodi' THEN 'prodi'
+			ELSE COALESCE(NULLIF(TRIM(a.createdBy), ''), 'admin')
 		END as CreatedBy,
 		a.createdByRef as CreatedByRef,
 		a.updated_at as UpdatedAt,

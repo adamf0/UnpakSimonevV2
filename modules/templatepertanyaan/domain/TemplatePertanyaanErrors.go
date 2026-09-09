@@ -22,18 +22,21 @@ func InvalidStatus() domain.Error {
 }
 
 func InvalidBankSoal() domain.Error {
-	return domain.NotFoundError("TemplatePertanyaan.InvalidBankSoal", "kategori is invalid")
+	return domain.NotFoundError("TemplatePertanyaan.InvalidBankSoal", "bank soal is invalid")
 }
 
 func NotFoundKategori() domain.Error {
 	return domain.NotFoundError("TemplatePertanyaan.NotFoundKategori", "kategori is not found")
 }
 func NotFoundBankSoal() domain.Error {
-	return domain.NotFoundError("TemplatePertanyaan.NotFoundBankSoal", "kategori is not found")
+	return domain.NotFoundError("TemplatePertanyaan.NotFoundBankSoal", "bank soal is not found")
 }
 
 func InvalidData() domain.Error {
 	return domain.NotFoundError("TemplatePertanyaan.InvalidData", "data is invalid")
+}
+func InvalidIdentity() domain.Error {
+	return domain.NotFoundError("TemplatePertanyaan.InvalidIdentity", "indentity is invalid")
 }
 
 func NotFound(id string) domain.Error {

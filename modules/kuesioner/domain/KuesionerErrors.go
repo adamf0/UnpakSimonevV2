@@ -33,6 +33,10 @@ func NotFoundBankSoal() domain.Error {
 	return domain.NotFoundError("Kuesioner.NotFoundBankSoal", "bank soal is not found")
 }
 
+func InvalidIdentity() domain.Error {
+	return domain.NotFoundError("Kuesioner.InvalidIdentity", "indentity is invalid")
+}
+
 func NotFoundPertanyaan() domain.Error {
 	return domain.NotFoundError("Kuesioner.NotFoundPertanyaan", "pertanyaan is not found")
 }
