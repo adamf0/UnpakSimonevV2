@@ -107,8 +107,8 @@ func NewMySQL() (*gorm.DB, error) {
 		log.Print("berhasil konek simonev")
 
 		sqlDB, _ := dbMain.DB()
-		sqlDB.SetMaxOpenConns(20)
-		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetMaxOpenConns(100)
+		sqlDB.SetMaxIdleConns(25)
 		sqlDB.SetConnMaxLifetime(10 * time.Minute)
 		sqlDB.SetConnMaxIdleTime(2 * time.Minute)
 	})
@@ -132,8 +132,8 @@ func NewMySQLSimak() (*gorm.DB, error) {
 		log.Print("berhasil konek simak")
 
 		sqlDB, _ := dbSimak.DB()
-		sqlDB.SetMaxOpenConns(20)
-		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetMaxOpenConns(100)
+		sqlDB.SetMaxIdleConns(25)
 		sqlDB.SetConnMaxLifetime(10 * time.Minute)
 		sqlDB.SetConnMaxIdleTime(2 * time.Minute)
 	})
@@ -157,8 +157,8 @@ func NewMySQLSimpeg() (*gorm.DB, error) {
 		log.Print("berhasil konek simpeg")
 
 		sqlDB, _ := dbSimpeg.DB()
-		sqlDB.SetMaxOpenConns(20)
-		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetMaxOpenConns(100)
+		sqlDB.SetMaxIdleConns(25)
 		sqlDB.SetConnMaxLifetime(10 * time.Minute)
 		sqlDB.SetConnMaxIdleTime(2 * time.Minute)
 	})
