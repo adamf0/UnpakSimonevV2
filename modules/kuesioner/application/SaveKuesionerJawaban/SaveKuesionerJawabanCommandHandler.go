@@ -31,30 +31,8 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
 	cmd SaveKuesionerJawabanCommand,
 ) (string, error) {
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-
-	// ===============================
-	// TRANSACTION
-	// ===============================
-	tx, err := h.RepoJawabanKuesioner.BeginTx(ctx)
-	if err != nil {
-		return "", err
-	}
-
-	defer func() {
-		if r := recover(); r != nil {
-			_ = tx.Rollback()
-			panic(r)
-		}
-	}()
-
-	commit := false
-	defer func() {
-		if !commit {
-			_ = tx.Rollback()
-		}
-	}()
 
 	// ===============================
 	// VALIDASI UUID
@@ -131,7 +109,29 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
 	}
 
 	// ===============================
-	// EXISTING DATA (FIX HERE)
+	// TRANSACTION
+	// ===============================
+	tx, err := h.RepoJawabanKuesioner.BeginTx(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			_ = tx.Rollback()
+			panic(r)
+		}
+	}()
+
+	commit := false
+	defer func() {
+		if !commit {
+			_ = tx.Rollback()
+		}
+	}()
+
+	// ===============================
+	// EXISTING DATA
 	// ===============================
 	existing, err := h.RepoJawabanKuesioner.
 		WithTx(tx).
