@@ -14654,35 +14654,13 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         cmd SaveKuesionerJawabanCommand,
 ) (string, error) <span class="cov0" title="0">{
 
-        ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+        ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
         defer cancel()
-
-        // ===============================
-        // TRANSACTION
-        // ===============================
-        tx, err := h.RepoJawabanKuesioner.BeginTx(ctx)
-        if err != nil </span><span class="cov0" title="0">{
-                return "", err
-        }</span>
-
-        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
-                if r := recover(); r != nil </span><span class="cov0" title="0">{
-                        _ = tx.Rollback()
-                        panic(r)</span>
-                }
-        }()
-
-        <span class="cov0" title="0">commit := false
-        defer func() </span><span class="cov0" title="0">{
-                if !commit </span><span class="cov0" title="0">{
-                        _ = tx.Rollback()
-                }</span>
-        }()
 
         // ===============================
         // VALIDASI UUID
         // ===============================
-        <span class="cov0" title="0">kuesionerUUID, err := uuid.Parse(cmd.UuidKuesioner)
+        kuesionerUUID, err := uuid.Parse(cmd.UuidKuesioner)
         if err != nil </span><span class="cov0" title="0">{
                 return "", domainkuesioner.InvalidUuid()
         }</span>
@@ -14754,7 +14732,29 @@ func (h *SaveKuesionerJawabanCommandHandler) Handle(
         }</span>
 
         // ===============================
-        // EXISTING DATA (FIX HERE)
+        // TRANSACTION
+        // ===============================
+        <span class="cov0" title="0">tx, err := h.RepoJawabanKuesioner.BeginTx(ctx)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">defer func() </span><span class="cov0" title="0">{
+                if r := recover(); r != nil </span><span class="cov0" title="0">{
+                        _ = tx.Rollback()
+                        panic(r)</span>
+                }
+        }()
+
+        <span class="cov0" title="0">commit := false
+        defer func() </span><span class="cov0" title="0">{
+                if !commit </span><span class="cov0" title="0">{
+                        _ = tx.Rollback()
+                }</span>
+        }()
+
+        // ===============================
+        // EXISTING DATA
         // ===============================
         <span class="cov0" title="0">existing, err := h.RepoJawabanKuesioner.
                 WithTx(tx).
