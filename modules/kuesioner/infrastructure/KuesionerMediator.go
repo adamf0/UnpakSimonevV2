@@ -13,6 +13,7 @@ import (
 	get "UnpakSiamida/modules/kuesioner/application/GetKuesioner"
 	getAnsware "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
 	save "UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban"
+	saveBulk "UnpakSiamida/modules/kuesioner/application/SaveBulkKuesionerJawaban"
 	setupUuid "UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner"
 	domainKuesioner "UnpakSiamida/modules/kuesioner/domain"
 
@@ -67,6 +68,16 @@ func RegisterModuleKuesioner(db *gorm.DB, dbSimak *gorm.DB, dbSimpeg *gorm.DB) e
 		save.SaveKuesionerJawabanCommand,
 		string,
 	](&save.SaveKuesionerJawabanCommandHandler{
+		Repo:                 repoKuesioner,
+		RepoPertanyaan:       repoPertanyaan,
+		RepoJawaban:          repoJawaban,
+		RepoJawabanKuesioner: repoKuesionerJawaban,
+	})
+
+	mediatr.RegisterRequestHandler[
+		saveBulk.SaveBulkKuesionerJawabanCommand,
+		string,
+	](&saveBulk.SaveBulkKuesionerJawabanCommandHandler{
 		Repo:                 repoKuesioner,
 		RepoPertanyaan:       repoPertanyaan,
 		RepoJawaban:          repoJawaban,

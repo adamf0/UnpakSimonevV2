@@ -2,6 +2,7 @@ package presentation
 
 import (
 	"context"
+	"encoding/json"
 	"os"
 	"strings"
 
@@ -24,6 +25,7 @@ import (
 	GetKuesioner "UnpakSiamida/modules/kuesioner/application/GetKuesioner"
 	GetKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/GetKuesionerJawaban"
 	SaveKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/SaveKuesionerJawaban"
+	SaveBulkKuesionerJawaban "UnpakSiamida/modules/kuesioner/application/SaveBulkKuesionerJawaban"
 	SetupUuidKuesioner "UnpakSiamida/modules/kuesioner/application/SetupUuidKuesioner"
 	kuesionerInfrastructure "UnpakSiamida/modules/kuesioner/infrastructure"
 )
@@ -126,6 +128,86 @@ func SaveKuesionerJawabanHandlerfunc(c *fiber.Ctx) error {
 	}
 
 	uuid, err := mediatr.Send[SaveKuesionerJawaban.SaveKuesionerJawabanCommand, string](context.Background(), cmd)
+	if err != nil {
+		return commoninfra.HandleError(c, err)
+	}
+
+	return commonpresentation.JsonUUID(c, uuid)
+}
+
+// =======================================================
+// POST /kuesioner/{uuid}/jawaban/bulk
+// =======================================================
+
+func SaveBulkKuesionerJawabanHandlerfunc(c *fiber.Ctx) error {
+	UuidKuesioner := c.Params("uuid")
+
+	SID := c.FormValue("sid")
+	if SID == "" {
+		if s, ok := c.Locals("sid").(string); ok {
+			SID = s
+		}
+	}
+
+	Resource := c.FormValue("resource")
+	if Resource == "" {
+		Resource = c.FormValue("source")
+		if Resource == "" {
+			if r, ok := c.Locals("resource").(string); ok {
+				Resource = r
+			} else if s, ok := c.Locals("source").(string); ok {
+				Resource = s
+			}
+		}
+	}
+
+	CodeCtx := c.FormValue("codectx")
+	if CodeCtx == "" {
+		if cc, ok := c.Locals("codectx").(string); ok {
+			CodeCtx = cc
+		}
+	}
+
+	var items []SaveBulkKuesionerJawaban.BulkJawabanItem
+
+	type BulkBody struct {
+		SID      string                                     `json:"sid"`
+		Resource string                                     `json:"resource"`
+		CodeCtx  string                                     `json:"codectx"`
+		Items    []SaveBulkKuesionerJawaban.BulkJawabanItem `json:"items"`
+	}
+
+	var body BulkBody
+	if err := c.BodyParser(&body); err == nil && len(body.Items) > 0 {
+		items = body.Items
+		if body.SID != "" {
+			SID = body.SID
+		}
+		if body.Resource != "" {
+			Resource = body.Resource
+		}
+		if body.CodeCtx != "" {
+			CodeCtx = body.CodeCtx
+		}
+	} else {
+		itemsRaw := c.FormValue("items")
+		if itemsRaw == "" {
+			itemsRaw = c.FormValue("payload")
+		}
+		if itemsRaw != "" {
+			_ = json.Unmarshal([]byte(itemsRaw), &items)
+		}
+	}
+
+	cmd := SaveBulkKuesionerJawaban.SaveBulkKuesionerJawabanCommand{
+		UuidKuesioner: UuidKuesioner,
+		SID:           SID,
+		Resource:      Resource,
+		CodeCtx:       CodeCtx,
+		Items:         items,
+	}
+
+	uuid, err := mediatr.Send[SaveBulkKuesionerJawaban.SaveBulkKuesionerJawabanCommand, string](context.Background(), cmd)
 	if err != nil {
 		return commoninfra.HandleError(c, err)
 	}
@@ -603,6 +685,7 @@ func ModuleKuesioner(app *fiber.App) {
 	app.Post("/api/v2/kuesioner", commonpresentation.JWTMiddleware(), CreateKuesionerHandlerfunc) //commonpresentation.RBACMiddleware(admin, whoamiURL)
 	app.Get("/api/v2/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), GetKuesionerJawabanHandlerfunc)
 	app.Post("/api/v2/kuesioner/:uuid/jawaban", commonpresentation.JWTMiddleware(), SaveKuesionerJawabanHandlerfunc)
+	app.Post("/api/v2/kuesioner/:uuid/jawaban/bulk", commonpresentation.JWTMiddleware(), SaveBulkKuesionerJawabanHandlerfunc)
 
 	app.Delete("/api/v2/kuesioner/:uuid", commonpresentation.JWTMiddleware(), DeleteKuesionerHandlerfunc)
 
